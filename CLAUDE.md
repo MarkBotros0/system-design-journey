@@ -45,6 +45,31 @@ src/
 └── routes/           one screen per file
 ```
 
+## Indexes and registries — what to update when you add something
+
+Nothing is auto-discovered. Every new piece of content has to be registered somewhere, and
+forgetting is the most common way a change silently does nothing. This table is the answer to
+"I added a file, why is it not showing up".
+
+| Adding | Write it in | Then register it in |
+|---|---|---|
+| A module | `content/modules/<track>.ts` (in that track's exported array) | nothing else — the array *is* the registry |
+| A whole track | `content/tracks.ts` | `content/index.ts` — import its module array into `modules` |
+| A design problem | `content/problems/<id>.ts` | **`content/problems/index.ts`** — add to the `problems` array, in easy→hard order |
+| An abbreviation | `content/glossary.ts` | nothing — `glossaryIds` is derived. But `validate.ts` will fail until it exists |
+| A term that needs no expansion | — | `ALLOWED` in `content/validate.ts` |
+| A figure primitive | `content/figures.ts` (the `Figure` union) | `components/content/Figure.tsx` (`FigureView` switch) **and** `figureTexts()` in `validate.ts` |
+| A lesson block kind | `content/types.ts` (the `Block` union) | `components/content/Blocks.tsx` **and** `blockTexts()` in `validate.ts` |
+| A route/screen | `routes/<Name>Screen.tsx` | `App.tsx` — and `components/nav/Shell.tsx` if it deserves a tab |
+| A pattern | `content/patterns.ts` | referenced by id from a problem's `patterns` array |
+
+**The two easiest to forget** are the last column of the figure and block rows: a new kind that
+renders but is not added to `validate.ts` becomes a hole the abbreviation rule cannot see into.
+
+`content/index.ts` is the single aggregation point — `modules`, `tracks`, `populatedTracks`,
+`problems`, `allCards`, `getModule()`, `getProblem()`, `modulesOfTrack()`. Import from there,
+never from the individual track files, or the dev validation never runs.
+
 ## Authoring content — the thing you will do most
 
 Content is **typed TypeScript data, not MDX**. The compiler catches a broken prereq id or an
@@ -229,6 +254,37 @@ existing field's meaning. An export written by an older build must still import 
 
 Unlocking uses the lighter bar on purpose: cards need real days to mature, and gating the next
 station behind a week of drilling would stall the journey for no benefit.
+
+## Pushing
+
+Remote: `https://github.com/MarkBotros0/system-design-journey.git`, branch `main`.
+
+**Switch the GitHub account first.** This machine has several accounts in `gh`, and the default
+active one is *not* the owner of this repo. Pushing as the wrong account fails with a 403, or
+worse, succeeds against something you did not intend.
+
+```bash
+gh auth switch --hostname github.com --user MarkBotros0
+```
+
+Confirm with `gh api user --jq .login` — it must print `MarkBotros0` — then push. Git uses the
+`gh` credential helper here, so the switch is all the authentication needed.
+
+```bash
+git push -u origin main
+```
+
+**Expect intermittent connection failures.** GitHub resolves to several addresses and at least
+one of them is unreachable from this network; git picks one per attempt, so a push fails with
+`Failed to connect to github.com port 443` maybe three times out of four and then succeeds. It
+is not an auth problem and not a repo problem — just retry:
+
+```bash
+for i in 1 2 3 4 5; do git push -u origin main && break; sleep 3; done
+```
+
+`curl` and `gh` are unaffected, so `gh api` calls work even while `git push` is failing — do not
+use that as evidence the push should have worked.
 
 ## Conventions
 
