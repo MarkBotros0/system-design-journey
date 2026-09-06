@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "throughput",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:/Projects/system-design-journey", "run", "dev"],
+      "port": 5180
+    }
+  ]
+}

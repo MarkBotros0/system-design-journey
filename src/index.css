@@ -1,0 +1,180 @@
+@import 'tailwindcss';
+
+/* Theme is driven by an explicit data-theme attribute on <html>, set before first
+   paint by the inline script in index.html. "system" is resolved to light/dark there
+   rather than being a third CSS state — one code path, no un-stamped case. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+:root {
+  color-scheme: light;
+
+  --ink: #16191f;
+  --ink-2: #4c555f;
+  --ink-3: #78828c;
+
+  --paper: #eff1f4;
+  --surface: #ffffff;
+  --surface-2: #e4e8ed;
+  --hairline: #d3d9e0;
+
+  /* The one bold accent. Route line, active state, primary action. */
+  --line: #1f35c4;
+  --line-ink: #ffffff;
+  --line-soft: #dde3fa;
+
+  /* Earned states only — never decorative. */
+  --streak: #96680a;
+  --streak-soft: #f6ebd3;
+  --mastered: #2f7d5b;
+  --mastered-soft: #dcede4;
+  --alert: #b0342f;
+  --alert-soft: #f7dedc;
+
+  --shadow-sheet: 0 -8px 32px rgb(22 25 31 / 0.12);
+  --shadow-card: 0 1px 2px rgb(22 25 31 / 0.06);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --ink: #e6eaef;
+  --ink-2: #a3aeb9;
+  --ink-3: #6f7a85;
+
+  --paper: #0d1014;
+  --surface: #151a20;
+  --surface-2: #1e252d;
+  --hairline: #2a323b;
+
+  --line: #7c90ff;
+  --line-ink: #0d1014;
+  --line-soft: #1a2140;
+
+  --streak: #e4a709;
+  --streak-soft: #33280c;
+  --mastered: #5fb58b;
+  --mastered-soft: #14301f;
+  --alert: #f08c86;
+  --alert-soft: #3a1a18;
+
+  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.5);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-hairline: var(--hairline);
+
+  --color-line: var(--line);
+  --color-line-ink: var(--line-ink);
+  --color-line-soft: var(--line-soft);
+
+  --color-streak: var(--streak);
+  --color-streak-soft: var(--streak-soft);
+  --color-mastered: var(--mastered);
+  --color-mastered-soft: var(--mastered-soft);
+  --color-alert: var(--alert);
+  --color-alert-soft: var(--alert-soft);
+
+  --font-display: 'Familjen Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    letter-spacing: -0.018em;
+    line-height: 1.15;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--line);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Digits that sit in columns, timers, and latency figures must not jitter. */
+  .tabular,
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* Safe areas. Every fixed edge element uses one of these. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .px-safe {
+    padding-left: max(env(safe-area-inset-left), 1rem);
+    padding-right: max(env(safe-area-inset-right), 1rem);
+  }
+  /* Scroll clearance so content never hides behind the fixed tab bar. */
+  .pb-tabbar {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1.5rem);
+  }
+
+  .prose-lesson {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.68;
+    color: var(--ink-2);
+  }
+  .prose-lesson strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
