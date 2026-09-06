@@ -51,7 +51,7 @@ export function Shell() {
       </aside>
 
       <div className="min-w-0 flex-1">
-        <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-tabbar lg:max-w-3xl lg:px-8 lg:py-10">
+        <main className="mx-auto w-full max-w-2xl px-4 pt-screen pb-tabbar lg:max-w-3xl lg:px-8 lg:pt-10 lg:pb-10">
           <Outlet />
         </main>
       </div>

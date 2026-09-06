@@ -104,7 +104,7 @@ export function ProblemScreen() {
 
   if (stage === 'brief') {
     return (
-      <div className="mx-auto max-w-lg px-4 pt-5 pb-10">
+      <div className="mx-auto max-w-lg px-4 pt-screen pb-10">
         <Link
           to="/practice"
           className="-ml-1 mb-6 inline-flex min-h-11 items-center gap-1.5 pr-2 text-[0.875rem] text-ink-2 hover:text-ink"
@@ -147,7 +147,7 @@ export function ProblemScreen() {
   if (stage === 'running') {
     const over = remaining < 0
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-5 pb-6">
+      <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-screen pb-6">
         <header className="mb-4">
           <div className="mb-2 flex items-center justify-between gap-3">
             <span className="font-mono text-[0.6875rem] tracking-[0.14em] uppercase text-ink-3">
@@ -219,7 +219,7 @@ export function ProblemScreen() {
   if (stage === 'grading') {
     const hit = Object.values(scored).filter(Boolean).length
     return (
-      <div className="mx-auto max-w-lg px-4 pt-5 pb-10">
+      <div className="mx-auto max-w-lg px-4 pt-screen pb-10">
         <h1 className="text-[1.75rem] leading-tight font-semibold">The answer</h1>
         <p className="mt-2 text-[0.9375rem] text-ink-2">
           Read it against your notes, then tick what you genuinely covered. Honest ticks are the
@@ -297,7 +297,7 @@ export function ProblemScreen() {
   const seniorHit = seniorRows.filter((r) => scored[r.id]).length
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4 py-10">
+    <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4 pt-screen pb-10">
       <p className="font-mono text-[0.6875rem] tracking-[0.14em] uppercase text-ink-3">
         {problem.title}
       </p>

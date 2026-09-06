@@ -64,7 +64,7 @@ export function QuizScreen() {
     const score = correctCount / questions.length
     const passed = score >= QUIZ_PASS
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4 py-10">
+      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4 pt-screen pb-10">
         <p className="font-mono text-[0.6875rem] tracking-[0.14em] uppercase text-ink-3">
           {module.title}
         </p>
@@ -93,7 +93,7 @@ export function QuizScreen() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-5 pb-8">
+    <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-screen pb-8">
       <header className="mb-6">
         <div className="mb-3 flex items-center justify-between gap-4">
           <span className="font-mono text-[0.6875rem] text-ink-3 tabular">

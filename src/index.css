@@ -139,23 +139,38 @@
   }
 }
 
-@layer utilities {
-  /* Safe areas. Every fixed edge element uses one of these. */
-  .pt-safe {
-    padding-top: env(safe-area-inset-top);
-  }
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .px-safe {
-    padding-left: max(env(safe-area-inset-left), 1rem);
-    padding-right: max(env(safe-area-inset-right), 1rem);
-  }
-  /* Scroll clearance so content never hides behind the fixed tab bar. */
-  .pb-tabbar {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1.5rem);
-  }
+/* Safe-area utilities.
+ *
+ * Declared with `@utility`, not as plain classes in `@layer utilities` — that matters.
+ * A hand-written class in the utilities layer outranks Tailwind's responsive variants,
+ * so `pt-screen lg:pt-10` silently kept the mobile value on desktop. `@utility` registers
+ * these with Tailwind's own sorter, so variants override them the way you'd expect. */
 
+/* Fixed edge elements — bars pinned to the top or bottom of the viewport. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility px-safe {
+  padding-left: max(env(safe-area-inset-left), 1rem);
+  padding-right: max(env(safe-area-inset-right), 1rem);
+}
+
+/* Scroll clearance so content never hides behind the fixed tab bar. */
+@utility pb-tabbar {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1.5rem);
+}
+
+/* Top of a scrolling screen. `viewport-fit=cover` plus a translucent status bar means the
+   web view extends under the notch, so a plain `pt-5` puts the first heading behind the
+   clock. Scrolling screens use this; fixed bars use pt-safe/pb-safe. */
+@utility pt-screen {
+  padding-top: calc(env(safe-area-inset-top) + 1.25rem);
+}
+
+@layer utilities {
   .prose-lesson {
     font-family: var(--font-serif);
     font-size: 1.0625rem;
