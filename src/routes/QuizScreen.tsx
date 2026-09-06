@@ -4,7 +4,7 @@ import { Check, X } from 'lucide-react'
 import { getModule } from '../content'
 import { useProgress } from '../state/ProgressProvider'
 import { QUIZ_PASS } from '../lib/progress'
-import { Inline } from '../components/content/Blocks'
+import { Inline } from '../components/content/Inline'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { Meter } from '../components/ui/Bits'
 

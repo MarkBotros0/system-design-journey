@@ -8,8 +8,10 @@ import { DrillScreen } from './routes/DrillScreen'
 import { PracticeScreen } from './routes/PracticeScreen'
 import { ProblemScreen } from './routes/ProblemScreen'
 import { YouScreen } from './routes/YouScreen'
+import { GlossaryScreen } from './routes/GlossaryScreen'
 import { ButtonLink } from './components/ui/Button'
 import { PwaBanner } from './components/pwa/PwaBanner'
+import { GlossarySheet } from './components/content/GlossarySheet'
 
 /** A new screen starts at the top; the browser's restore only makes sense going back. */
 function ScrollToTop() {
@@ -49,6 +51,7 @@ export default function App() {
           <Route path="/practice" element={<PracticeScreen />} />
           <Route path="/drill" element={<DrillScreen />} />
           <Route path="/you" element={<YouScreen />} />
+          <Route path="/glossary" element={<GlossaryScreen />} />
         </Route>
 
         {/* Focus modes — timed or scored, so the tab bar comes off and each has its own exit. */}
@@ -58,6 +61,8 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <PwaBanner />
+      {/* Mounted once — every abbreviation in the app opens this same sheet. */}
+      <GlossarySheet />
     </>
   )
 }

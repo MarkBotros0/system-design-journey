@@ -1,38 +1,7 @@
-import { Fragment, useMemo } from 'react'
+import { Fragment } from 'react'
 import type { Block } from '../../content/types'
-
-/* ------------------------------------------------------------------ */
-/* Inline markup                                                       */
-/* ------------------------------------------------------------------ */
-
-/**
- * Two inline forms only: **bold** and `code`. Deliberately tiny — a full markdown
- * parser would invite content that the block types already handle better, and every
- * extra form is one more thing that can render wrong on a 375px screen.
- */
-export function Inline({ text }: { text: string }) {
-  const parts = useMemo(() => text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean), [text])
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={i}>{part.slice(2, -2)}</strong>
-        }
-        if (part.startsWith('`') && part.endsWith('`')) {
-          return (
-            <code
-              key={i}
-              className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[0.85em] text-ink"
-            >
-              {part.slice(1, -1)}
-            </code>
-          )
-        }
-        return <Fragment key={i}>{part}</Fragment>
-      })}
-    </>
-  )
-}
+import { Inline } from './Inline'
+import { FigureView } from './Figure'
 
 /* ------------------------------------------------------------------ */
 /* Callouts                                                            */
@@ -236,6 +205,15 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
               </List>
             )
           }
+          case 'figure':
+            return (
+              <figure key={i}>
+                <FigureView figure={b.figure} />
+                <figcaption className="mt-2 text-[0.8125rem] leading-relaxed text-ink-3">
+                  <Inline text={b.caption} />
+                </figcaption>
+              </figure>
+            )
           case 'callout':
             return <Callout key={i} {...b} />
           case 'table':

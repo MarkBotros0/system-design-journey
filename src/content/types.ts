@@ -9,6 +9,10 @@
  * see `renderInline` in components/content/Inline.tsx.
  */
 
+import type { Figure as FigureSpec } from './figures'
+
+export type { FigureSpec }
+
 export type Level = 'foundations' | 'core' | 'applied' | 'interview'
 
 export interface Track {
@@ -27,6 +31,12 @@ export interface Track {
 export type Block =
   | { kind: 'prose'; text: string }
   | { kind: 'heading'; text: string }
+  /**
+   * A diagram. See `figures.ts` for the eight primitives. Every lesson carries at least
+   * one — this subject is mechanisms and trade-offs, and both are far clearer drawn.
+   * The caption states what the figure shows, in one line.
+   */
+  | { kind: 'figure'; figure: FigureSpec; caption: string }
   | { kind: 'list'; items: string[]; ordered?: boolean }
   /** `say` = the line to use in an interview. `trap` = the way people lose points. */
   | { kind: 'callout'; tone: 'say' | 'trap' | 'note'; title?: string; text: string }

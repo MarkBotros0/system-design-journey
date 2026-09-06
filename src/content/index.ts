@@ -5,6 +5,7 @@ import { coreModules } from './modules/core'
 import { appliedModules } from './modules/applied'
 import { interviewModules } from './modules/interview'
 import { problems as problemList } from './problems'
+import { validateContent } from './validate'
 
 /** Every module, in curriculum order. Track order first, then station within a track. */
 export const modules: Module[] = [
@@ -98,6 +99,11 @@ if (import.meta.env.DEV) {
       if (rubricIds.has(r.id)) problems_.push(`problem ${p.id}: duplicate rubric id ${r.id}`)
       rubricIds.add(r.id)
     }
+  }
+
+  // Figures on every unit, and no unexplained abbreviations.
+  for (const issue of validateContent(modules, problems)) {
+    problems_.push(`${issue.where}: ${issue.message}`)
   }
 
   if (problems_.length) {

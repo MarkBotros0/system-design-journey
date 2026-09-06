@@ -3,7 +3,7 @@ import { modules } from '../content'
 import { hasReadLesson } from '../lib/progress'
 import { isDue, isLearned, sortForDrill, type Grade } from '../lib/srs'
 import { useProgress } from '../state/ProgressProvider'
-import { Inline } from '../components/content/Blocks'
+import { Inline } from '../components/content/Inline'
 import { ButtonLink } from '../components/ui/Button'
 import { Badge, Empty, Meter, ScreenTitle } from '../components/ui/Bits'
 

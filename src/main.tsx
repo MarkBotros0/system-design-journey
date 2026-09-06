@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ProgressProvider } from './state/ProgressProvider'
+import { GlossaryProvider } from './state/GlossaryProvider'
 import './index.css'
 
 const root = document.getElementById('root')
@@ -12,7 +13,9 @@ createRoot(root).render(
   <StrictMode>
     <BrowserRouter>
       <ProgressProvider>
-        <App />
+        <GlossaryProvider>
+          <App />
+        </GlossaryProvider>
       </ProgressProvider>
     </BrowserRouter>
   </StrictMode>,
