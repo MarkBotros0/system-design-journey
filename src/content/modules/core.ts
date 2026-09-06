@@ -28,7 +28,7 @@ export const coreModules: Module[] = [
         rows: [
           ['**Requirements**', '5 min', 'Top 3 functional, 3–5 quantified non-functional'],
           ['**Core entities**', '2 min', '3–5 nouns — a vocabulary, not a schema'],
-          ['**API**', '5 min', 'One endpoint per functional requirement'],
+          ['**[[API]]**', '5 min', 'One endpoint per functional requirement'],
           ['**Data flow**', '5 min', 'Optional. Pipeline-shaped systems only'],
           ['**High-level design**', '10–15 min', 'Boxes and arrows satisfying the API'],
           ['**Deep dives**', '10 min', '2–3 bottlenecks worked properly'],
@@ -37,6 +37,23 @@ export const coreModules: Module[] = [
       {
         kind: 'prose',
         text: 'That is 42 minutes of budget inside a 45-minute slot. The remainder is slack, deliberately — you will overrun somewhere, and a plan with no slack is a plan that fails on contact.',
+      },
+      {
+        kind: 'figure',
+        caption: 'Forty-five minutes, drawn to scale. Deep dives are the last tenth — and where senior is decided.',
+        figure: {
+          kind: 'ratio',
+          parts: [
+            { label: 'Requirements · 5', value: 5, tone: 'line' },
+            { label: 'Entities · 2', value: 2, tone: 'neutral' },
+            { label: 'API · 5', value: 5, tone: 'line' },
+            { label: 'Data flow · 5', value: 5, tone: 'neutral' },
+            { label: 'High-level · 15', value: 15, tone: 'streak' },
+            { label: 'Deep dives · 10', value: 10, tone: 'mastered' },
+            { label: 'Slack · 3', value: 3, tone: 'neutral' },
+          ],
+          note: 'Overrun the first two bands and the last one — the one that scores — disappears.',
+        },
       },
       { kind: 'heading', text: 'Why this order and not another' },
       {
@@ -73,7 +90,7 @@ export const coreModules: Module[] = [
       {
         id: 'q-c-framework-1',
         moduleId: 'c-framework',
-        stem: 'Why does the API come before the high-level design?',
+        stem: 'Why does the [[API]] come before the high-level design?',
         options: [
           'Because interviewers always ask for it first',
           'Because it constrains the architecture — you draw what serves each endpoint in turn',
@@ -92,7 +109,7 @@ export const coreModules: Module[] = [
           'Finish properly — requirements are the most important phase',
           'Cut immediately and move on, accepting an imperfect scope',
           'Ask the interviewer for extra time',
-          'Skip the API and go straight to drawing',
+          'Skip the [[API]] and go straight to drawing',
         ],
         correct: 1,
         explain:
@@ -118,7 +135,7 @@ export const coreModules: Module[] = [
         id: 'c-c-framework-1',
         moduleId: 'c-framework',
         front: 'The six phases and their minute budgets.',
-        back: 'Requirements 5 · Core entities 2 · API 5 · Data flow 5 (optional) · High-level design 10–15 · Deep dives 10.',
+        back: 'Requirements 5 · Core entities 2 · [[API]] 5 · Data flow 5 (optional) · High-level design 10–15 · Deep dives 10.',
         tag: 'Framework',
       },
       {
@@ -170,7 +187,7 @@ export const coreModules: Module[] = [
       { kind: 'heading', text: 'Non-functional: three to five, each quantified' },
       {
         kind: 'prose',
-        text: 'Not "low latency" but "search under 500 ms". Not "scalable" but "100M DAU at 100:1 reads". A number turns an aspiration into a constraint you can design against and later point back at.',
+        text: 'Not "low latency" but "search under 500 ms". Not "scalable" but "100M [[DAU]] at 100:1 reads". A number turns an aspiration into a constraint you can design against and later point back at.',
       },
       {
         kind: 'prose',
@@ -179,15 +196,29 @@ export const coreModules: Module[] = [
       {
         kind: 'list',
         items: [
-          '**CAP** — consistency or availability when the network splits.',
+          '**[[CAP]]** — consistency or availability when the network splits.',
           '**Environment constraints** — battery, memory, bandwidth on the client.',
           '**Scalability** — burstiness, seasonality, read/write ratio.',
           '**Latency** — what has a deadline, and what it is.',
           '**Durability** — how much data loss is survivable.',
           '**Security** — access control, data protection.',
           '**Fault tolerance** — redundancy, failover, recovery.',
-          '**Compliance** — GDPR, data residency, retention.',
+          '**Compliance** — [[GDPR]], data residency, retention.',
         ],
+      },
+      {
+        kind: 'figure',
+        caption: 'The chain from a user count to a number of servers. Do it in your head, in about fifteen seconds.',
+        figure: {
+          kind: 'flow',
+          nodes: [
+            { label: '1M daily users', to: '× 10 actions' },
+            { label: '10M/day', sub: 'total actions', tone: 'line', to: '÷ 100k' },
+            { label: '~116/s', sub: 'average', tone: 'line', to: '× 3–10' },
+            { label: '~1,000/s', sub: 'peak — size for this', tone: 'mastered' },
+          ],
+          note: '86,400 seconds in a day is close enough to 100,000 for mental arithmetic.',
+        },
       },
       { kind: 'heading', text: 'Estimation: only when it decides something' },
       {
@@ -208,7 +239,7 @@ export const coreModules: Module[] = [
           title: 'Not worth doing',
           points: [
             'Total storage after five years, when nothing depends on it',
-            'Bandwidth in gigabits, to conclude "we need a CDN"',
+            'Bandwidth in gigabits, to conclude "we need a [[CDN]]"',
             'Any figure you will not refer to again',
           ],
         },
@@ -217,10 +248,10 @@ export const coreModules: Module[] = [
       {
         kind: 'list',
         items: [
-          '**86,400 seconds/day ≈ 100k.** Daily volume ÷ 100k ≈ average QPS.',
+          '**86,400 seconds/day ≈ 100k.** Daily volume ÷ 100k ≈ average [[QPS]].',
           'Peak is **3–10×** average. Design for peak.',
           '1M DAU × 10 actions/day ≈ **116 writes/sec** average.',
-          '1 KB × 1M/day ≈ 1 GB/day ≈ **365 GB/year**.',
+          '1 [[KB]] × 1M/day ≈ 1 [[GB]]/day ≈ **365 GB/year**.',
           'Consumer read:write is around **100:1** — design the read path first.',
         ],
       },
@@ -233,7 +264,7 @@ export const coreModules: Module[] = [
         options: [
           'The system should be highly scalable',
           'The system should be fast and reliable',
-          'The system should render a feed in under 200 ms at 100M DAU',
+          'The system should render a feed in under 200 ms at 100M [[DAU]]',
           'The system should use best practices for performance',
         ],
         correct: 2,
@@ -257,7 +288,7 @@ export const coreModules: Module[] = [
       {
         id: 'q-c-requirements-3',
         moduleId: 'c-requirements',
-        stem: 'A service handles 8.6 million requests a day. Roughly what is peak QPS?',
+        stem: 'A service handles 8.6 million requests a day. Roughly what is peak [[QPS]]?',
         options: [
           'About 100 — daily volume divided by 86,400',
           'About 100 average, so plan for roughly 300–1000 at peak',
@@ -274,13 +305,13 @@ export const coreModules: Module[] = [
         id: 'c-c-requirements-1',
         moduleId: 'c-requirements',
         front: 'The eight non-functional categories.',
-        back: 'CAP · environment constraints · scalability · latency · durability · security · fault tolerance · compliance. Pick the three to five that actually bite.',
+        back: '[[CAP]] · environment constraints · scalability · latency · durability · security · fault tolerance · compliance. Pick the three to five that actually bite.',
         tag: 'Requirements',
       },
       {
         id: 'c-c-requirements-2',
         moduleId: 'c-requirements',
-        front: 'Rough QPS from a daily volume, in your head.',
+        front: 'Rough [[QPS]] from a daily volume, in your head.',
         back: '86,400 s/day ≈ 100k. Divide daily volume by 100k for average QPS, then multiply by 3–10 for peak.',
         tag: 'Numbers',
       },
@@ -325,6 +356,32 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         kind: 'prose',
         text: 'That reversed index is the standard trick for a many-to-many relationship in a key-value store, and it is why a follow graph does not need a graph database — there is no deep traversal, only two lookups.',
       },
+      {
+        kind: 'figure',
+        caption: 'One relationship, indexed from both ends — which is why this needs no graph database.',
+        figure: {
+          kind: 'split',
+          left: {
+            title: 'Base table',
+            tone: 'line',
+            nodes: [
+              { label: 'Key: follower', sub: 'alice', to: 'read' },
+              { label: 'Who alice follows', tone: 'line' },
+            ],
+            cost: 'Answers one direction in a single lookup.',
+          },
+          right: {
+            title: 'Reversed index',
+            tone: 'mastered',
+            nodes: [
+              { label: 'Key: followee', sub: 'alice', to: 'read' },
+              { label: 'Who follows alice', tone: 'mastered' },
+            ],
+            cost: 'Costs storage and write throughput. Eventually consistent.',
+          },
+          verdict: 'There is no deep traversal here — just two lookups. That is the whole argument against reaching for a graph database.',
+        },
+      },
       { kind: 'heading', text: 'Secondary indexes' },
       {
         kind: 'prose',
@@ -335,14 +392,14 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         kind: 'prose',
         text: 'Normalise by default. Then find the one read that is slow because it joins, and duplicate just enough to make it a single lookup. **State the update cost out loud** — every copy is now something that can drift, and saying so is the difference between a considered trade and an oversight.',
       },
-      { kind: 'heading', text: 'External indexes and CDC' },
+      { kind: 'heading', text: 'External indexes and [[CDC]]' },
       {
         kind: 'prose',
         text: 'Some queries do not belong in your primary store at all: full text, geospatial, complex aggregation. Those go to a purpose-built index fed by **change data capture** — the primary database\'s write log is streamed into Elasticsearch or similar.',
       },
       {
         kind: 'flow',
-        nodes: ['Postgres', 'CDC stream', 'Elasticsearch', 'Search API'],
+        nodes: ['Postgres', 'CDC stream', 'Elasticsearch', 'Search [[API]]'],
         note: 'The index lags the primary by around a second. For search that is fine; for a booking decision it is not.',
       },
       {
@@ -364,12 +421,12 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         ],
         correct: 2,
         explain:
-          'A reversed GSI answers the same relationship from the other end in O(1). There is no deep traversal here, so a graph database buys nothing and invites scaling questions you gain nothing from.',
+          'A reversed [[GSI]] answers the same relationship from the other end in O(1). There is no deep traversal here, so a graph database buys nothing and invites scaling questions you gain nothing from.',
       },
       {
         id: 'q-c-modelling-2',
         moduleId: 'c-modelling',
-        stem: 'Your Elasticsearch index is fed from Postgres by CDC. Which use is inappropriate?',
+        stem: 'Your Elasticsearch index is fed from Postgres by [[CDC]]. Which use is inappropriate?',
         options: [
           'Searching event names with fuzzy matching',
           'Filtering a product catalogue by category',
@@ -432,7 +489,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         kind: 'table',
         head: ['Layer', 'Holds', 'Invalidated by'],
         rows: [
-          ['**CDN**', 'Static assets, unpersonalised API responses', 'TTL, purge on deploy'],
+          ['**[[CDN]]**', 'Static assets, unpersonalised [[API]] responses', '[[TTL]], purge on deploy'],
           ['**In-process**', 'Config, feature flags, tiny hot sets', 'Short TTL; per-instance, so it drifts'],
           ['**Distributed (Redis)**', 'Sessions, computed aggregates, hot rows', 'Explicit invalidation on write, or TTL'],
           ['**Database buffer pool**', 'Recently read pages', 'Managed for you'],
@@ -459,6 +516,33 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         kind: 'callout',
         tone: 'say',
         text: 'Immutable data sidesteps the problem entirely. A short-link mapping, a published post, an uploaded image — none of them change, so they cache with an indefinite TTL and invalidation is a non-issue. Where you can make data immutable, do.',
+      },
+      {
+        kind: 'figure',
+        caption: 'A viral key against a sharded cache and a replicated one.',
+        figure: {
+          kind: 'split',
+          left: {
+            title: 'Sharded',
+            tone: 'alert',
+            nodes: [
+              { label: 'Viral key', to: 'hashes to' },
+              { label: 'Node 2', sub: 'saturated', tone: 'alert' },
+              { label: 'Nodes 1, 3, 4', sub: 'idle', tone: 'neutral' },
+            ],
+            cost: 'More shards changes nothing — the traffic is all one key.',
+          },
+          right: {
+            title: 'Replicated',
+            tone: 'mastered',
+            nodes: [
+              { label: 'Viral key', to: 'any node' },
+              { label: 'All four nodes', sub: 'a quarter each', tone: 'mastered' },
+            ],
+            cost: 'Less total capacity, but the spike is absorbed.',
+          },
+          verdict: 'Sharding assumes load spreads evenly across keys. Virality is precisely the case where it does not.',
+        },
       },
       { kind: 'heading', text: 'The hot key' },
       {
@@ -498,7 +582,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         stem: 'A post goes viral and one cache node saturates while the others sit idle. What fixes it?',
         options: [
           'Add more shards to spread the load',
-          'Increase the TTL on that key',
+          'Increase the [[TTL]] on that key',
           'Replicate — multiple instances each able to serve any key, load balanced across them',
           'Move the post to a dedicated database',
         ],
@@ -511,7 +595,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         moduleId: 'c-caching',
         stem: 'Which data makes cache invalidation a non-problem?',
         options: [
-          'Data with a very short TTL',
+          'Data with a very short [[TTL]]',
           'Immutable data — a published post, a short-link mapping',
           'Data read by only one service',
           'Data stored in an in-process cache',
@@ -533,7 +617,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         id: 'c-c-caching-2',
         moduleId: 'c-caching',
         front: 'The three invalidation strategies.',
-        back: 'Invalidate on write (accurate, couples writers to keys) · short TTL (simple, accepts staleness) · both, with TTL as the backstop. Pick per data type.',
+        back: 'Invalidate on write (accurate, couples writers to keys) · short [[TTL]] (simple, accepts staleness) · both, with TTL as the backstop. Pick per data type.',
         tag: 'Caching',
       },
     ],
@@ -568,6 +652,18 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         tone: 'say',
         text: 'State the key and the query it makes slow, in one breath: "I will shard on `userId` — everything for one user lands on one shard, at the cost of any query that spans users. Those go to the search index instead."',
       },
+      {
+        kind: 'figure',
+        caption: 'Keys that must move when you add one server to a cluster of ten.',
+        figure: {
+          kind: 'ratio',
+          parts: [
+            { label: 'Plain modulo hashing — ~90% move', value: 90, tone: 'alert' },
+            { label: 'stay put', value: 10, tone: 'neutral' },
+          ],
+          note: 'Consistent hashing inverts this: only the arc the new server takes over moves, about 10%. That is the whole reason it exists.',
+        },
+      },
       { kind: 'heading', text: 'What sharding takes away' },
       {
         kind: 'list',
@@ -580,7 +676,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Sharding by reflex. A well-tuned single instance handles ~50k TPS and a few terabytes. At 10k writes/sec and 100 GB you do not need it, and proposing it invites a justification you cannot give.',
+        text: 'Sharding by reflex. A well-tuned single instance handles ~50k [[TPS]] and a few terabytes. At 10k writes/sec and 100 [[GB]] you do not need it, and proposing it invites a justification you cannot give.',
       },
       { kind: 'heading', text: 'Consistent hashing, briefly' },
       {
@@ -673,7 +769,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
     lesson: [
       {
         kind: 'prose',
-        text: 'Consistency, availability, partition tolerance — pick two. Except you do not really get a choice about partitions: networks fail, and a distributed system has to keep working when they do. So the real question is what you do **during** a partition.',
+        text: '[[CAP]] — consistency, availability, partition tolerance — says pick two. Except you do not really get a choice about partitions: networks fail, and a distributed system has to keep working when they do. So the real question is what you do **during** a partition.',
       },
       {
         kind: 'compare',
@@ -694,6 +790,33 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
           ],
         },
         verdict: 'Availability is the right default. Users tolerate slightly stale data far better than a system that will not respond.',
+      },
+      {
+        kind: 'figure',
+        caption: 'The same network split, handled two ways.',
+        figure: {
+          kind: 'timeline',
+          ticks: ['split begins', 'during the split', 'healed'],
+          lanes: [
+            {
+              label: 'Availability first',
+              bars: [
+                { from: 0, to: 0.66, label: 'both sides answer, briefly disagreeing', tone: 'streak' },
+                { from: 0.66, to: 1, label: 'converged', tone: 'mastered' },
+              ],
+              outcome: { label: 'nobody refused', tone: 'mastered' },
+            },
+            {
+              label: 'Consistency first',
+              bars: [
+                { from: 0, to: 0.66, label: 'minority side refuses', tone: 'alert' },
+                { from: 0.66, to: 1, label: 'serving again', tone: 'mastered' },
+              ],
+              outcome: { label: 'never wrong', tone: 'line' },
+            },
+          ],
+          note: 'Neither is better. They are answers to different questions about what failure you can afford.',
+        },
       },
       { kind: 'heading', text: 'When you must pick consistency' },
       {
@@ -720,7 +843,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
           ['Feed', 'Availability', 'A minute of staleness is invisible'],
         ],
       },
-      { kind: 'heading', text: 'PACELC' },
+      { kind: 'heading', text: '[[PACELC]]' },
       {
         kind: 'prose',
         text: 'CAP only describes the partition case, which is rare. PACELC adds the common one: during a **P**artition choose **A** or **C**; **E**lse, choose **L**atency or **C**onsistency. Even on a healthy network, synchronous replication to a distant region costs latency — you are trading, all the time, not just during failures.',
@@ -744,7 +867,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         id: 'q-c-cap-2',
         moduleId: 'c-cap',
-        stem: 'What does PACELC add to CAP?',
+        stem: 'What does [[PACELC]] add to [[CAP]]?',
         options: [
           'A third option beyond consistency and availability',
           'That partitions can be avoided with good networking',
@@ -758,12 +881,12 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         id: 'q-c-cap-3',
         moduleId: 'c-cap',
-        stem: 'An interviewer asks "is this system CP or AP?" What is the strongest answer?',
+        stem: 'An interviewer asks "is this system [[CP]] or [[AP]]?" What is the strongest answer?',
         options: [
           'AP — availability is almost always the right default',
           'CP — correctness matters more than uptime',
           'It depends on the path: AP for browsing and search, CP for the booking write',
-          'CAP does not apply to systems with a single database',
+          '[[CAP]] does not apply to systems with a single database',
         ],
         correct: 2,
         explain:
@@ -781,14 +904,14 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         id: 'c-c-cap-2',
         moduleId: 'c-cap',
-        front: 'PACELC.',
+        front: '[[PACELC]].',
         back: 'During a Partition choose Availability or Consistency; Else, choose Latency or Consistency. The trade exists even on a healthy network.',
         tag: 'Consistency',
       },
       {
         id: 'c-c-cap-3',
         moduleId: 'c-cap',
-        front: 'Why is "is it CP or AP" a trick question?',
+        front: 'Why is "is it [[CP]] or [[AP]]" a trick question?',
         back: 'It is per-path, not per-system. Ticketmaster is AP for search and CP for booking. Saying so unprompted is the senior signal.',
         tag: 'Consistency',
       },
@@ -839,6 +962,20 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         kind: 'prose',
         text: 'That last row is the one candidates skip. Most queues guarantee at-least-once, not exactly-once, so duplicate delivery is normal operation. Your consumer must be idempotent or you will double-charge someone.',
       },
+      {
+        kind: 'figure',
+        caption: 'What happens to a message that keeps failing.',
+        figure: {
+          kind: 'flow',
+          nodes: [
+            { label: 'Queue', to: 'deliver' },
+            { label: 'Worker', sub: 'throws', tone: 'streak', to: 'retry, backing off' },
+            { label: 'Still failing', sub: 'after 3 attempts', tone: 'alert', to: 'park' },
+            { label: 'Dead-letter queue', sub: 'alert a human', tone: 'alert' },
+          ],
+          note: 'Without the last box, one poison message retries forever and everything behind it waits.',
+        },
+      },
       { kind: 'heading', text: 'Queue versus stream' },
       {
         kind: 'prose',
@@ -847,7 +984,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         kind: 'compare',
         left: {
-          title: 'Queue — SQS',
+          title: 'Queue — [[SQS]]',
           points: [
             'Consumed and gone',
             'One logical consumer',
@@ -957,6 +1094,20 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         kind: 'prose',
         text: '`WHERE name LIKE \'%swift%\'` cannot use an ordinary index — a leading wildcard leaves no sorted prefix to seek on, so it reads every row. It also cannot rank results, tolerate a typo, or match "running" against "run".',
       },
+      {
+        kind: 'figure',
+        caption: 'Inverted: words point at documents, so a search is a lookup and an intersection.',
+        figure: {
+          kind: 'flow',
+          nodes: [
+            { label: '"taylor"', sub: 'query term', to: 'look up' },
+            { label: 'doc 1, 7, 9', sub: 'posting list', tone: 'line', to: 'intersect' },
+            { label: '"swift" → doc 1, 4', sub: 'second term', tone: 'line', to: 'result' },
+            { label: 'doc 1', sub: 'contains both', tone: 'mastered' },
+          ],
+          note: 'No row is ever read to find a match — only the lists for the words you asked for.',
+        },
+      },
       { kind: 'heading', text: 'The inverted index' },
       {
         kind: 'prose',
@@ -979,7 +1130,7 @@ query "taylor swift" -> intersect([1,7,9], [1,4]) -> doc1`,
       { kind: 'heading', text: 'Keeping it in sync' },
       {
         kind: 'flow',
-        nodes: ['Postgres (source of truth)', 'CDC', 'Elasticsearch', 'Search API'],
+        nodes: ['Postgres (source of truth)', '[[CDC]]', 'Elasticsearch', 'Search [[API]]'],
         note: 'Roughly a second behind. Acceptable for search; never the source of truth.',
       },
       {
@@ -990,7 +1141,7 @@ query "taylor swift" -> intersect([1,7,9], [1,4]) -> doc1`,
       { kind: 'heading', text: 'The lighter option' },
       {
         kind: 'prose',
-        text: 'Postgres full-text search — `tsvector` with a **GIN** index — handles a surprising amount without a second system to operate. Slower and less capable than Elasticsearch, but there is no cluster, no CDC pipeline, and no sync bug. Naming it as the step before Elasticsearch shows you weigh operational cost, not just capability.',
+        text: 'Postgres full-text search — `tsvector` with a **[[GIN]]** index — handles a surprising amount without a second system to operate. Slower and less capable than Elasticsearch, but there is no cluster, no CDC pipeline, and no sync bug. Naming it as the step before Elasticsearch shows you weigh operational cost, not just capability.',
       },
       {
         kind: 'ladder',
@@ -1034,13 +1185,13 @@ query "taylor swift" -> intersect([1,7,9], [1,4]) -> doc1`,
         stem: 'A product has a search box over 50,000 rows and no dedicated search team. What is the honest first step?',
         options: [
           'Elasticsearch — it is the industry standard',
-          'Postgres full-text search with a GIN index',
+          'Postgres full-text search with a [[GIN]] index',
           'Load everything into memory and filter in the application',
           'A LIKE query with an index on the column',
         ],
         correct: 1,
         explain:
-          'At that size Postgres full-text handles it with no cluster, no CDC pipeline, and no sync bugs. Naming the operational cost of Elasticsearch — rather than reaching for it reflexively — is the signal.',
+          'At that size Postgres full-text handles it with no cluster, no [[CDC]] pipeline, and no sync bugs. Naming the operational cost of Elasticsearch — rather than reaching for it reflexively — is the signal.',
       },
     ],
     cards: [
@@ -1055,7 +1206,7 @@ query "taylor swift" -> intersect([1,7,9], [1,4]) -> doc1`,
         id: 'c-c-search-2',
         moduleId: 'c-search',
         front: 'The search ladder.',
-        back: 'LIKE (a table scan) → Postgres full-text with GIN (no new infrastructure) → Elasticsearch fed by CDC (a cluster to run and a pipeline to get wrong).',
+        back: 'LIKE (a table scan) → Postgres full-text with [[GIN]] (no new infrastructure) → Elasticsearch fed by [[CDC]] (a cluster to run and a pipeline to get wrong).',
         tag: 'Search',
       },
     ],

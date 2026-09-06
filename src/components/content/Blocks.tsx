@@ -38,7 +38,7 @@ function Flow({ nodes, note }: Extract<Block, { kind: 'flow' }>) {
         {nodes.map((n, i) => (
           <Fragment key={i}>
             <span className="rounded-lg border border-line/35 bg-surface px-2.5 py-1.5 font-mono text-[0.75rem] text-ink">
-              {n}
+              <Inline text={n} />
             </span>
             {i < nodes.length - 1 && (
               <span aria-hidden="true" className="text-line">
@@ -68,7 +68,9 @@ function Compare({ left, right, verdict }: Extract<Block, { kind: 'compare' }>) 
               i === 0 ? 'border-b border-hairline sm:border-r sm:border-b-0' : ''
             }`}
           >
-            <h4 className="mb-2 text-[0.9375rem] font-semibold">{col.title}</h4>
+            <h4 className="mb-2 text-[0.9375rem] font-semibold">
+              <Inline text={col.title} />
+            </h4>
             <ul className="space-y-1.5">
               {col.points.map((p, j) => (
                 <li key={j} className="flex gap-2 text-[0.875rem] text-ink-2">
@@ -117,7 +119,9 @@ function Ladder({ rungs }: Extract<Block, { kind: 'ladder' }>) {
           >
             {gradeLabel[r.grade].text}
           </p>
-          <h4 className="text-[0.9375rem] font-semibold">{r.title}</h4>
+          <h4 className="text-[0.9375rem] font-semibold">
+            <Inline text={r.title} />
+          </h4>
           <p className="mt-1 text-[0.875rem] leading-relaxed text-ink-2">
             <Inline text={r.text} />
           </p>
@@ -178,7 +182,7 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
           case 'heading':
             return (
               <h3 key={i} className="mt-3 text-[1.1875rem] font-semibold first:mt-0">
-                {b.text}
+                <Inline text={b.text} />
               </h3>
             )
           case 'prose':

@@ -79,8 +79,57 @@ paragraph describing the same thing.
 - `ladder` grades: `bad` → `good` → `great` → `best`. `best` is highlighted as the one to pick.
 - `flow` is boxes and arrows — the vernacular of the subject. Keep node labels to a few words.
 
-**Inline markup inside any `text` field is `**bold**` and `` `code` `` only.** Nothing else is
-parsed. Anything more structured wants a different block kind.
+**Inline markup inside any `text` field is `**bold**`, `` `code` ``, and `[[ABBR]]`.** Nothing
+else is parsed. Anything more structured wants a different block kind. `[[TTL|TTLs]]` gives a
+different display form when the sentence needs a plural.
+
+### Two rules the validator enforces
+
+`src/content/validate.ts` runs on every load in development and logs to the console. It is not
+advisory — it is how these two rules survive future content being added.
+
+1. **Every module and every problem carries at least one `figure`.** This subject is mechanisms
+   and trade-offs; both are far clearer drawn than described.
+2. **No abbreviation appears without somewhere to see what it means.** If a unit uses `TTL`, it
+   must wrap it as `[[TTL]]` at least once *in that unit*, and `glossary.ts` must have an entry
+   with its own illustration. Per-unit rather than per-occurrence on purpose — wrapping all
+   nineteen mentions of `GB` would shred the reading rhythm.
+
+New acronym? Add a glossary entry with a figure. Genuinely needs no expansion (a product name,
+a SQL keyword)? Add it to `ALLOWED` in `validate.ts`. Those are the only two options.
+
+`scripts/wrap-abbreviations.mjs` is the one-off codemod that did the first pass. It masks
+everything between backticks so identifiers are never wrapped. Safe to re-run.
+
+### Figures
+
+Eight primitives in `src/content/figures.ts`, rendered by `components/content/Figure.tsx`:
+`flow` · `stack` · `split` · `ratio` · `grid` · `timeline` · `scale` · `cycle`.
+
+They are **CSS, not SVG**, deliberately: labels stay real text, so they reflow and never shrink
+below legibility when a drawing scales down on a 375px screen. Geometry that carries meaning
+(timeline positions, log scales) is expressed as percentage widths.
+
+Pick the primitive that matches the claim — `split` when the answer is a choice, `timeline` when
+expiry or ordering is the point, `ratio` when a proportion is, `scale` when the steps are orders
+of magnitude apart. Every figure needs a `caption` stating what it shows.
+
+The same primitives illustrate the glossary, so the reader learns one visual vocabulary rather
+than forty one-off drawings.
+
+### Where markup renders, and where it must not
+
+`Inline` renders markup. `plainText` strips it. The rule is about nesting, not style:
+
+- **`Inline`** — prose, headings, list items, callouts, table cells, `compare` and `ladder`
+  titles, figure labels, a problem's `brief` on its own screen. All plain containers.
+- **`plainText`, or unwrapped in the content** — module `title` and `summary`, rubric
+  `criterion`, and any brief shown inside a card link. These sit inside `<Link>` or `<label>`,
+  where an abbreviation's `<button>` would be invalid HTML and would steal the click.
+
+If you wrap an abbreviation somewhere new and it renders as a literal `[[ABBR]]`, that field is
+not going through `Inline` — fix the render site or unwrap the field, depending on which of the
+two lists above it belongs to.
 
 **Quiz items:** exactly one correct answer, four options, and an `explain` that says *why* —
 the explanation is where the learning happens, not the score. Options are shuffled at render,

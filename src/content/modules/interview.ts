@@ -37,7 +37,7 @@ export const interviewModules: Module[] = [
           [
             '**Depth**',
             '"We would use Elasticsearch."',
-            '"Inverted index, fed by CDC, so it lags a second — fine for search, not for booking."',
+            '"Inverted index, fed by [[CDC]], so it lags a second — fine for search, not for booking."',
             'Drawn from having run it: what broke, what it cost, what you would change',
           ],
           [
@@ -52,6 +52,19 @@ export const interviewModules: Module[] = [
         kind: 'callout',
         tone: 'say',
         text: 'If the interviewer is telling you where to look, that is mid-level signal being written down — regardless of how good your answers are once they point. Reaching minute 30 with your own list of bottlenecks is the single highest-leverage habit in this entire app.',
+      },
+      {
+        kind: 'figure',
+        caption: 'How the same forty-five minutes is expected to be spent at each level.',
+        figure: {
+          kind: 'stack',
+          layers: [
+            { label: 'Mid · breadth only', sub: 'interviewer points at what to improve', tone: 'neutral' },
+            { label: 'Senior · ~60% breadth, 40% depth', sub: 'you name the bottlenecks', tone: 'line' },
+            { label: 'Staff+ · ~40% breadth, 60% depth', sub: 'you set the scope and the trade-offs', tone: 'mastered' },
+          ],
+          note: 'The split matters less than who is driving. If they are pointing, that is mid-level signal regardless of how good the answer is.',
+        },
       },
       { kind: 'heading', text: 'How strong candidates actually lose' },
       {
@@ -202,6 +215,22 @@ export const interviewModules: Module[] = [
         tone: 'say',
         text: 'You can say this out loud, and it lands well: "Reading this, I see a read-heavy feed problem with a contention problem inside it — those are the two I want to spend the deep dives on." You have just set the agenda in one sentence.',
       },
+      {
+        kind: 'figure',
+        caption: 'Six questions that turn an unfamiliar prompt into two or three known patterns.',
+        figure: {
+          kind: 'cycle',
+          steps: [
+            { label: 'What is read, what is written?', sub: 'the ratio picks your first lever' },
+            { label: 'Does anything need to be exclusive?', sub: 'contention' },
+            { label: 'Does anything outlast a request?', sub: 'long-running tasks' },
+            { label: 'Does anything arrive unasked?', sub: 'real-time' },
+            { label: 'Is there anything big?', sub: 'blobs' },
+            { label: 'Anything geographic or free-text?', sub: 'a specialised index' },
+          ],
+          note: 'About ninety seconds, and you can say the conclusion out loud to set the agenda.',
+        },
+      },
       { kind: 'heading', text: 'Worked decompositions' },
       {
         kind: 'table',
@@ -212,7 +241,7 @@ export const interviewModules: Module[] = [
           ['**Uber**', 'Proximity · contention · real-time', 'Matching without assigning one driver twice'],
           ['**YouTube**', 'Large blobs · long-running tasks · scaling reads', 'Upload and transcode pipeline'],
           ['**Ad click aggregator**', 'Scaling writes · streams', 'Idempotency and windowed aggregation'],
-          ['**Google Docs**', 'Real-time · contention', 'Conflict resolution — OT or CRDT'],
+          ['**Google Docs**', 'Real-time · contention', 'Conflict resolution — [[OT]] or [[CRDT]]'],
           ['**Dropbox**', 'Large blobs · multi-step', 'Chunking, dedupe, and sync conflicts'],
           ['**Rate limiter**', 'Contention · scaling reads', 'Distributed counter accuracy versus latency'],
         ],

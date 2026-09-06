@@ -36,7 +36,7 @@ export const newsFeed: Problem = {
       kind: 'prose',
       text: 'Availability over consistency — **under a minute of staleness is invisible** in a feed. Under 500 ms to post and to read. Two billion users. Unlimited follows.',
     },
-    { kind: 'heading', text: 'Entities and API' },
+    { kind: 'heading', text: 'Entities and [[API]]' },
     {
       kind: 'code',
       code: `POST /posts        { content }          -> { postId }
@@ -76,7 +76,33 @@ GET  /feed?limit=&cursor=<timestamp>   -> { items, nextCursor }`,
     },
     {
       kind: 'prose',
-      text: 'Fan-out on write means a **PrecomputedFeed** table: userId → the most recent ~200 post ids. Size it out loud, because this is estimation that actually decides something: 200 ids × ~10 bytes = **2 KB per user**; × 2 billion users = **4 TB** total. That is a small, cheap table, and the arithmetic settles the design.',
+      text: 'Fan-out on write means a **PrecomputedFeed** table: userId → the most recent ~200 post ids. Size it out loud, because this is estimation that actually decides something: 200 ids × ~10 bytes = **2 [[KB]] per user**; × 2 billion users = **4 [[TB]]** total. That is a small, cheap table, and the arithmetic settles the design.',
+    },
+    {
+      kind: 'figure',
+      caption: 'Where the work happens — at read time, or once at write time.',
+      figure: {
+        kind: 'split',
+        left: {
+          title: 'Fan-out on read',
+          tone: 'alert',
+          nodes: [
+            { label: 'GET /feed', to: 'one query each' },
+            { label: '× N follows', sub: 'merge and sort', tone: 'alert' },
+          ],
+          cost: 'Latency grows with follow count. Blows the budget.',
+        },
+        right: {
+          title: 'Fan-out on write',
+          tone: 'mastered',
+          nodes: [
+            { label: 'New post', to: 'once, async' },
+            { label: 'N feeds updated', sub: 'read is one lookup', tone: 'mastered' },
+          ],
+          cost: 'A celebrity post means millions of writes.',
+        },
+        verdict: 'Neither wins outright — which is why the answer is the hybrid, with the follower threshold as a tunable knob.',
+      },
     },
     { kind: 'heading', text: 'Deep dive 2 — the celebrity problem' },
     {

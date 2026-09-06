@@ -1,4 +1,4 @@
-import type { Block, Module, Problem } from './types'
+import type { Block, FigureSpec, Module, Problem } from './types'
 import { glossaryIds } from './glossary'
 
 /**
@@ -74,13 +74,54 @@ function blockTexts(block: Block): string[] {
       // Code is exempt — an identifier is not prose, and backticks already mark it.
       return [block.caption ?? '']
     case 'flow':
-      return [block.note ?? '']
+      return [...block.nodes, block.note ?? '']
     case 'compare':
       return [block.left.title, block.right.title, ...block.left.points, ...block.right.points, block.verdict ?? '']
     case 'ladder':
       return block.rungs.flatMap((r) => [r.title, r.text])
     case 'figure':
-      return [block.caption]
+      return [block.caption, ...figureTexts(block.figure)]
+  }
+}
+
+/** Labels inside a figure are prose too — an unexplained acronym in a box still counts. */
+function figureTexts(f: FigureSpec): string[] {
+  switch (f.kind) {
+    case 'flow':
+      return [...f.nodes.flatMap((n) => [n.label, n.sub ?? '', n.to ?? '']), f.note ?? '']
+    case 'stack':
+      return [...f.layers.flatMap((l) => [l.label, l.sub ?? '']), f.note ?? '']
+    case 'split':
+      return [
+        f.left.title,
+        f.right.title,
+        f.left.cost ?? '',
+        f.right.cost ?? '',
+        ...[...f.left.nodes, ...f.right.nodes].flatMap((n) => [n.label, n.sub ?? '', n.to ?? '']),
+        f.verdict ?? '',
+      ]
+    case 'ratio':
+      return [...f.parts.map((p) => p.label), f.note ?? '']
+    case 'grid':
+      return [
+        ...f.cells.map((c) => c.label ?? ''),
+        ...(f.legend ?? []).map((l) => l.label),
+        f.note ?? '',
+      ]
+    case 'timeline':
+      return [
+        ...f.ticks,
+        ...f.lanes.flatMap((l) => [
+          l.label,
+          l.outcome?.label ?? '',
+          ...l.bars.map((b) => b.label ?? ''),
+        ]),
+        f.note ?? '',
+      ]
+    case 'scale':
+      return [...f.items.flatMap((i) => [i.label, i.display]), f.note ?? '']
+    case 'cycle':
+      return [...f.steps.flatMap((s) => [s.label, s.sub ?? '']), f.note ?? '']
   }
 }
 

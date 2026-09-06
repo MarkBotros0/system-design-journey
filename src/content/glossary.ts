@@ -1109,6 +1109,22 @@ export const glossary: GlossaryEntry[] = [
     seeAlso: ['TTL'],
   },
   {
+    id: 'LLM',
+    full: 'Large Language Model',
+    gist: 'A model that generates text. Worth naming in design because a single call costs real money and takes seconds — which puts it firmly in the long-running-task pattern, and makes any endpoint that triggers one a place a rate limiter should fail closed.',
+    figure: {
+      kind: 'scale',
+      items: [
+        { label: 'Cache hit', display: '~1 ms', value: 1, tone: 'mastered' },
+        { label: 'Database query', display: '~30 ms', value: 30, tone: 'line' },
+        { label: 'LLM call', display: '~2,000 ms', value: 2000, tone: 'alert' },
+      ],
+      note: 'Three orders of magnitude slower than a database read. It never belongs inside a synchronous request the user is waiting on.',
+    },
+    caption: 'Where a model call sits against the rest of your latency budget.',
+    seeAlso: ['SMS', 'DLQ'],
+  },
+  {
     id: 'URL',
     full: 'Uniform Resource Locator',
     gist: 'The address of a thing on the web. In design terms it is worth noticing that a URL is data you control — its shape decides what can be cached, what can be guessed, and what a crawler will treat as a distinct page.',

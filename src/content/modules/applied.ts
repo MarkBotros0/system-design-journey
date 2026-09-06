@@ -35,19 +35,33 @@ export const appliedModules: Module[] = [
           {
             grade: 'good',
             title: 'Long polling',
-            text: 'The server holds the request until there is something to say. Far fewer wasted round trips, but you hold a connection per client anyway — at which point SSE does the same job more cleanly.',
+            text: 'The server holds the request until there is something to say. Far fewer wasted round trips, but you hold a connection per client anyway — at which point [[SSE]] does the same job more cleanly.',
           },
           {
             grade: 'great',
             title: 'Server-Sent Events',
-            text: 'One HTTP request, server pushes indefinitely, automatic reconnect built into the browser. Covers most "live" features. Client-to-server still goes over ordinary requests, which is usually all you need.',
+            text: 'One [[HTTP]] request, server pushes indefinitely, automatic reconnect built into the browser. Covers most "live" features. Client-to-server still goes over ordinary requests, which is usually all you need.',
           },
           {
             grade: 'best',
-            title: 'WebSocket — when the client genuinely pushes',
-            text: 'Chat, collaborative editing, multiplayer. Costs you L4 load balancing, connection state to manage, and reconnection logic you write yourself. Worth it only when both directions are hot.',
+            title: '[[WebSocket]] — when the client genuinely pushes',
+            text: 'Chat, collaborative editing, multiplayer. Costs you [[L4]] load balancing, connection state to manage, and reconnection logic you write yourself. Worth it only when both directions are hot.',
           },
         ],
+      },
+      {
+        kind: 'figure',
+        caption: 'The transport ladder, cheapest first. Stop at the first rung that actually works.',
+        figure: {
+          kind: 'stack',
+          layers: [
+            { label: 'Polling', sub: 'mostly empty responses', tone: 'alert' },
+            { label: 'Long polling', sub: 'fewer wasted trips, still a connection each', tone: 'streak' },
+            { label: 'Server-sent events', sub: 'server pushes, plain HTTP, auto-reconnect', tone: 'mastered' },
+            { label: 'WebSocket', sub: 'both directions — costs L4 balancing and connection state', tone: 'line' },
+          ],
+          note: 'Most features labelled "real time" only need the third rung.',
+        },
       },
       { kind: 'heading', text: 'The harder half: fan-out' },
       {
@@ -86,21 +100,21 @@ export const appliedModules: Module[] = [
         moduleId: 'a-realtime',
         stem: 'A live comments feed pushes new comments to viewers. Viewers post through a normal POST. What transport?',
         options: [
-          'WebSocket — it is a real-time feature',
-          'SSE — the push is one-directional and posting is an ordinary request',
+          '[[WebSocket]] — it is a real-time feature',
+          '[[SSE]] — the push is one-directional and posting is an ordinary request',
           'Polling every 2 seconds',
-          'gRPC streaming',
+          '[[gRPC]] streaming',
         ],
         correct: 1,
         explain:
-          'The push is one-directional; posts go over regular HTTP. SSE covers it with automatic reconnect and no L4 balancing requirement. WebSocket buys bidirectionality you are not using.',
+          'The push is one-directional; posts go over regular [[HTTP]]. SSE covers it with automatic reconnect and no [[L4]] balancing requirement. WebSocket buys bidirectionality you are not using.',
       },
       {
         id: 'q-a-realtime-2',
         moduleId: 'a-realtime',
         stem: 'A user on a train loses connectivity for 40 seconds. What must your design include?',
         options: [
-          'A longer WebSocket timeout',
+          'A longer [[WebSocket]] timeout',
           'A last-seen cursor so the client can fetch what it missed on reconnect',
           'Automatic retry of the failed connection',
           'A message queue in front of the connection',
@@ -115,7 +129,7 @@ export const appliedModules: Module[] = [
         id: 'c-a-realtime-1',
         moduleId: 'a-realtime',
         front: 'The real-time transport ladder.',
-        back: 'Polling → long polling → SSE (server push, plain HTTP, auto-reconnect) → WebSocket (only when the client pushes too, and it costs L4 balancing plus connection state).',
+        back: 'Polling → long polling → [[SSE]] (server push, plain [[HTTP]], auto-reconnect) → [[WebSocket]] (only when the client pushes too, and it costs [[L4]] balancing plus connection state).',
         tag: 'Real-time',
       },
       {
@@ -144,7 +158,7 @@ export const appliedModules: Module[] = [
       },
       {
         kind: 'flow',
-        nodes: ['Client', 'API: validate + 202 Accepted', 'Queue', 'Worker pool', 'Result store'],
+        nodes: ['Client', '[[API]]: validate + 202 Accepted', 'Queue', 'Worker pool', 'Result store'],
         note: 'The API returns a job id immediately. Everything real happens behind the queue.',
       },
       {
@@ -155,8 +169,29 @@ export const appliedModules: Module[] = [
           '**Enqueue and acknowledge.** Return `202` with a job id in milliseconds.',
           '**Workers pull.** Scale them independently of your API tier.',
           '**Write status as you go.** `queued` → `running` → `done` / `failed`, with progress if the job is long.',
-          '**Tell the client.** Polling on `GET /jobs/{id}` is fine and simple; SSE or a webhook if it needs to feel live.',
+          '**Tell the client.** Polling on `GET /jobs/{id}` is fine and simple; [[SSE]] or a webhook if it needs to feel live.',
         ],
+      },
+      {
+        kind: 'figure',
+        caption: 'A worker dies mid-job. Nothing is lost, because redelivery is designed in.',
+        figure: {
+          kind: 'timeline',
+          ticks: ['job taken', 'visibility timeout', 'redelivered'],
+          lanes: [
+            {
+              label: 'Worker A',
+              bars: [{ from: 0, to: 0.5, label: 'invisible to others', tone: 'line' }],
+              outcome: { label: 'crashes', tone: 'alert' },
+            },
+            {
+              label: 'Worker B',
+              bars: [{ from: 0.55, to: 1, label: 'picks it up', tone: 'mastered' }],
+              outcome: { label: 'completes', tone: 'mastered' },
+            },
+          ],
+          note: 'This is why the handler must be idempotent — the job genuinely does run twice.',
+        },
       },
       { kind: 'heading', text: 'What makes it production-shaped' },
       {
@@ -167,7 +202,7 @@ export const appliedModules: Module[] = [
           ['Job runs twice', '**Idempotency** — key the output by job id so a repeat overwrites rather than duplicates'],
           ['Job fails repeatedly', 'Capped retries with backoff, then a **dead-letter queue** and an alert'],
           ['One job is enormous', 'Split into chunks so progress is visible and a failure retries a chunk, not the whole thing'],
-          ['Queue backs up', 'Autoscale workers on queue depth, not CPU'],
+          ['Queue backs up', 'Autoscale workers on queue depth, not [[CPU]]'],
         ],
       },
       {
@@ -178,7 +213,7 @@ export const appliedModules: Module[] = [
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Returning 200 with a fake result, or holding the HTTP connection open for two minutes. Load balancers and browsers will time it out, and the user gets an error for a job that actually succeeded.',
+        text: 'Returning 200 with a fake result, or holding the [[HTTP]] connection open for two minutes. Load balancers and browsers will time it out, and the user gets an error for a job that actually succeeded.',
       },
     ],
     quiz: [
@@ -187,7 +222,7 @@ export const appliedModules: Module[] = [
         moduleId: 'a-longrunning',
         stem: 'What should a video upload endpoint return?',
         options: [
-          '200 with the encoded video URL, once encoding finishes',
+          '200 with the encoded video [[URL]], once encoding finishes',
           '202 with a job id, immediately after validating and enqueueing',
           '204 with no body',
           '200 with a placeholder URL that will work later',
@@ -201,9 +236,9 @@ export const appliedModules: Module[] = [
         moduleId: 'a-longrunning',
         stem: 'What signal should worker autoscaling use?',
         options: [
-          'Worker CPU utilisation',
+          'Worker [[CPU]] utilisation',
           'Queue depth — work that has already arrived and is waiting',
-          'Requests per second on the API tier',
+          'Requests per second on the [[API]] tier',
           'Time of day',
         ],
         correct: 1,
@@ -218,7 +253,7 @@ export const appliedModules: Module[] = [
           'The job is lost and the user must resubmit',
           'The visibility timeout expires, another worker picks it up, and idempotency keeps the output correct',
           'The queue detects the crash and marks the job failed',
-          'The API retries the original request',
+          'The [[API]] retries the original request',
         ],
         correct: 1,
         explain:
@@ -230,14 +265,14 @@ export const appliedModules: Module[] = [
         id: 'c-a-longrunning-1',
         moduleId: 'a-longrunning',
         front: 'The long-running task shape.',
-        back: 'Validate synchronously → enqueue → return 202 with a job id → workers pull → write status → client polls or subscribes. Retries with backoff, DLQ for the failures.',
+        back: 'Validate synchronously → enqueue → return 202 with a job id → workers pull → write status → client polls or subscribes. Retries with backoff, [[DLQ]] for the failures.',
         tag: 'Async',
       },
       {
         id: 'c-a-longrunning-2',
         moduleId: 'a-longrunning',
         front: 'What should worker autoscaling key off?',
-        back: 'Queue depth, not CPU. CPU is a lagging signal; depth measures the backlog you actually need to clear.',
+        back: 'Queue depth, not [[CPU]]. CPU is a lagging signal; depth measures the backlog you actually need to clear.',
         tag: 'Async',
       },
     ],
@@ -267,6 +302,32 @@ export const appliedModules: Module[] = [
         kind: 'prose',
         text: 'The insight: a **reservation is not a transaction**. It is a business-level hold with a deadline, and it needs to survive a crashed client without a human unblocking it.',
       },
+      {
+        kind: 'figure',
+        caption: 'A reservation held by an expiry, and the three ways it can end.',
+        figure: {
+          kind: 'timeline',
+          ticks: ['0:00 — held', '5:00', '10:00 — expiry'],
+          lanes: [
+            {
+              label: 'Buys at 5:00',
+              bars: [{ from: 0, to: 0.5, label: 'held', tone: 'line' }],
+              outcome: { label: 'booked', tone: 'mastered' },
+            },
+            {
+              label: 'Closes the tab',
+              bars: [{ from: 0, to: 1, label: 'held until it expires', tone: 'line' }],
+              outcome: { label: 'released', tone: 'neutral' },
+            },
+            {
+              label: 'Pays at 10:01',
+              bars: [{ from: 0, to: 1, label: 'held', tone: 'line' }],
+              outcome: { label: 'write rejected · refund', tone: 'alert' },
+            },
+          ],
+          note: 'Nothing had to notice the second user leaving. The expiry did the work — that is the whole point of a TTL over a lock.',
+        },
+      },
       { kind: 'heading', text: 'The ladder' },
       {
         kind: 'ladder',
@@ -288,7 +349,7 @@ export const appliedModules: Module[] = [
           },
           {
             grade: 'best',
-            title: 'Distributed lock with a TTL',
+            title: 'Distributed lock with a [[TTL]]',
             text: '`SET seat:123 user:9 NX EX 600` — atomic, fast under heavy concurrency, and expiry is automatic because the TTL is doing the work. The row only ever holds *available* or *booked*.',
           },
         ],
@@ -361,7 +422,7 @@ export const appliedModules: Module[] = [
         id: 'c-a-contention-1',
         moduleId: 'a-contention',
         front: 'The distributed lock, precisely.',
-        back: '`SET key value NX EX 600` — atomic set-if-absent with a TTL, so a crashed holder cannot wedge the resource. The TTL is the whole point.',
+        back: '`SET key value NX EX 600` — atomic set-if-absent with a [[TTL]], so a crashed holder cannot wedge the resource. The TTL is the whole point.',
         tag: 'Contention',
       },
       {
@@ -375,7 +436,7 @@ export const appliedModules: Module[] = [
         id: 'c-a-contention-3',
         moduleId: 'a-contention',
         front: 'The three follow-ups after choosing a Redis lock.',
-        back: 'The read path (seat map from a sorted set scored by expiry) · Redis dying (degrade, OCC still holds) · TTL expiring mid-payment (auto-refund, extend on payment start).',
+        back: 'The read path (seat map from a sorted set scored by expiry) · Redis dying (degrade, [[OCC]] still holds) · [[TTL]] expiring mid-payment (auto-refund, extend on payment start).',
         tag: 'Contention',
       },
     ],
@@ -403,8 +464,20 @@ export const appliedModules: Module[] = [
           '**Denormalise the hot path.** One lookup instead of a join.',
           '**Read replicas.** Spread read load; writes stay on the primary.',
           '**Cache.** 20–50× on the hits.',
-          '**CDN.** Anything static or unpersonalised, served from the edge.',
+          '**[[CDN]].** Anything static or unpersonalised, served from the edge.',
         ],
+      },
+      {
+        kind: 'figure',
+        caption: 'A typical consumer read/write mix. It is why the read path gets designed first.',
+        figure: {
+          kind: 'ratio',
+          parts: [
+            { label: 'Reads', value: 100, tone: 'line' },
+            { label: 'Writes', value: 1, tone: 'streak' },
+          ],
+          note: 'At 100:1, moving work from the read path to the write path is almost always a good trade. At 2:1 it is almost always a bad one.',
+        },
       },
       { kind: 'heading', text: 'The two costs you just created' },
       {
@@ -425,7 +498,7 @@ export const appliedModules: Module[] = [
           title: 'Cache invalidation',
           points: [
             'The cache does not know the database changed',
-            'Stale reads until TTL or explicit purge',
+            'Stale reads until [[TTL]] or explicit purge',
             'Fix: invalidate on write, short TTL, or make the data immutable',
           ],
         },
@@ -476,7 +549,7 @@ export const appliedModules: Module[] = [
         id: 'c-a-reads-1',
         moduleId: 'a-reads',
         front: 'The read-scaling ladder, in order.',
-        back: 'Index → denormalise the hot path → read replicas → cache → CDN. Then own the two costs: replication lag and cache invalidation.',
+        back: 'Index → denormalise the hot path → read replicas → cache → [[CDN]]. Then own the two costs: replication lag and cache invalidation.',
         tag: 'Scaling',
       },
       {
@@ -516,6 +589,29 @@ export const appliedModules: Module[] = [
       {
         kind: 'prose',
         text: 'Batching is the one people underuse. Per-write overhead — a round trip, a transaction, an index update — dominates at high volume, so amortising it across a thousand rows often buys more than sharding does, at a fraction of the complexity.',
+      },
+      {
+        kind: 'figure',
+        caption: 'Partitioning a write-heavy stream by timestamp. Every write lands in the same place.',
+        figure: {
+          kind: 'grid',
+          cols: 4,
+          cells: [
+            { label: 'Jan', tone: 'neutral' },
+            { label: 'Feb', tone: 'neutral' },
+            { label: 'Mar', tone: 'neutral' },
+            { label: 'Apr', tone: 'neutral' },
+            { label: 'May', tone: 'neutral' },
+            { label: 'Jun', tone: 'neutral' },
+            { label: 'Jul', tone: 'neutral' },
+            { label: 'now', tone: 'alert' },
+          ],
+          legend: [
+            { tone: 'alert', label: 'every write goes here' },
+            { tone: 'neutral', label: 'holds history, takes no load' },
+          ],
+          note: 'A hot spot built on purpose. Partition keys for write-heavy data need high cardinality and no correlation with time.',
+        },
       },
       { kind: 'heading', text: 'Picking a partition key that does not betray you' },
       {
@@ -598,8 +694,22 @@ export const appliedModules: Module[] = [
       },
       {
         kind: 'flow',
-        nodes: ['Client', 'API: presigned URL', 'S3 direct upload', 'S3 event', 'Worker', 'Metadata DB'],
+        nodes: ['Client', '[[API]]: presigned [[URL]]', '[[S3]] direct upload', 'S3 event', 'Worker', 'Metadata DB'],
         note: 'Your servers handle kilobytes of metadata while gigabytes move around them.',
+      },
+      {
+        kind: 'figure',
+        caption: 'Your servers handle kilobytes of metadata while gigabytes move around them.',
+        figure: {
+          kind: 'flow',
+          nodes: [
+            { label: 'Client', sub: 'has the file', to: 'ask for a URL' },
+            { label: 'Your API', sub: 'authorises · records intent', tone: 'line', to: 'presigned URL' },
+            { label: 'Blob storage', sub: 'receives the bytes directly', tone: 'mastered', to: 'event' },
+            { label: 'Worker', sub: 'marks it ready', tone: 'line' },
+          ],
+          note: 'The completion event, not the client, is what flips the file to ready.',
+        },
       },
       { kind: 'heading', text: 'Upload' },
       {
@@ -614,12 +724,12 @@ export const appliedModules: Module[] = [
       {
         kind: 'callout',
         tone: 'say',
-        text: 'Resumability matters more on mobile than anywhere else. Multipart with per-chunk retry means a 2 GB upload survives a tunnel, and the client can show real progress instead of a spinner.',
+        text: 'Resumability matters more on mobile than anywhere else. Multipart with per-chunk retry means a 2 [[GB]] upload survives a tunnel, and the client can show real progress instead of a spinner.',
       },
       { kind: 'heading', text: 'Download' },
       {
         kind: 'prose',
-        text: 'CDN in front, with **signed URLs** when content is private — a short-lived signature keeps the edge cacheable while still enforcing access. Public content just caches.',
+        text: '[[CDN]] in front, with **signed URLs** when content is private — a short-lived signature keeps the edge cacheable while still enforcing access. Public content just caches.',
       },
       {
         kind: 'callout',
@@ -633,7 +743,7 @@ export const appliedModules: Module[] = [
         moduleId: 'a-blobs',
         stem: 'When is an uploaded file safe to mark as ready?',
         options: [
-          'When the API issues the presigned URL',
+          'When the [[API]] issues the presigned [[URL]]',
           'When the client reports the upload finished',
           'When the storage service emits a completion event',
           'After a fixed delay following the URL request',
@@ -654,7 +764,7 @@ export const appliedModules: Module[] = [
         ],
         correct: 1,
         explain:
-          'Mobile connections drop. Restarting a 2 GB upload from zero on a dropped connection is the difference between a feature that works and one people give up on.',
+          'Mobile connections drop. Restarting a 2 [[GB]] upload from zero on a dropped connection is the difference between a feature that works and one people give up on.',
       },
     ],
     cards: [
@@ -662,7 +772,7 @@ export const appliedModules: Module[] = [
         id: 'c-a-blobs-1',
         moduleId: 'a-blobs',
         front: 'The large-blob rule and its consequences.',
-        back: 'Bytes never pass through your app servers. Presigned URL direct to storage, multipart for size and resumability, storage event as the completion signal, CDN with signed URLs on the way out.',
+        back: 'Bytes never pass through your app servers. Presigned [[URL]] direct to storage, multipart for size and resumability, storage event as the completion signal, [[CDN]] with signed URLs on the way out.',
         tag: 'Blobs',
       },
     ],
@@ -701,6 +811,35 @@ export const appliedModules: Module[] = [
         tone: 'say',
         text: 'Orchestration for anything with money in it. When a customer calls asking where their order is, "let me check the orchestrator" beats reconstructing the state from six services\' logs.',
       },
+      {
+        kind: 'figure',
+        caption: 'A saga: forward on success, compensating backwards on failure.',
+        figure: {
+          kind: 'timeline',
+          ticks: ['order', 'payment', 'stock'],
+          lanes: [
+            {
+              label: 'Happy path',
+              bars: [
+                { from: 0, to: 0.33, label: 'created', tone: 'mastered' },
+                { from: 0.34, to: 0.66, label: 'charged', tone: 'mastered' },
+                { from: 0.67, to: 1, label: 'reserved', tone: 'mastered' },
+              ],
+              outcome: { label: 'confirmed', tone: 'mastered' },
+            },
+            {
+              label: 'Stock unavailable',
+              bars: [
+                { from: 0, to: 0.33, label: 'created', tone: 'mastered' },
+                { from: 0.34, to: 0.66, label: 'charged', tone: 'mastered' },
+                { from: 0.67, to: 1, label: 'fails', tone: 'alert' },
+              ],
+              outcome: { label: 'refund the charge', tone: 'streak' },
+            },
+          ],
+          note: 'You cannot roll back a captured payment. You can refund it — and the refund must itself be idempotent, because it gets retried too.',
+        },
+      },
       { kind: 'heading', text: 'What makes it survive' },
       {
         kind: 'list',
@@ -713,7 +852,7 @@ export const appliedModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'Naming **Temporal** or **AWS Step Functions** is worth a sentence: they give you durable execution, retries, and visibility, so you are not rebuilding a workflow engine inside your order service. Say what they buy you, not just the name.',
+        text: 'Naming **Temporal** or **[[AWS]] Step Functions** is worth a sentence: they give you durable execution, retries, and visibility, so you are not rebuilding a workflow engine inside your order service. Say what they buy you, not just the name.',
       },
     ],
     quiz: [
@@ -781,7 +920,7 @@ export const appliedModules: Module[] = [
       { kind: 'heading', text: 'How the index works' },
       {
         kind: 'prose',
-        text: 'Every approach reduces two dimensions to one so it can be indexed and range-scanned. **Geohashing** interleaves latitude and longitude bits into a string, so a shared prefix means physical proximity. **Quadtrees** and **S2 cells** subdivide space adaptively, which handles dense cities better than a uniform grid.',
+        text: 'Every approach reduces two dimensions to one so it can be indexed and range-scanned. **Geohashing** interleaves latitude and longitude bits into a string, so a shared prefix means physical proximity. **Quadtrees** and **[[S2]] cells** subdivide space adaptively, which handles dense cities better than a uniform grid.',
       },
       {
         kind: 'code',
@@ -794,6 +933,27 @@ geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
         kind: 'prose',
         text: 'The edge case worth knowing: two points either side of a cell boundary can be metres apart with completely different hashes. Real implementations query the neighbouring cells too, then filter by true distance.',
       },
+      {
+        kind: 'figure',
+        caption: 'A proximity query reads the cells around you, not the table.',
+        figure: {
+          kind: 'grid',
+          cols: 5,
+          cells: [
+            {}, {}, {}, {}, {},
+            {}, { tone: 'line' }, { tone: 'line' }, { tone: 'line' }, {},
+            {}, { tone: 'line' }, { label: 'you', tone: 'mastered' }, { tone: 'line' }, {},
+            {}, { tone: 'line' }, { tone: 'line' }, { tone: 'line' }, {},
+            {}, {}, {}, {}, {},
+          ],
+          legend: [
+            { tone: 'mastered', label: 'your cell' },
+            { tone: 'line', label: 'neighbours — also checked, then filtered by true distance' },
+            { tone: 'neutral', label: 'never read' },
+          ],
+          note: 'Neighbours are checked because two points metres apart can sit either side of a cell boundary with completely different hashes.',
+        },
+      },
       { kind: 'heading', text: 'Do you need it?' },
       {
         kind: 'callout',
@@ -805,7 +965,7 @@ geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
         head: ['Option', 'When'],
         rows: [
           ['Bounding box on indexed columns', 'Up to ~100k entities, low query rate'],
-          ['**PostGIS**', 'You already run Postgres and want real geospatial operators'],
+          ['**[[PostGIS]]**', 'You already run Postgres and want real geospatial operators'],
           ['**Redis geo commands**', 'Positions change constantly — live driver locations'],
           ['**Elasticsearch geo queries**', 'Proximity combined with text and filters — "pizza near me, open now, 4+ stars"'],
         ],
@@ -836,7 +996,7 @@ geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
         moduleId: 'a-proximity',
         stem: 'You are tracking 50,000 live driver positions updating every 4 seconds. Which store fits best?',
         options: [
-          'PostGIS — the most capable geospatial engine',
+          '[[PostGIS]] — the most capable geospatial engine',
           'Redis geo commands — in-memory, and the write rate dominates',
           'Elasticsearch geo queries',
           'A bounding-box query on indexed columns',
@@ -851,7 +1011,7 @@ geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
         id: 'c-a-proximity-1',
         moduleId: 'a-proximity',
         front: 'How does a geospatial index make "nearby" fast?',
-        back: 'It reduces two dimensions to one — geohash prefixes, quadtrees, S2 cells — so proximity becomes a range scan. Boundary cases need neighbouring cells plus a true-distance filter.',
+        back: 'It reduces two dimensions to one — geohash prefixes, quadtrees, [[S2]] cells — so proximity becomes a range scan. Boundary cases need neighbouring cells plus a true-distance filter.',
         tag: 'Proximity',
       },
       {

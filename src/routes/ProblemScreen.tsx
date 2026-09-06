@@ -7,6 +7,7 @@ import { useProgress } from '../state/ProgressProvider'
 import type { ProblemAttempt } from '../lib/storage'
 import type { RubricRow } from '../content/types'
 import { Blocks } from '../components/content/Blocks'
+import { Inline } from '../components/content/Inline'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { Badge, Meter } from '../components/ui/Bits'
 
@@ -121,7 +122,9 @@ export function ProblemScreen() {
           <p className="mb-2 font-mono text-[0.6875rem] tracking-[0.12em] uppercase text-ink-3">
             The prompt
           </p>
-          <p className="text-[1.0625rem] leading-relaxed">{problem.brief}</p>
+          <p className="text-[1.0625rem] leading-relaxed">
+            <Inline text={problem.brief} />
+          </p>
         </div>
 
         <div className="mt-5 rounded-xl border-l-2 border-line bg-line-soft px-4 py-3">

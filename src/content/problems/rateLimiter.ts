@@ -5,7 +5,7 @@ export const rateLimiter: Problem = {
   title: 'Design a rate limiter',
   difficulty: 'medium',
   brief:
-    'Limit how many requests a client can make in a window — say 100 per minute. It sits in front of an API served by hundreds of hosts.',
+    'Limit how many requests a client can make in a window — say 100 per minute. It sits in front of an [[API]] served by hundreds of hosts.',
   patterns: ['contention', 'scaling-reads'],
   suggests: ['c-caching', 'a-contention'],
   rubric: [
@@ -24,7 +24,7 @@ export const rateLimiter: Problem = {
     { kind: 'heading', text: 'Requirements' },
     {
       kind: 'prose',
-      text: 'Ask what the key is before anything else — per user, per IP, per API key, or per endpoint — because it changes the cardinality and therefore the storage. Assume per API key, 100 requests per minute, hundreds of API hosts.',
+      text: 'Ask what the key is before anything else — per user, per [[IP]], per API key, or per endpoint — because it changes the cardinality and therefore the storage. Assume per API key, 100 requests per minute, hundreds of API hosts.',
     },
     {
       kind: 'prose',
@@ -41,6 +41,27 @@ export const rateLimiter: Problem = {
       tone: 'trap',
       text: 'Counting per host. With 200 hosts and a 100/min limit, a client behind round-robin gets roughly 200 × 100. The counter has to be shared, which is exactly why this problem is interesting.',
     },
+    {
+      kind: 'figure',
+      caption: 'The fixed-window flaw: a client legitimately sends double the limit in one second.',
+      figure: {
+        kind: 'timeline',
+        ticks: ['11:59:00', '12:00:00', '12:01:00'],
+        lanes: [
+          {
+            label: 'Window A — 100 allowed',
+            bars: [{ from: 0.42, to: 0.5, label: '100 at 11:59:59', tone: 'streak' }],
+            outcome: { label: 'within limit', tone: 'mastered' },
+          },
+          {
+            label: 'Window B — 100 allowed',
+            bars: [{ from: 0.5, to: 0.58, label: '100 at 12:00:00', tone: 'streak' }],
+            outcome: { label: 'within limit', tone: 'mastered' },
+          },
+        ],
+        note: 'Both windows are individually correct. The client still got 200 requests through in one second.',
+      },
+    },
     { kind: 'heading', text: 'Deep dive 1 — the algorithm' },
     {
       kind: 'ladder',
@@ -48,7 +69,7 @@ export const rateLimiter: Problem = {
         {
           grade: 'bad',
           title: 'Fixed window',
-          text: '`INCR key:{client}:{minute}` with a TTL. Simple and cheap — but 100 requests at 11:59:59 and 100 more at 12:00:00 is 200 in one second. The boundary burst is the flaw the interviewer is looking for.',
+          text: '`INCR key:{client}:{minute}` with a [[TTL]]. Simple and cheap — but 100 requests at 11:59:59 and 100 more at 12:00:00 is 200 in one second. The boundary burst is the flaw the interviewer is looking for.',
         },
         {
           grade: 'good',
@@ -102,7 +123,7 @@ local tokens, last = redis.call('HMGET', KEYS[1], 'n', 't')
           'A Redis blip becomes a full API outage',
         ],
       },
-      verdict: 'Fail open for general API limiting; fail closed when the limit protects something expensive or dangerous — a payment endpoint, an SMS sender, an LLM call. Say which one this is and why.',
+      verdict: 'Fail open for general API limiting; fail closed when the limit protects something expensive or dangerous — a payment endpoint, an [[SMS]] sender, an [[LLM]] call. Say which one this is and why.',
     },
     {
       kind: 'prose',

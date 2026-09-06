@@ -32,7 +32,7 @@ export const adClick: Problem = {
     },
     {
       kind: 'flow',
-      nodes: ['Click', 'Redirect service (302)', 'Kafka', 'Flink windowed aggregation', 'OLAP store', 'Dashboard'],
+      nodes: ['Click', 'Redirect service (302)', 'Kafka', 'Flink windowed aggregation', '[[OLAP]] store', 'Dashboard'],
     },
     { kind: 'heading', text: 'Deep dive 1 — ingesting a million per second' },
     {
@@ -43,6 +43,32 @@ export const adClick: Problem = {
     {
       kind: 'prose',
       text: 'Kafka absorbs the volume — around 1M messages/sec per broker, and you partition across several. The **partition key** is the decision that matters: partition by `adId` and a single viral ad saturates one partition. Partition by `adId + random bucket` and load spreads while all events for one ad still land in a known, bounded set of partitions that the aggregator can combine.',
+    },
+    {
+      kind: 'figure',
+      caption: 'Two paths over the same events: one fast and approximate, one slow and exact.',
+      figure: {
+        kind: 'split',
+        left: {
+          title: 'Fast path',
+          tone: 'line',
+          nodes: [
+            { label: 'Stream', to: 'windows' },
+            { label: 'Dashboard', sub: 'seconds behind', tone: 'line' },
+          ],
+          cost: 'Approximately right, immediately.',
+        },
+        right: {
+          title: 'Slow path',
+          tone: 'mastered',
+          nodes: [
+            { label: 'Raw events in storage', to: 'nightly batch' },
+            { label: 'Invoices', sub: 'exact', tone: 'mastered' },
+          ],
+          cost: 'Exactly right, tomorrow.',
+        },
+        verdict: 'Dashboards read the fast path. Bills are generated from the batch numbers — never the streamed ones.',
+      },
     },
     { kind: 'heading', text: 'Deep dive 2 — event time and late arrivals' },
     {

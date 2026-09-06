@@ -5,7 +5,7 @@ export const bitly: Problem = {
   title: 'Design Bitly',
   difficulty: 'easy',
   brief:
-    'Users paste a long URL and get a short one back. Visiting the short URL redirects them to the original. That is all you get — scope it yourself.',
+    'Users paste a long [[URL]] and get a short one back. Visiting the short URL redirects them to the original. That is all you get — scope it yourself.',
   patterns: ['scaling-reads'],
   suggests: ['f-api', 'f-db', 'f-cache', 'f-scale'],
   rubric: [
@@ -39,7 +39,7 @@ export const bitly: Problem = {
       kind: 'prose',
       text: 'Code length is the only number that changes a decision here. Base62 over 7 characters gives 62⁷ ≈ **3.5 trillion** codes. At a million new links a day that is thousands of years of headroom, so 7 characters it is. This is a good example of estimation that earns its place — it picks a design parameter rather than concluding "that is a lot".',
     },
-    { kind: 'heading', text: 'API' },
+    { kind: 'heading', text: '[[API]]' },
     {
       kind: 'code',
       code: `POST /v1/links
@@ -51,7 +51,7 @@ GET  /{code}   -> 302 Location: <original url>`,
     { kind: 'heading', text: 'High-level design' },
     {
       kind: 'flow',
-      nodes: ['Client', 'CDN', 'Load balancer', 'Link service', 'Redis', 'Postgres'],
+      nodes: ['Client', '[[CDN]]', 'Load balancer', 'Link service', 'Redis', 'Postgres'],
       note: 'The redirect path. The write path is the same minus the CDN.',
     },
     {
@@ -79,10 +79,22 @@ GET  /{code}   -> 302 Location: <original url>`,
         },
       ],
     },
+    {
+      kind: 'figure',
+      caption: 'Why the redirect is almost entirely a caching problem.',
+      figure: {
+        kind: 'ratio',
+        parts: [
+          { label: 'Redirects', value: 100, tone: 'line' },
+          { label: 'Links created', value: 1, tone: 'streak' },
+        ],
+        note: 'The mapping never changes once written, so it caches with an indefinite expiry and invalidation is almost a non-problem.',
+      },
+    },
     { kind: 'heading', text: 'Deep dive — the read path' },
     {
       kind: 'prose',
-      text: 'Cache-aside on `code -> long_url` with a long TTL, since a mapping essentially never changes. A cache hit is ~1 ms against 20–50 ms for the database. With links being immutable, invalidation is almost a non-problem — the exception is deletion and expiry, which you handle by writing a tombstone rather than waiting for a TTL.',
+      text: 'Cache-aside on `code -> long_url` with a long [[TTL]], since a mapping essentially never changes. A cache hit is ~1 ms against 20–50 ms for the database. With links being immutable, invalidation is almost a non-problem — the exception is deletion and expiry, which you handle by writing a tombstone rather than waiting for a TTL.',
     },
     {
       kind: 'callout',

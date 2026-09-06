@@ -37,7 +37,7 @@ export const youtube: Problem = {
     { kind: 'heading', text: 'Upload and transcode' },
     {
       kind: 'flow',
-      nodes: ['Client', 'Presigned URL', 'S3 raw', 'S3 event', 'Transcode queue', 'Worker pool', 'S3 renditions', 'CDN'],
+      nodes: ['Client', 'Presigned [[URL]]', '[[S3]] raw', 'S3 event', 'Transcode queue', 'Worker pool', 'S3 renditions', 'CDN'],
     },
     {
       kind: 'prose',
@@ -46,7 +46,7 @@ export const youtube: Problem = {
     { kind: 'heading', text: 'Deep dive 1 — adaptive bitrate' },
     {
       kind: 'prose',
-      text: 'One file cannot serve both fibre and a phone on the underground. Transcode each upload into several **renditions** (240p through 4K), then cut each into **segments** of a few seconds. A manifest — HLS or DASH — lists what exists.',
+      text: 'One file cannot serve both fibre and a phone on the underground. Transcode each upload into several **renditions** (240p through 4K), then cut each into **segments** of a few seconds. A manifest — [[HLS]] or [[DASH]] — lists what exists.',
     },
     {
       kind: 'code',
@@ -58,7 +58,20 @@ export const youtube: Problem = {
     },
     {
       kind: 'prose',
-      text: 'That is why quality shifts mid-video rather than buffering: the decision is made per segment, by the client, and the server just serves files. It also means the CDN is caching small immutable objects, which is the ideal thing for a CDN to cache.',
+      text: 'That is why quality shifts mid-video rather than buffering: the decision is made per segment, by the client, and the server just serves files. It also means the [[CDN]] is caching small immutable objects, which is the ideal thing for a CDN to cache.',
+    },
+    {
+      kind: 'figure',
+      caption: 'The player steps between rows every few seconds, without stopping playback.',
+      figure: {
+        kind: 'stack',
+        layers: [
+          { label: '1080p', sub: 'segment 01 · 02 · 03 · 04', tone: 'mastered' },
+          { label: '720p', sub: 'segment 01 · 02 · 03 · 04', tone: 'line' },
+          { label: '360p', sub: 'segment 01 · 02 · 03 · 04', tone: 'streak' },
+        ],
+        note: 'The client measures its own throughput and picks the next segment. The server just serves small immutable files — which is the ideal thing for a CDN to cache.',
+      },
     },
     { kind: 'heading', text: 'Deep dive 2 — transcoding at scale' },
     {
@@ -77,7 +90,7 @@ export const youtube: Problem = {
         {
           grade: 'best',
           title: 'Split into segments, fan out, then stitch',
-          text: 'Chunk the source, transcode segments in parallel across the fleet, then assemble the manifest. A two-hour video finishes in minutes, a failed segment retries alone, and progress is real. This is a DAG of tasks — worth naming a workflow engine to coordinate it.',
+          text: 'Chunk the source, transcode segments in parallel across the fleet, then assemble the manifest. A two-hour video finishes in minutes, a failed segment retries alone, and progress is real. This is a [[DAG]] of tasks — worth naming a workflow engine to coordinate it.',
         },
       ],
     },

@@ -38,7 +38,7 @@ export const whatsapp: Problem = {
     { kind: 'heading', text: 'Why WebSocket here' },
     {
       kind: 'prose',
-      text: 'Both sides send constantly, so this is one of the genuine WebSocket cases rather than an SSE one. That decision brings its costs with it: L4 load balancing, connection state, and reconnection logic you write yourself.',
+      text: 'Both sides send constantly, so this is one of the genuine [[WebSocket]] cases rather than an [[SSE]] one. That decision brings its costs with it: [[L4]] load balancing, connection state, and reconnection logic you write yourself.',
     },
     {
       kind: 'flow',
@@ -67,7 +67,31 @@ export const whatsapp: Problem = {
           'The registry must be kept accurate through crashes and rebalances',
         ],
       },
-      verdict: 'A registry scales better at this volume and keeps the broker off the hot path — but it is the piece most likely to go stale, so it needs a TTL refreshed by heartbeat.',
+      verdict: 'A registry scales better at this volume and keeps the broker off the hot path — but it is the piece most likely to go stale, so it needs a [[TTL]] refreshed by heartbeat.',
+    },
+    {
+      kind: 'figure',
+      caption: 'One tick, two ticks, blue ticks — each is a different durable state.',
+      figure: {
+        kind: 'timeline',
+        ticks: ['sent', 'stored', 'delivered', 'read'],
+        lanes: [
+          {
+            label: 'Recipient online',
+            bars: [
+              { from: 0, to: 0.3, label: 'persisted · one tick', tone: 'line' },
+              { from: 0.32, to: 0.66, label: 'pushed · two ticks', tone: 'mastered' },
+              { from: 0.68, to: 1, label: 'opened · blue', tone: 'mastered' },
+            ],
+          },
+          {
+            label: 'Recipient offline for hours',
+            bars: [{ from: 0, to: 0.85, label: 'waiting in their inbox · one tick', tone: 'streak' }],
+            outcome: { label: 'delivered on reconnect', tone: 'mastered' },
+          },
+        ],
+        note: 'Delivery is never "push down the socket" — it is write durably first, then attempt to push.',
+      },
     },
     { kind: 'heading', text: 'Deep dive 2 — never losing a message' },
     {
@@ -78,7 +102,7 @@ export const whatsapp: Problem = {
       kind: 'list',
       ordered: true,
       items: [
-        'Client sends with a **client-generated message id** (a UUID). This makes the whole path idempotent — a retry after a flaky send does not duplicate the message.',
+        'Client sends with a **client-generated message id** (a [[UUID]]). This makes the whole path idempotent — a retry after a flaky send does not duplicate the message.',
         'Server persists to the recipient\'s inbox and assigns a **per-conversation sequence number**. Never order by wall-clock time: device clocks disagree, and two participants would see different orders.',
         'Server acknowledges to the sender — one tick.',
         'If the recipient is connected, push. On their ack, mark delivered — two ticks.',

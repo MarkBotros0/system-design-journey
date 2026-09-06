@@ -85,7 +85,9 @@ function Box({ node }: { node: FlowNode }) {
     <div
       className={`flex min-w-0 flex-1 flex-col justify-center rounded-lg border px-2.5 py-2 text-center ${boxTone[node.tone ?? 'neutral']}`}
     >
-      <span className="text-[0.8125rem] leading-tight font-medium">{node.label}</span>
+      <span className="text-[0.8125rem] leading-tight font-medium">
+        <Inline text={node.label} />
+      </span>
       {node.sub && (
         <span className="mt-0.5 font-mono text-[0.625rem] leading-tight text-ink-3">
           {node.sub}

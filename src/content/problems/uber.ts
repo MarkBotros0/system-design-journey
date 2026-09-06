@@ -52,12 +52,33 @@ export const uber: Problem = {
     },
     {
       kind: 'prose',
-      text: 'Geospatial indexes reduce two dimensions to one so it can be range-scanned: geohashing interleaves latitude and longitude bits so a shared prefix means physical proximity. **Redis geo commands** are the fit here because the write rate dominates — positions live in memory, are overwritten constantly, and nothing is lost if a few updates vanish. PostGIS is more capable and entirely the wrong tool at 250k writes/sec.',
+      text: 'Geospatial indexes reduce two dimensions to one so it can be range-scanned: geohashing interleaves latitude and longitude bits so a shared prefix means physical proximity. **Redis geo commands** are the fit here because the write rate dominates — positions live in memory, are overwritten constantly, and nothing is lost if a few updates vanish. [[PostGIS]] is more capable and entirely the wrong tool at 250k writes/sec.',
     },
     {
       kind: 'callout',
       tone: 'note',
       text: 'Worth naming: cell boundaries. Two drivers metres apart either side of a boundary get different hashes, so a real query checks neighbouring cells too and then filters by true distance.',
+    },
+    {
+      kind: 'figure',
+      caption: 'Sequential offers, each holding a short lock — so an unresponsive driver costs fifteen seconds, not an incident.',
+      figure: {
+        kind: 'timeline',
+        ticks: ['0s', '15s', '30s'],
+        lanes: [
+          {
+            label: 'Driver 1 — nearest',
+            bars: [{ from: 0, to: 0.5, label: 'offered · locked', tone: 'line' }],
+            outcome: { label: 'no response', tone: 'streak' },
+          },
+          {
+            label: 'Driver 2',
+            bars: [{ from: 0.5, to: 0.8, label: 'offered · locked', tone: 'line' }],
+            outcome: { label: 'accepts', tone: 'mastered' },
+          },
+        ],
+        note: 'Broadcasting to everyone instead would light up every phone nearby and teach drivers to ignore offers.',
+      },
     },
     { kind: 'heading', text: 'Deep dive 2 — matching without double-assigning' },
     {
@@ -80,7 +101,7 @@ export const uber: Problem = {
         {
           grade: 'best',
           title: 'Sequential offers, each holding a lock with a TTL',
-          text: 'Rank candidates, offer to the first, and hold `driver:{id}` with `SET NX EX 15`. They get 15 seconds. Accept → the lock becomes an assignment and the trip row is written conditionally. Decline or timeout → the lock expires on its own and you offer the next driver. The TTL is what makes an unresponsive driver a non-event rather than an incident.',
+          text: 'Rank candidates, offer to the first, and hold `driver:{id}` with `SET NX EX 15`. They get 15 seconds. Accept → the lock becomes an assignment and the trip row is written conditionally. Decline or timeout → the lock expires on its own and you offer the next driver. The [[TTL]] is what makes an unresponsive driver a non-event rather than an incident.',
         },
       ],
     },
@@ -91,7 +112,7 @@ export const uber: Problem = {
     { kind: 'heading', text: 'Deep dive 3 — watching each other move' },
     {
       kind: 'prose',
-      text: 'Once matched, both parties need the other\'s position a few times a second. That is real-time push — SSE is sufficient, since the rider sends nothing back on this channel.',
+      text: 'Once matched, both parties need the other\'s position a few times a second. That is real-time push — [[SSE]] is sufficient, since the rider sends nothing back on this channel.',
     },
     {
       kind: 'prose',
@@ -100,7 +121,7 @@ export const uber: Problem = {
     {
       kind: 'callout',
       tone: 'say',
-      text: 'Durability differs per path, and saying so closes the loop cleanly. Losing a location update is invisible — another arrives in two seconds. Losing a trip record means an unpaid driver and an unbilled rider. One lives in memory; the other is an ACID transaction with a real audit trail.',
+      text: 'Durability differs per path, and saying so closes the loop cleanly. Losing a location update is invisible — another arrives in two seconds. Losing a trip record means an unpaid driver and an unbilled rider. One lives in memory; the other is an [[ACID]] transaction with a real audit trail.',
     },
   ],
 }

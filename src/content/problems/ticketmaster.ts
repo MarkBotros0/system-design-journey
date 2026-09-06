@@ -17,7 +17,7 @@ export const ticketmaster: Problem = {
     { id: 'r6', bar: 'senior', criterion: 'Proposed a reservation that expires — TTL lock or implicit status' },
     { id: 'r7', bar: 'senior', criterion: 'Solved the read path: how the seat map shows held seats' },
     { id: 'r8', bar: 'senior', criterion: 'Moved search to an inverted index and named CDC as the sync mechanism' },
-    { id: 'r9', bar: 'staff', criterion: 'Answered what happens when Redis dies — degrade, OCC still holds' },
+    { id: 'r9', bar: 'staff', criterion: 'Answered what happens when Redis dies — degrade, optimistic concurrency still holds' },
     { id: 'r10', bar: 'staff', criterion: 'Handled the TTL expiring mid-payment, including the refund path' },
     { id: 'r11', bar: 'staff', criterion: 'Proposed a virtual waiting queue for extreme-demand on-sales' },
   ],
@@ -41,7 +41,7 @@ export const ticketmaster: Problem = {
       tone: 'say',
       text: 'Splitting consistency by path, out loud, in the requirements phase sets up the entire rest of the interview. It tells the interviewer you know where the hard part is before you have drawn anything.',
     },
-    { kind: 'heading', text: 'Entities and API' },
+    { kind: 'heading', text: 'Entities and [[API]]' },
     {
       kind: 'prose',
       text: '`Event`, `Venue` (with a seat map), `Performer`, `Ticket` (**one row per physical seat**, generated when the event is created), `Booking` (groups tickets from one transaction).',
@@ -60,7 +60,7 @@ POST /bookings/{eventId}
     },
     {
       kind: 'prose',
-      text: 'Postgres is the source of truth for events, tickets and bookings — it is transactional data with real relationships and it needs ACID on the booking path. Stripe handles payment.',
+      text: 'Postgres is the source of truth for events, tickets and bookings — it is transactional data with real relationships and it needs [[ACID]] on the booking path. Stripe handles payment.',
     },
     { kind: 'heading', text: 'Deep dive 1 — preventing double booking' },
     {
@@ -92,6 +92,32 @@ POST /bookings/{eventId}
         },
       ],
     },
+    {
+      kind: 'figure',
+      caption: 'A seat held by an expiry, and the three ways the hold can end.',
+      figure: {
+        kind: 'timeline',
+        ticks: ['0:00 — held', '5:00', '10:00 — expiry'],
+        lanes: [
+          {
+            label: 'Buys at 5:00',
+            bars: [{ from: 0, to: 0.5, label: 'held', tone: 'line' }],
+            outcome: { label: 'booked', tone: 'mastered' },
+          },
+          {
+            label: 'Abandons the cart',
+            bars: [{ from: 0, to: 1, label: 'held until it expires', tone: 'line' }],
+            outcome: { label: 'back on sale', tone: 'neutral' },
+          },
+          {
+            label: 'Pays at 10:01',
+            bars: [{ from: 0, to: 1, label: 'held', tone: 'line' }],
+            outcome: { label: 'rejected · auto-refund', tone: 'alert' },
+          },
+        ],
+        note: 'The tickets table only ever holds available or booked. The hold itself lives in Redis, with the expiry doing the cleanup.',
+      },
+    },
     { kind: 'heading', text: 'The three follow-ups' },
     {
       kind: 'prose',
@@ -102,13 +128,13 @@ POST /bookings/{eventId}
       items: [
         '**The read path.** Holds live in Redis, so the seat map cannot read them from Postgres. Keep a sorted set per event scored by expiry: `ZADD event:{id}:held <expiresAt> ticketId`. The seat map counts only members with a future score, and stale entries are trimmed lazily with `ZREMRANGEBYSCORE`.',
         '**Redis dies.** Correctness holds — optimistic concurrency on the booking write still prevents double-booking. A user may lose a race after paying, which you resolve with an automatic refund. That is far better than every seat appearing unavailable.',
-        '**The TTL expires mid-payment.** The conditional write fails, so you refund automatically. And you extend the lock when payment begins, so it rarely gets that far.',
+        '**The [[TTL]] expires mid-payment.** The conditional write fails, so you refund automatically. And you extend the lock when payment begins, so it rarely gets that far.',
       ],
     },
     { kind: 'heading', text: 'Deep dive 2 — search under 500 ms' },
     {
       kind: 'prose',
-      text: 'Standard indexes cannot do partial matches — "Taylor" will not hit "Taylor Swift" on a B-tree. Elasticsearch with an inverted index handles it, plus fuzzy matching so "Tayler" still finds her, which matters because a large share of real searches are misspelled. Sync from Postgres by **CDC**; the second of lag is fine for search and never touches the booking path.',
+      text: 'Standard indexes cannot do partial matches — "Taylor" will not hit "Taylor Swift" on a B-tree. Elasticsearch with an inverted index handles it, plus fuzzy matching so "Tayler" still finds her, which matters because a large share of real searches are misspelled. Sync from Postgres by **[[CDC]]**; the second of lag is fine for search and never touches the booking path.',
     },
     { kind: 'heading', text: 'Deep dive 3 — ten million people, one on-sale' },
     {
@@ -117,7 +143,7 @@ POST /bookings/{eventId}
     },
     {
       kind: 'flow',
-      nodes: ['Join queue (Redis sorted set by arrival)', 'SSE holds position', 'Admit in batches', 'admitted:{eventId} set', 'Booking service checks membership'],
+      nodes: ['Join queue (Redis sorted set by arrival)', '[[SSE]] holds position', 'Admit in batches', 'admitted:{eventId} set', 'Booking service checks membership'],
     },
     {
       kind: 'prose',

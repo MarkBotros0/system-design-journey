@@ -5,6 +5,7 @@ import { getPattern } from '../content/patterns'
 import { BUDGETED_MINUTES, TOTAL_MINUTES } from '../content/framework'
 import { useProgress } from '../state/ProgressProvider'
 import { Badge, ScreenTitle } from '../components/ui/Bits'
+import { plainText } from '../components/content/Inline'
 import type { Difficulty } from '../content/types'
 
 const difficultyTone: Record<Difficulty, 'mastered' | 'streak' | 'alert'> = {
@@ -54,8 +55,9 @@ export function PracticeScreen() {
                     })}
                   </div>
                   <h3 className="text-[1.0625rem] font-semibold">{p.title}</h3>
+                  {/* Inside a Link — strip markup rather than render a nested button. */}
                   <p className="mt-1 line-clamp-2 text-[0.875rem] leading-relaxed text-ink-2">
-                    {p.brief}
+                    {plainText(p.brief)}
                   </p>
                   {attempts.length > 0 && (
                     <p className="mt-2 font-mono text-[0.6875rem] text-ink-3 tabular">
