@@ -9,6 +9,7 @@ import { PracticeScreen } from './routes/PracticeScreen'
 import { ProblemScreen } from './routes/ProblemScreen'
 import { YouScreen } from './routes/YouScreen'
 import { ButtonLink } from './components/ui/Button'
+import { PwaBanner } from './components/pwa/PwaBanner'
 
 /** A new screen starts at the top; the browser's restore only makes sense going back. */
 function ScrollToTop() {
@@ -56,6 +57,7 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <PwaBanner />
     </>
   )
 }

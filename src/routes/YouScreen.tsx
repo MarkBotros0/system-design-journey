@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
-import { Download, Flame, Upload } from 'lucide-react'
+import { Download, Flame, Share, Smartphone, Upload } from 'lucide-react'
+import { useInstallMode } from '../components/pwa/usePwa'
+import { promptInstall } from '../lib/installPrompt'
 import { allCards, getProblem, modules, totalQuizItems } from '../content'
 import { useProgress } from '../state/ProgressProvider'
 import { isMastered, isPassed, liveStreak } from '../lib/progress'
@@ -30,6 +32,7 @@ export function YouScreen() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
   const [confirmingReset, setConfirmingReset] = useState(false)
+  const installMode = useInstallMode()
 
   const passed = modules.filter((m) => isPassed(progress, m.id)).length
   const mastered = modules.filter((m) => isMastered(progress, m)).length
@@ -110,6 +113,41 @@ export function YouScreen() {
               )
             })}
           </ul>
+        </section>
+      )}
+
+      {installMode !== 'none' && (
+        <section className="mt-8">
+          <h2 className="mb-1 text-[1.125rem] font-semibold">Install</h2>
+          <p className="mb-3 text-[0.875rem] leading-relaxed text-ink-2">
+            Add Throughput to your home screen and it opens full screen and works with no
+            connection — the whole curriculum is already on your device.
+          </p>
+
+          {installMode === 'button' ? (
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                const accepted = await promptInstall()
+                if (accepted) setMessage({ kind: 'ok', text: 'Installed. Open it from your home screen.' })
+              }}
+            >
+              <Smartphone size={16} strokeWidth={2} />
+              Add to home screen
+            </Button>
+          ) : (
+            <Panel>
+              <p className="flex items-center gap-2 text-[0.875rem] font-medium">
+                <Share size={15} strokeWidth={2} className="text-line" />
+                On iPhone, Safari does this by hand
+              </p>
+              <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-[0.875rem] text-ink-2">
+                <li>Tap the Share button in Safari&rsquo;s toolbar.</li>
+                <li>Scroll down and choose &ldquo;Add to Home Screen&rdquo;.</li>
+                <li>Open Throughput from the icon rather than the browser.</li>
+              </ol>
+            </Panel>
+          )}
         </section>
       )}
 

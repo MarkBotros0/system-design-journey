@@ -134,6 +134,34 @@ Non-negotiable, because this is used on a phone:
   sideways.
 - `prefers-reduced-motion` is respected globally in `index.css`.
 
+## PWA
+
+Installable and fully offline via `vite-plugin-pwa` (Workbox), configured in
+`vite.config.ts`.
+
+`egx-api-fe` hand-writes `public/sw.js` and a static `public/manifest.json`. That works
+there because Next serves stable asset paths. It does **not** transfer to Vite: the build
+emits content-hashed filenames (`index-BP5Ib4KI.js`), so a hand-written precache list
+would go stale on every build. Workbox generates the precache manifest from the actual
+build output instead — same outcome, correct for this bundler.
+
+- `registerType: 'prompt'`, **not** `'autoUpdate'` — an automatic reload can land mid
+  design-problem and destroy a timed attempt. `components/pwa/PwaBanner.tsx` asks first.
+- `injectRegister: null` — registration happens through `useRegisterSW` in that component,
+  so the lifecycle UI and the registration are the same thing.
+- The three Google Fonts are **runtime**-cached (`CacheFirst` for `fonts.gstatic.com`,
+  `StaleWhileRevalidate` for the stylesheet). Without those rules an offline launch falls
+  back to system fonts and the page reflows.
+- `lib/installPrompt.ts` captures `beforeinstallprompt` **at module load** — Chromium fires
+  it once, early, and the event is unusable unless you called `preventDefault` on it. iOS
+  never fires it, so `useInstallMode()` returns `'ios-manual'` there and the You screen
+  shows the Share → Add to Home Screen steps instead of a button.
+- `npm run icons` regenerates the PNG icon set from `public/favicon.svg`. Outputs are
+  committed so a normal install and build never needs sharp.
+
+Verify a PWA change with `npm run build && npm run preview`, then Chrome DevTools →
+Application → Service Workers, and the Network panel set to Offline.
+
 ## Storage
 
 `ProgressState` in `src/lib/storage.ts`, one record in IndexedDB under `tp:progress`; theme in
