@@ -172,8 +172,8 @@ export const foundationsModules: Module[] = [
     title: 'Client, server, and the network between them',
     station: 2,
     prereqs: ['f-what'],
-    minutes: 8,
-    summary: 'What actually happens between a tap and a response, which protocol to pick, and the latency floor physics imposes.',
+    minutes: 12,
+    summary: 'What actually happens between a tap and a response, which protocol to pick, what a load balancer layer means, and the latency floor physics imposes.',
     lesson: [
       {
         kind: 'prose',
@@ -198,32 +198,114 @@ export const foundationsModules: Module[] = [
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Reaching for WebSocket the moment you hear "real time". Most live features only need the server to push, which is exactly what SSE does over ordinary HTTP — no connection upgrade, no sticky-session problem, no [[L4]] load balancing requirement.',
+        text: 'Reaching for WebSocket the moment you hear "real time". Most live features only need the server to push, which is exactly what SSE does over ordinary HTTP — no connection upgrade, no sticky-session problem, and nothing pushing you down to [[L4]] balancing.',
       },
-      { kind: 'heading', text: 'Load balancers' },
+      { kind: 'heading', text: 'Load balancers, and what a "layer" is' },
       {
         kind: 'prose',
-        text: 'A load balancer spreads requests across identical servers. The only choice worth stating in an interview is which layer it works at.',
+        text: 'A load balancer spreads requests across identical servers. The only choice worth stating in an interview is which **layer** it works at — and that number comes from the [[OSI]] model, which stacks networking from raw wire at the bottom up to application meaning at the top. Two of its rungs matter here.',
+      },
+      {
+        kind: 'figure',
+        caption: 'Naming the layer is naming how deep the balancer reads before it picks a server.',
+        figure: {
+          kind: 'stack',
+          layers: [
+            { label: 'Layer 7 — HTTP', sub: 'GET /api/users', tone: 'mastered' },
+            { label: 'Layer 4 — TCP', sub: '10.0.0.4:443', tone: 'line' },
+          ],
+          note: 'Layer 4 sees the envelope — an address and a port. Layer 7 opens the envelope and reads the letter. Everything else about the two follows from that one difference.',
+        },
+      },
+      {
+        kind: 'prose',
+        text: 'That difference is structural, not just a matter of permission. A Layer 4 balancer splices your connection through to a server and gets out of the way. A Layer 7 balancer **ends your connection at itself**, reads the request, then opens a second connection of its own to the server it chose.',
+      },
+      {
+        kind: 'figure',
+        caption: 'One connection spliced straight through, or two connections with a decision in between.',
+        figure: {
+          kind: 'split',
+          left: {
+            title: 'Layer 4 — one connection',
+            tone: 'line',
+            nodes: [
+              { label: 'Client', to: 'bytes' },
+              { label: 'Balancer', sub: 'never looks inside', tone: 'line', to: 'same bytes' },
+              { label: 'Any server' },
+            ],
+            cost: 'Your connection is spliced through to one server and stays there. Cheap per byte, and blind — it cannot know the path was `/api/users`.',
+          },
+          right: {
+            title: 'Layer 7 — two connections',
+            tone: 'mastered',
+            nodes: [
+              { label: 'Client', to: 'conn A' },
+              { label: 'Balancer', sub: 'reads the request', tone: 'mastered', to: 'conn B' },
+              { label: 'Users service' },
+            ],
+            cost: 'It ends your connection and opens its own. Because **conn B** belongs to the balancer, it can route on what it just read — and hand that connection to the next client afterwards.',
+          },
+          verdict: 'One connection or two is the whole story: two is what buys routing and reuse, one is what makes Layer 4 fast.',
+        },
       },
       {
         kind: 'compare',
         left: {
           title: 'Layer 4',
           points: [
-            'Works at the TCP level',
-            'Faster, but cannot see the request',
-            'Required for **persistent connections** like WebSocket',
+            'Forwards a [[TCP]] connection without ever parsing it',
+            'Least work per byte — highest throughput, least added latency',
+            'Balances blind: round robin, least connections, hash on source [[IP]]',
+            'The natural home for **long-lived connections**',
           ],
         },
         right: {
           title: 'Layer 7',
           points: [
-            'Reads the actual HTTP request',
-            'Can route by path, header, or cookie',
-            'Fewer connections held open downstream',
+            'Terminates your connection and parses the [[HTTP]] request',
+            'Routes on path, header or cookie — `/api` here, `/images` there',
+            'Pools downstream: thousands of clients over dozens of connections',
+            'Pays for it in parsing and buffering on every single request',
           ],
         },
-        verdict: '[[L7]] by default. L4 when you are balancing WebSockets.',
+        verdict: '[[L7]] by default — you almost always want path routing and connection reuse. Drop to [[L4]] for [[WebSocket|WebSockets]], where neither of those is available to you anyway.',
+      },
+      { kind: 'heading', text: 'Why WebSockets push you down to Layer 4' },
+      {
+        kind: 'prose',
+        text: 'A WebSocket begins life as an ordinary HTTP request carrying an `Upgrade` header. The server answers `101 Switching Protocols`, and from that moment the connection is no longer HTTP — it is a raw two-way frame stream held open for minutes or hours.',
+      },
+      {
+        kind: 'figure',
+        caption: 'A Layer 7 balancer earns its keep per request. After an upgrade there are no more requests.',
+        figure: {
+          kind: 'timeline',
+          ticks: ['connection opens', 'much later'],
+          lanes: [
+            {
+              label: 'Plain HTTP through a Layer 7 balancer',
+              bars: [
+                { from: 0.02, to: 0.15, tone: 'line' },
+                { from: 0.25, to: 0.38, tone: 'line' },
+                { from: 0.5, to: 0.63, tone: 'line' },
+                { from: 0.74, to: 0.87, tone: 'line' },
+              ],
+              outcome: { label: 'routes each one', tone: 'mastered' },
+            },
+            {
+              label: 'A WebSocket through the same balancer',
+              bars: [{ from: 0.02, to: 0.98, label: 'one connection, held open', tone: 'alert' }],
+              outcome: { label: 'nothing to route', tone: 'alert' },
+            },
+          ],
+          note: 'Once upgraded, the balancer is pinned one-to-one for the whole lifetime of the connection: it can no longer route, and it can no longer pool. You keep paying Layer 7 costs for abilities you can no longer use.',
+        },
+      },
+      {
+        kind: 'callout',
+        tone: 'note',
+        text: 'Do not overstate this in an interview. A Layer 7 balancer **can** carry a WebSocket — nginx and the managed cloud balancers all do, once you raise the idle timeout that would otherwise close a quiet connection. The defensible claim is that Layer 7 buys you nothing after the upgrade, not that it is incapable.',
       },
       {
         kind: 'figure',
@@ -263,9 +345,46 @@ export const foundationsModules: Module[] = [
         tone: 'say',
         text: 'Each step down that table is roughly a thousand times slower than the one above. Whenever a design feels slow, find which row you are landing on and try to move up one.',
       },
+      { kind: 'heading', text: 'Stateless servers' },
       {
         kind: 'prose',
-        text: 'Stateless servers matter here too. If any server can handle any request, you can add servers freely and lose one without losing sessions. The moment a server holds state a user depends on, you need sticky sessions or a shared store — and you have made scaling harder than it needed to be.',
+        text: 'This is the other half of load balancing, and the term gets used far more often than it gets defined. A server is **stateless** when it remembers nothing between requests that a later request depends on: it reads what it needs from a database or a cache, answers, and forgets you. **Stateful** is the opposite — something the user depends on lives in that one server\'s memory, so only that one server can serve them.',
+      },
+      {
+        kind: 'prose',
+        text: 'The state itself does not disappear either way. The question is only **where it lives** — inside one box, or in a store every box can reach.',
+      },
+      {
+        kind: 'figure',
+        caption: 'Where the session lives is what decides whether any server can answer.',
+        figure: {
+          kind: 'split',
+          left: {
+            title: 'Stateful — session in memory',
+            tone: 'alert',
+            nodes: [
+              { label: 'User', to: 'must reach' },
+              { label: 'Server B', sub: 'holds the session', tone: 'alert' },
+            ],
+            cost: 'Every later request has to land on **that exact box**. Lose it and the session goes with it; a newly added box sits idle, because nobody is pinned to it yet.',
+          },
+          right: {
+            title: 'Stateless — session in a shared store',
+            tone: 'mastered',
+            nodes: [
+              { label: 'User', to: 'any of' },
+              { label: 'Server A, B or C', tone: 'mastered', to: 'looks up' },
+              { label: 'Redis' },
+            ],
+            cost: 'Any box can answer, so you add capacity by adding boxes and survive losing one. The state moved to something built to be shared.',
+          },
+          verdict: 'Keep application servers stateless and push the state into a store. It is what makes adding servers actually add capacity.',
+        },
+      },
+      {
+        kind: 'callout',
+        tone: 'trap',
+        text: 'The workaround for a stateful server is **sticky sessions** — the balancer pins each user to the box holding their state. It works, and it quietly costs you: uneven load, a session lost whenever a box dies, and a deploy that logs people out. Reach for it when something forces you to, never as the default.',
       },
     ],
     quiz: [
@@ -300,16 +419,16 @@ export const foundationsModules: Module[] = [
       {
         id: 'q-f-network-3',
         moduleId: 'f-network',
-        stem: 'You are load balancing [[WebSocket]] connections. Which layer must the balancer operate at?',
+        stem: 'You are load balancing [[WebSocket]] connections. Which layer fits, and why?',
         options: [
-          'Layer 7, so it can route by path',
-          'Layer 4, because the connection is persistent',
-          'Either works identically',
+          'Layer 7, so it can route each frame by path',
+          'Layer 4, because after the upgrade there is no request left to route',
+          'Either is equally good — the layer makes no difference here',
           'Neither — WebSockets cannot be load balanced',
         ],
         correct: 1,
         explain:
-          '[[L7]] balancers terminate and inspect [[HTTP]] requests, which does not fit a long-lived upgraded connection. [[L4]] balances at the [[TCP]] level and lets the connection stay open.',
+          'A WebSocket upgrades out of [[HTTP]] into a long-lived frame stream, so there are no further requests to route and no connection to reuse — the two things Layer 7 exists for. A Layer 7 balancer **can** still carry one, given a raised idle timeout, but it is pinned one-to-one and paying for abilities it cannot use. Layer 4 is already exactly that pipe.',
       },
     ],
     cards: [
@@ -317,7 +436,7 @@ export const foundationsModules: Module[] = [
         id: 'c-f-network-1',
         moduleId: 'f-network',
         front: '[[SSE]] versus [[WebSocket]] — when does each win?',
-        back: 'SSE: server pushes, client only listens. Plain [[HTTP]], simpler, covers most "live" features. WebSocket: both sides send freely — chat, collaborative editing. Costs you [[L4]] balancing and connection state.',
+        back: 'SSE: server pushes, client only listens. Plain [[HTTP]], simpler, covers most "live" features. WebSocket: both sides send freely — chat, collaborative editing. Costs you connection state and pushes you toward [[L4]] balancing.',
         tag: 'Networking',
       },
       {
@@ -330,8 +449,8 @@ export const foundationsModules: Module[] = [
       {
         id: 'c-f-network-3',
         moduleId: 'f-network',
-        front: 'Why do stateless application servers matter?',
-        back: 'Any server can serve any request, so you add capacity by adding boxes and lose one without losing sessions. State on the server forces sticky sessions or a shared store.',
+        front: 'What makes a server "stateless", and why does it matter?',
+        back: 'It keeps nothing between requests that a later request needs — the state lives in a shared store instead. So any box can serve any request: add boxes to add capacity, lose one without losing sessions.',
         tag: 'Scaling',
       },
     ],

@@ -209,13 +209,13 @@ export const glossary: GlossaryEntry[] = [
   {
     id: 'L4',
     full: 'Layer 4 load balancing',
-    gist: 'Balancing at the TCP level: the balancer forwards a connection without reading what is inside it. Faster, and the only option for long-lived connections like WebSockets.',
+    gist: 'Balancing at the TCP level: the balancer forwards a connection without ever reading what is inside it. Least work per byte, and the natural fit for long-lived connections like WebSockets, where there is no request left to route anyway.',
     figure: {
       kind: 'split',
       left: {
         title: 'Layer 4',
         nodes: [{ label: 'Connection', to: 'forward' }, { label: 'Any server', tone: 'line' }],
-        cost: 'Cannot see the request. Required for persistent connections.',
+        cost: 'Cannot see the request. The natural home for persistent connections.',
       },
       right: {
         title: 'Layer 7',
@@ -224,7 +224,24 @@ export const glossary: GlossaryEntry[] = [
       },
     },
     caption: 'Whether the balancer can read the request is the whole difference.',
-    seeAlso: ['WebSocket', 'TCP'],
+    seeAlso: ['WebSocket', 'TCP', 'OSI'],
+  },
+  {
+    id: 'OSI',
+    full: 'Open Systems Interconnection model',
+    gist: 'The seven-layer picture of networking, from electrical signals at the bottom to application meaning at the top. You need two of its rungs: layer 4 is TCP, layer 7 is HTTP. Calling a load balancer "L4" or "L7" is saying how far up that stack it reads before it chooses a server.',
+    figure: {
+      kind: 'stack',
+      layers: [
+        { label: '7 — Application', sub: 'HTTP: GET /api/users', tone: 'mastered' },
+        { label: '4 — Transport', sub: 'TCP: port 443', tone: 'line' },
+        { label: '3 — Network', sub: 'IP: 10.0.0.4', tone: 'neutral' },
+        { label: '1–2 — Link and physical', sub: 'frames, cable', tone: 'neutral' },
+      ],
+      note: 'Layers 5 and 6 exist on paper and almost never come up in a design discussion. The two that settle arguments are 4 and 7.',
+    },
+    caption: 'The rungs you actually reference, and what each one can read.',
+    seeAlso: ['L4', 'L7', 'TCP'],
   },
   {
     id: 'JWT',
@@ -1154,7 +1171,7 @@ export const glossary: GlossaryEntry[] = [
       note: 'Layer 4 could not do this — it never sees the path.',
     },
     caption: 'Routing decisions made from the content of the request.',
-    seeAlso: ['L4'],
+    seeAlso: ['L4', 'OSI'],
   },
   {
     id: 'KB',

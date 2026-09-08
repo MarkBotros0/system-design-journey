@@ -61,7 +61,10 @@ function Frame({ children, note }: { children: React.ReactNode; note?: string })
 
 function Arrow({ label }: { label?: string }) {
   return (
-    <div className="flex shrink-0 flex-col items-center justify-center gap-0.5 self-center py-0.5 sm:py-0">
+    /* Rotating the arrow does not rotate its layout box, so on mobile it draws ~6px
+       past each end. The gap and padding reserve that room, or the arrowhead lands
+       on top of the label above it. */
+    <div className="flex shrink-0 flex-col items-center justify-center gap-2 self-center py-2 sm:gap-0.5 sm:py-0">
       {label && (
         <span className="font-mono text-[0.625rem] leading-none tracking-wide text-ink-3">
           {label}
