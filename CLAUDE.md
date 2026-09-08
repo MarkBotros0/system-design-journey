@@ -259,9 +259,9 @@ station behind a week of drilling would stall the journey for no benefit.
 
 Remote: `https://github.com/MarkBotros0/system-design-journey.git`, branch `main`.
 
-**Switch the GitHub account first.** This machine has several accounts in `gh`, and the default
-active one is *not* the owner of this repo. Pushing as the wrong account fails with a 403, or
-worse, succeeds against something you did not intend.
+**Always switch to `MarkBotros0` before pushing. Every push, no exceptions.** This machine has
+several accounts in `gh`, and the default active one is *not* the owner of this repo. Pushing as
+the wrong account fails with a 403, or worse, succeeds against something you did not intend.
 
 ```bash
 gh auth switch --hostname github.com --user MarkBotros0
@@ -269,6 +269,10 @@ gh auth switch --hostname github.com --user MarkBotros0
 
 Confirm with `gh api user --jq .login` — it must print `MarkBotros0` — then push. Git uses the
 `gh` credential helper here, so the switch is all the authentication needed.
+
+Do not skip the switch because you already ran it. The active account is machine-wide, not
+per-session or per-repo: anything else on this machine can move it between one push and the
+next. It costs a second, so run the switch and the confirmation every time.
 
 ```bash
 git push -u origin main
