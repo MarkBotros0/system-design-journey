@@ -20,7 +20,6 @@ export function Sheet({
   wide?: boolean
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
-  const closeRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -50,7 +49,9 @@ export function Sheet({
     // Stop the page behind the sheet scrolling under the user's finger.
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    closeRef.current?.focus()
+    // Focus the panel, not the close button: screen readers start at the top of the
+    // dialog, and a keyboard user's first Tab still reaches every control.
+    panelRef.current?.focus()
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = previous
@@ -76,7 +77,8 @@ export function Sheet({
       />
       <div
         ref={panelRef}
-        className={`relative flex max-h-[88dvh] w-full flex-col overflow-y-auto overscroll-contain rounded-t-3xl border border-hairline bg-surface pb-safe sm:rounded-3xl ${
+        tabIndex={-1}
+        className={`relative flex outline-none max-h-[88dvh] w-full flex-col overflow-y-auto overscroll-contain rounded-t-3xl border border-hairline bg-surface pb-safe sm:rounded-3xl ${
           wide ? 'sm:max-w-xl' : 'sm:max-w-md'
         }`}
         style={{ boxShadow: 'var(--shadow-sheet)' }}
@@ -86,7 +88,6 @@ export function Sheet({
           <span aria-hidden="true" className="h-1 w-10 rounded-full bg-hairline" />
         </div>
         <button
-          ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label="Close"

@@ -14,6 +14,8 @@ import { ButtonLink } from './components/ui/Button'
 import { PwaBanner } from './components/pwa/PwaBanner'
 import { GlossarySheet } from './components/content/GlossarySheet'
 import { BlocksFixture } from './routes/__fixtures/BlocksFixture'
+import { SeedFixture } from './routes/__fixtures/SeedFixture'
+import { HomeScreen } from './routes/HomeScreen'
 
 /**
  * Where the viewport goes after a navigation.
@@ -104,7 +106,7 @@ export default function App() {
       <Routes>
         {/* Tabbed shell — the places you browse. */}
         <Route element={<Shell />}>
-          <Route path="/" element={<MapScreen />} />
+          <Route path="/" element={<HomeScreen />} />
           <Route path="/learn" element={<MapScreen />} />
           <Route path="/m/:moduleId" element={<ModuleScreen />} />
           <Route path="/practice" element={<PracticeScreen />} />
@@ -113,6 +115,7 @@ export default function App() {
           <Route path="/glossary" element={<GlossaryScreen />} />
           <Route path="/search" element={<SearchScreen />} />
           {import.meta.env.DEV && <Route path="/__fixtures/blocks" element={<BlocksFixture />} />}
+          {import.meta.env.DEV && <Route path="/__fixtures/seed" element={<SeedFixture />} />}
         </Route>
 
         {/* Focus modes — timed or scored, so the tab bar comes off and each has its own exit. */}
