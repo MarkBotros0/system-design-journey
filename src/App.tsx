@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { Shell } from './components/nav/Shell'
-import { MapScreen } from './routes/MapScreen'
+import { LearnScreen } from './routes/LearnScreen'
+import { TrackScreen } from './routes/TrackScreen'
+import { PatternsScreen } from './routes/PatternsScreen'
 import { ModuleScreen } from './routes/ModuleScreen'
 import { QuizScreen } from './routes/QuizScreen'
 import { DrillScreen } from './routes/DrillScreen'
@@ -107,7 +109,9 @@ export default function App() {
         {/* Tabbed shell — the places you browse. */}
         <Route element={<Shell />}>
           <Route path="/" element={<HomeScreen />} />
-          <Route path="/learn" element={<MapScreen />} />
+          <Route path="/learn" element={<LearnScreen />} />
+          <Route path="/learn/:trackId" element={<TrackScreen />} />
+          <Route path="/patterns" element={<PatternsScreen />} />
           <Route path="/m/:moduleId" element={<ModuleScreen />} />
           <Route path="/practice" element={<PracticeScreen />} />
           <Route path="/review" element={<DrillScreen />} />

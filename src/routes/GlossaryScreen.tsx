@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Search } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { Search } from 'lucide-react'
 import { glossary } from '../content/glossary'
 import { useGlossary } from '../state/GlossaryProvider'
-import { ScreenTitle } from '../components/ui/Bits'
+import { TopBar, PageTitle } from '../components/ui/TopBar'
+import { useScrolledPast } from '../components/ui/useScrolledPast'
 
 /**
  * Every abbreviation in the curriculum, in one place. Tapping opens the same sheet the
@@ -12,6 +13,10 @@ import { ScreenTitle } from '../components/ui/Bits'
 export function GlossaryScreen() {
   const { open } = useGlossary()
   const [query, setQuery] = useState('')
+  const { hash } = useLocation()
+  const target = decodeURIComponent(hash.slice(1))
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const scrolled = useScrolledPast(titleRef)
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -26,16 +31,10 @@ export function GlossaryScreen() {
 
   return (
     <div>
-      <Link
-        to="/you"
-        className="-ml-1 mb-5 inline-flex min-h-11 items-center gap-1.5 pr-2 text-[0.875rem] text-ink-2 hover:text-ink"
-      >
-        <ArrowLeft size={16} strokeWidth={2} />
-        You
-      </Link>
-
-      <ScreenTitle
-        title="Terms"
+      <TopBar title="Glossary" showTitle={scrolled} back={{ label: 'Back', to: '/learn?view=topics' }} />
+      <PageTitle
+        title="Glossary"
+        titleRef={titleRef}
         sub={`${glossary.length} abbreviations, each with an illustration of what it actually does.`}
       />
 
@@ -63,10 +62,13 @@ export function GlossaryScreen() {
       ) : (
         <ul className="flex flex-col gap-1.5">
           {results.map((g) => (
-            <li key={g.id}>
+            <li key={g.id} id={g.id}>
               <button
+                type="button"
                 onClick={() => open(g.id)}
-                className="flex w-full items-baseline gap-3 rounded-xl border border-hairline bg-surface px-4 py-3 text-left transition-colors duration-150 hover:border-line"
+                className={`flex min-h-14 w-full items-baseline gap-3 rounded-xl border bg-surface px-4 py-3 text-left transition-colors duration-150 hover:border-line ${
+                  g.id === target ? 'border-line bg-line-soft/40' : 'border-hairline'
+                }`}
               >
                 <span className="w-16 shrink-0 font-mono text-[0.8125rem] font-semibold text-line">
                   {g.id}
