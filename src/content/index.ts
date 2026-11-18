@@ -141,12 +141,6 @@ export function relatedOf(moduleId: string): Module[] {
 /* ------------------------------------------------------------------ */
 
 /**
- * The ten problems written before the walkthrough skeleton existed. They are held to it
- * once they have been re-headed; every new problem is held to it from the start.
- */
-const LENIENT_PROBLEMS = new Set<string>([])
-
-/**
  * Everything the type system cannot catch: a typo in a prereq id, a quiz whose `correct`
  * index points at nothing, an unexplained abbreviation, a walkthrough that skips a phase.
  * Dev boot logs the result; `content.test.ts` asserts it is empty.
@@ -213,9 +207,7 @@ export function checkCurriculum(): string[] {
       if (rubricIds.has(r.id)) out.push(`problem ${p.id}: duplicate rubric id ${r.id}`)
       rubricIds.add(r.id)
     }
-    if (!LENIENT_PROBLEMS.has(p.id)) {
-      for (const issue of validateProblemShape(p)) out.push(`problem ${p.id}: ${issue}`)
-    }
+    for (const issue of validateProblemShape(p)) out.push(`problem ${p.id}: ${issue}`)
   }
 
   const seenPatterns = new Set<string>()
