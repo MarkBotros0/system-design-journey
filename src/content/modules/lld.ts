@@ -742,6 +742,7 @@ class ParkingLot {
     title: 'Designing for change',
     station: 3,
     prereqs: ['l-modelling'],
+    related: ['p-srp-ocp', 'dp-strategy-state'],
     minutes: 13,
     summary: 'Every design round has a second act. Put the seam where change will come, and nowhere else.',
     objectives: [
@@ -1121,7 +1122,7 @@ function vehicleFrom(kind: string, plate: string): Vehicle {
     title: 'Concurrency in object design',
     station: 4,
     prereqs: ['l-extension'],
-    related: ['a-contention'],
+    related: ['a-contention', 'db-locking', 'dp-builder-singleton'],
     minutes: 15,
     summary: 'Two requests, one parking spot. Find the check-then-act, then make it atomic, locked or optimistic.',
     objectives: [

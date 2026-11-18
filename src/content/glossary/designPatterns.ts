@@ -82,18 +82,4 @@ export const terms: GlossaryEntry[] = [
     caption: 'An object access on one side, a database query on the other.',
     seeAlso: ['SQL'],
   },
-  {
-    id: 'DI',
-    full: 'Dependency Injection',
-    gist: 'Giving an object its collaborators, usually through its constructor, instead of letting it create them or fetch them from a global. Dependencies become visible in the signature and replaceable in a test.',
-    figure: {
-      kind: 'flow',
-      nodes: [
-        { label: 'main.ts', sub: 'creates one Database', to: 'passes it in' },
-        { label: 'BillingService(db)', sub: 'declares what it needs', tone: 'mastered', to: 'in a test' },
-        { label: 'FakeDatabase', sub: 'swapped in, no globals' },
-      ],
-    },
-    caption: 'The caller decides what an object depends on, so a test can decide differently.',
-  },
 ]
