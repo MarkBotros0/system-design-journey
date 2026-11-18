@@ -9,7 +9,7 @@ export const googleDocs: Problem = {
   brief:
     'Design a collaborative document editor. Several people type into the same document at once, and everyone sees the changes, and each other, as they happen.',
   patterns: ['realtime', 'contention'],
-  suggests: ['a-realtime', 'a-contention', 'c-sharding', 'c-cap'],
+  suggests: ['a-realtime', 'a-contention', 'c-sharding', 'c-cap', 'db-locking'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to concurrent editing, presence and version history, and named what is out of scope' },
     { id: 'r2', bar: 'must', criterion: 'Chose WebSocket and justified it by heavy traffic in both directions' },

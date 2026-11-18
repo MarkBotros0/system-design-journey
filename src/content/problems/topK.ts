@@ -9,7 +9,7 @@ export const topK: Problem = {
   brief:
     'Build the service behind a trending list: the K most-viewed YouTube videos over the last hour, the last day and the last month. Views arrive by the billion every day.',
   patterns: ['scaling-writes', 'scaling-reads'],
-  suggests: ['c-queues', 'a-writes', 'c-sharding', 'c-caching'],
+  suggests: ['c-queues', 'a-writes', 'c-sharding', 'c-caching', 'd-delivery'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Asked whether "last hour" means a sliding or a tumbling window before designing' },
     { id: 'r2', bar: 'must', criterion: 'Moved counting off the request path onto a stream partitioned by video id' },

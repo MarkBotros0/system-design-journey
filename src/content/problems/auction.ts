@@ -9,7 +9,7 @@ export const auction: Problem = {
   brief:
     'Sellers list an item with a starting price and an end time. Buyers bid until it closes, and the highest bid wins. Anyone watching sees the price change live.',
   patterns: ['contention', 'realtime'],
-  suggests: ['a-contention', 'a-realtime', 'c-queues', 'c-cap'],
+  suggests: ['a-contention', 'a-realtime', 'c-queues', 'c-cap', 'db-locking'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to list, bid, watch live and close, and parked proxy bidding and payment as out of scope' },
     { id: 'r2', bar: 'must', criterion: 'Required bids to be strongly consistent and durable: an accepted bid is never lost and the price never falls' },

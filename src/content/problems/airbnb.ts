@@ -9,7 +9,7 @@ export const airbnb: Problem = {
   brief:
     'Guests search for somewhere to stay in a city for specific dates, then book it. Hosts decide which nights their place is available.',
   patterns: ['contention', 'scaling-reads', 'proximity', 'multistep'],
-  suggests: ['a-contention', 'c-search', 'c-modelling', 'a-multistep'],
+  suggests: ['a-contention', 'c-search', 'c-modelling', 'a-multistep', 'db-isolation'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to search by place and dates, view a listing, and book, and named what is out of scope' },
     { id: 'r2', bar: 'must', criterion: 'Split consistency by path: search may be seconds stale, booking must be strongly consistent' },

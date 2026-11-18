@@ -703,6 +703,7 @@ export const behavioralModules: Module[] = [
     title: 'Failure, ownership and trade-off stories',
     station: 5,
     prereqs: ['i-influence'],
+    related: ['o-slo'],
     minutes: 14,
     summary:
       'Owning a real mistake, being wrong well, deciding under pressure, and showing the behaviour you changed afterwards.',

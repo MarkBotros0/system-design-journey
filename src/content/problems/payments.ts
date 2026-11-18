@@ -9,7 +9,7 @@ export const payments: Problem = {
   brief:
     'Merchants call your API to charge their customers\' cards and to refund them. They need to know what happened to every payment, and nobody can ever be charged twice.',
   patterns: ['multistep', 'longrunning'],
-  suggests: ['a-multistep', 'a-longrunning', 'c-queues', 'c-cap'],
+  suggests: ['a-multistep', 'a-longrunning', 'c-queues', 'c-cap', 'd-delivery', 'd-transactions'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to charge, refund, status and notifications, and named fraud and disputes as out of scope' },
     { id: 'r2', bar: 'must', criterion: 'Put correctness ahead of latency and throughput, and said the scale is modest' },

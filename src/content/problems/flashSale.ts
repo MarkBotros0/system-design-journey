@@ -9,7 +9,7 @@ export const flashSale: Problem = {
   brief:
     'A retailer sells 10,000 units of one product at a steep discount, starting at noon. Around a million people will be waiting when it opens. Do not sell more than you have.',
   patterns: ['contention', 'scaling-reads', 'scaling-writes'],
-  suggests: ['a-contention', 'a-reads', 'c-caching', 'c-queues'],
+  suggests: ['a-contention', 'a-reads', 'c-caching', 'c-queues', 'db-locking'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to queue, reserve, pay and release, with fixed stock and a fixed start time' },
     { id: 'r2', bar: 'must', criterion: 'Stated never oversell as the hard requirement, and that briefly underselling is acceptable' },

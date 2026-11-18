@@ -9,7 +9,7 @@ export const notifications: Problem = {
   brief:
     'Build the service the rest of the company calls to notify users by push, email or text message. Today every team sends its own.',
   patterns: ['longrunning', 'scaling-writes'],
-  suggests: ['a-longrunning', 'c-queues', 'a-writes', 'a-multistep'],
+  suggests: ['a-longrunning', 'c-queues', 'a-writes', 'a-multistep', 'd-delivery', 'd-resilience'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to one send API, user preferences and three channels, with the campaign builder out of scope' },
     { id: 'r2', bar: 'must', criterion: "Accepted asynchronously with a 202 and a queue, never sending inside the caller's request" },

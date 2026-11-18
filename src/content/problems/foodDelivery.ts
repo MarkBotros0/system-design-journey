@@ -9,7 +9,7 @@ export const foodDelivery: Problem = {
   brief:
     'Customers order food from nearby restaurants, a courier picks it up and brings it to them, and everyone can see where the order is.',
   patterns: ['multistep', 'proximity', 'realtime'],
-  suggests: ['a-multistep', 'a-proximity', 'a-contention', 'a-realtime'],
+  suggests: ['a-multistep', 'a-proximity', 'a-contention', 'a-realtime', 'd-transactions'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to ordering, dispatch and tracking, with finding restaurants and ratings out of scope' },
     { id: 'r2', bar: 'must', criterion: 'Modelled the order as an explicit state machine with legal transitions' },

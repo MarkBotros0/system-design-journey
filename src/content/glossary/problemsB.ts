@@ -61,25 +61,4 @@ export const terms: GlossaryEntry[] = [
     },
     caption: 'An arrival estimate is several estimates added up, so their uncertainty adds up too.',
   },
-  {
-    id: '2PC',
-    full: 'Two-phase commit',
-    gist: "A protocol that makes several databases commit together: a coordinator asks every participant to prepare, and only when all vote yes tells them to commit. Correct, but participants hold locks while they wait, and only systems that speak the protocol can take part. A payment provider's public API does not.",
-    figure: {
-      kind: 'sequence',
-      actors: ['Coordinator', 'Orders DB', 'Payments DB'],
-      steps: [
-        { from: 0, to: 1, label: 'prepare' },
-        { from: 0, to: 2, label: 'prepare' },
-        { from: 1, to: 0, label: 'yes', dashed: true },
-        { from: 2, to: 0, label: 'yes', dashed: true },
-        { from: 0, to: 0, label: 'decision logged' },
-        { from: 0, to: 1, label: 'commit', tone: 'mastered' },
-        { from: 0, to: 2, label: 'commit', tone: 'mastered' },
-      ],
-      note: 'If the coordinator dies after prepare, both databases wait, holding their locks.',
-    },
-    caption: 'Nobody commits until everyone has voted yes, and everyone waits on the coordinator.',
-    seeAlso: ['ACID'],
-  },
 ]

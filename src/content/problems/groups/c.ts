@@ -1,7 +1,7 @@
 import type { Problem } from '../../types'
 import { airbnb } from '../airbnb'
 import { auction } from '../auction'
-import { flashSale } from '../flash-sale'
+import { flashSale } from '../flashSale'
 import { payments } from '../payments'
 
 /**
