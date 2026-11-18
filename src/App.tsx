@@ -9,6 +9,7 @@ import { QuizScreen } from './routes/QuizScreen'
 import { DrillScreen } from './routes/DrillScreen'
 import { PracticeScreen } from './routes/PracticeScreen'
 import { ProblemScreen } from './routes/ProblemScreen'
+import { WalkthroughScreen } from './routes/WalkthroughScreen'
 import { YouScreen } from './routes/YouScreen'
 import { GlossaryScreen } from './routes/GlossaryScreen'
 import { SearchScreen } from './routes/SearchScreen'
@@ -114,6 +115,7 @@ export default function App() {
           <Route path="/patterns" element={<PatternsScreen />} />
           <Route path="/m/:moduleId" element={<ModuleScreen />} />
           <Route path="/practice" element={<PracticeScreen />} />
+          <Route path="/practice/:problemId/walkthrough" element={<WalkthroughScreen />} />
           <Route path="/review" element={<DrillScreen />} />
           <Route path="/you" element={<YouScreen />} />
           <Route path="/glossary" element={<GlossaryScreen />} />
