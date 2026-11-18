@@ -144,10 +144,7 @@ export function relatedOf(moduleId: string): Module[] {
  * The ten problems written before the walkthrough skeleton existed. They are held to it
  * once they have been re-headed; every new problem is held to it from the start.
  */
-const LENIENT_PROBLEMS = new Set([
-  'bitly', 'dropbox', 'rate-limiter', 'ticketmaster', 'news-feed',
-  'whatsapp', 'youtube', 'web-crawler', 'ad-click', 'uber',
-])
+const LENIENT_PROBLEMS = new Set<string>([])
 
 /**
  * Everything the type system cannot catch: a typo in a prereq id, a quiz whose `correct`

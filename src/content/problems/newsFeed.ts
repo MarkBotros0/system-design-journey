@@ -38,7 +38,16 @@ export const newsFeed: Problem = {
       kind: 'prose',
       text: 'Availability over consistency — **under a minute of staleness is invisible** in a feed. Under 500 ms to post and to read. Two billion users. Unlimited follows.',
     },
-    { kind: 'heading', text: 'Entities and [[API]]' },
+    { kind: 'heading', text: 'Core entities' },
+    {
+      kind: 'prose',
+      text: '`User`, `Post` (author, content, created at), `Follow` (follower → followee), and later a `Feed`: the precomputed list of post ids for one reader.',
+    },
+    {
+      kind: 'prose',
+      text: 'The Follow table is partitioned by `followerId` with `followeeId` as sort key, plus a **reversed global secondary index** so "who follows X" is equally cheap. That is the whole reason this does not need a graph database — there is no deep traversal, only two O(1) lookups.',
+    },
+    { kind: 'heading', text: '[[API]]' },
     {
       kind: 'code',
       code: `POST /posts        { content }          -> { postId }
@@ -46,11 +55,26 @@ PUT  /users/{id}/follow                -> 200
 GET  /feed?limit=&cursor=<timestamp>   -> { items, nextCursor }`,
       caption: 'Cursor pagination, because the feed is being written to while you scroll it.',
     },
+    { kind: 'heading', text: 'High-level design' },
+    {
+      kind: 'figure',
+      caption: 'The simple version first: three stateless services over two tables.',
+      figure: {
+        kind: 'stack',
+        layers: [
+          { label: 'Client', sub: 'web and mobile' },
+          { label: 'Load balancer', sub: 'any host serves any request' },
+          { label: 'Post · Follow · Feed services', sub: 'stateless, scaled horizontally', tone: 'line' },
+          { label: 'Posts table', sub: 'partitioned by author' },
+          { label: 'Follow table', sub: 'by follower, plus the reversed index' },
+        ],
+        note: 'Feed service, naively: read my follows, query each author\'s posts, merge. That is the bottleneck.',
+      },
+    },
     {
       kind: 'prose',
-      text: 'The Follow table is partitioned by `followerId` with `followeeId` as sort key, plus a **reversed global secondary index** so "who follows X" is equally cheap. That is the whole reason this does not need a graph database — there is no deep traversal, only two O(1) lookups.',
+      text: 'Walk it endpoint by endpoint. `POST /posts` writes one row. `PUT /users/{id}/follow` writes one row. `GET /feed` is where it breaks.',
     },
-    { kind: 'heading', text: 'The bottleneck' },
     {
       kind: 'prose',
       text: 'Naively, a feed read means: look up everyone I follow, query each of their post lists, merge, sort. Follow a thousand accounts and one feed request becomes a thousand queries. That is **fan-out on read**, and it blows the latency budget immediately.',
@@ -140,6 +164,44 @@ GET  /feed?limit=&cursor=<timestamp>   -> { items, nextCursor }`,
     {
       kind: 'prose',
       text: 'The fix is **redundant cache instances**, each able to serve any post, with the load balancer spreading reads across all of them. You trade total cache capacity for spike absorption, and a handful of extra misses on a viral post is trivial next to the spike you avoided. Posts are effectively immutable, so replication costs no coordination.',
+    },
+    {
+      kind: 'compare',
+      left: {
+        title: 'More shards',
+        points: [
+          'More total capacity',
+          'The hot key still lives on exactly one shard',
+          'Fixes nothing for this failure',
+        ],
+      },
+      right: {
+        title: 'Redundant full replicas',
+        points: [
+          'Any replica serves any post',
+          'Reads for one key spread across every replica',
+          'Each replica holds less unique data',
+        ],
+      },
+      verdict: 'Replicas. The problem is concentration, not capacity, and immutable posts make copies free to keep in sync.',
+    },
+  ],
+  followups: [
+    {
+      q: 'Half your users have not opened the app in a month. Do you still fan out to them?',
+      a: 'No. Skip anyone inactive past a threshold during fan-out, and rebuild their feed with a one-off fan-out on read when they return. On a two-billion-user network that removes a large share of the write load for one slow first page.',
+    },
+    {
+      q: 'A post is deleted after it reached millions of precomputed feeds. How do you remove it?',
+      a: 'You do not chase it into every feed. Feeds hold only post ids, and hydration fetches each post, so a deleted post is dropped at read time. The stale ids age out of the 200-entry lists on their own.',
+    },
+    {
+      q: 'I unfollow someone. Why do I still see their old posts, and how do you fix it?',
+      a: 'Their ids were already written into your feed. Filter at read time against your current follow set, which you have to load anyway, and queue a background job to strip the ids. Read-time filtering makes the change correct immediately.',
+    },
+    {
+      q: 'Product now wants a ranked feed, not a chronological one. What changes?',
+      a: 'The precomputed feed becomes a candidate set, a few hundred ids, rather than the answer. A ranking service scores those candidates at read time and the result is cached briefly. Fan-out still does the expensive gathering; ranking is a cheap pass over a short list.',
     },
   ],
 }

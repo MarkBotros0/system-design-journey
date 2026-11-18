@@ -43,26 +43,42 @@ export const ticketmaster: Problem = {
       tone: 'say',
       text: 'Splitting consistency by path, out loud, in the requirements phase sets up the entire rest of the interview. It tells the interviewer you know where the hard part is before you have drawn anything.',
     },
-    { kind: 'heading', text: 'Entities and [[API]]' },
+    { kind: 'heading', text: 'Core entities' },
     {
       kind: 'prose',
       text: '`Event`, `Venue` (with a seat map), `Performer`, `Ticket` (**one row per physical seat**, generated when the event is created), `Booking` (groups tickets from one transaction).',
     },
+    { kind: 'heading', text: '[[API]]' },
     {
       kind: 'code',
-      code: `GET  /events/{id}                  -> Event, Venue, Performer, Ticket[]
-GET  /events/search?q=&from=&to=   -> Event[]
+      code: `GET  /events/{id}                 -> Event, Venue, Performer, Ticket[]
+GET  /events/search?q=&from=&to=  -> Event[]
 POST /bookings/{eventId}
        { ticketIds: string[], payment: … }  -> { bookingId }`,
     },
     { kind: 'heading', text: 'High-level design' },
     {
-      kind: 'flow',
-      nodes: ['Client', 'API gateway', 'Event / Search / Booking services', 'Postgres', 'Redis', 'Elasticsearch'],
+      kind: 'figure',
+      caption: 'Stateless services over one transactional source of truth, with a lock store and a search index beside it.',
+      figure: {
+        kind: 'stack',
+        layers: [
+          { label: 'Client', sub: 'web and mobile' },
+          { label: 'API gateway', sub: 'auth, routing, rate limits' },
+          { label: 'Event · Search · Booking services', sub: 'stateless, scaled horizontally', tone: 'line' },
+          { label: 'Redis · Elasticsearch', sub: 'seat holds with an expiry · the search index' },
+          { label: 'Postgres', sub: 'events, tickets, bookings — the source of truth', tone: 'mastered' },
+        ],
+        note: 'Stripe handles payment, called from the booking service.',
+      },
     },
     {
       kind: 'prose',
       text: 'Postgres is the source of truth for events, tickets and bookings — it is transactional data with real relationships and it needs [[ACID]] on the booking path. Stripe handles payment.',
+    },
+    {
+      kind: 'prose',
+      text: 'Walk it endpoint by endpoint. `GET /events/{id}` is a read of data that barely changes. Search is a query a B-tree cannot serve well. `POST /bookings` is where two people race for one seat. Note three bottlenecks — double booking, search latency, and the on-sale spike — and they become the deep dives.',
     },
     { kind: 'heading', text: 'Deep dive 1 — preventing double booking' },
     {
@@ -120,28 +136,60 @@ POST /bookings/{eventId}
         note: 'The tickets table only ever holds available or booked. The hold itself lives in Redis, with the expiry doing the cleanup.',
       },
     },
-    { kind: 'heading', text: 'The three follow-ups' },
     {
       kind: 'prose',
-      text: 'Choosing the lock is the easy half. These are what separate levels, and you should raise all three unprompted.',
-    },
-    {
-      kind: 'list',
-      items: [
-        '**The read path.** Holds live in Redis, so the seat map cannot read them from Postgres. Keep a sorted set per event scored by expiry: `ZADD event:{id}:held <expiresAt> ticketId`. The seat map counts only members with a future score, and stale entries are trimmed lazily with `ZREMRANGEBYSCORE`.',
-        '**Redis dies.** Correctness holds — optimistic concurrency on the booking write still prevents double-booking. A user may lose a race after paying, which you resolve with an automatic refund. That is far better than every seat appearing unavailable.',
-        '**The [[TTL]] expires mid-payment.** The conditional write fails, so you refund automatically. And you extend the lock when payment begins, so it rarely gets that far.',
-      ],
+      text: 'Choosing the lock is the easy half. The follow-ups — the seat map\'s read path, Redis dying, and the [[TTL]] expiring mid-payment — are what separate levels, and you should raise all three unprompted.',
     },
     { kind: 'heading', text: 'Deep dive 2 — search under 500 ms' },
     {
       kind: 'prose',
       text: 'Standard indexes cannot do partial matches — "Taylor" will not hit "Taylor Swift" on a B-tree. Elasticsearch with an inverted index handles it, plus fuzzy matching so "Tayler" still finds her, which matters because a large share of real searches are misspelled. Sync from Postgres by **[[CDC]]**; the second of lag is fine for search and never touches the booking path.',
     },
+    {
+      kind: 'compare',
+      left: {
+        title: 'Postgres full-text search',
+        points: [
+          'A [[GIN]] index, no new system to run',
+          'Results are transactionally fresh',
+          'Weak fuzzy matching and relevance',
+          'Search load lands on the booking database',
+        ],
+      },
+      right: {
+        title: 'Elasticsearch, fed by CDC',
+        points: [
+          'Fuzzy matching, relevance and facets built in',
+          'Search traffic never touches Postgres',
+          'About a second of lag, and one more system',
+        ],
+      },
+      verdict: 'Elasticsearch. During an on-sale the booking database must spend every cycle on bookings, and a second of search staleness costs nobody anything.',
+    },
     { kind: 'heading', text: 'Deep dive 3 — ten million people, one on-sale' },
     {
       kind: 'prose',
       text: 'Cache the event, venue and performer aggressively — they barely change. Scale the stateless event service horizontally. Then the real answer: a **virtual waiting queue** in front of booking.',
+    },
+    {
+      kind: 'ladder',
+      rungs: [
+        {
+          grade: 'bad',
+          title: 'Autoscale and hope',
+          text: 'Capacity arrives minutes after the spike, and the seat map is gone in seconds either way.',
+        },
+        {
+          grade: 'good',
+          title: 'Cache the static data, scale the stateless tier',
+          text: 'Event pages survive. But ten million people still race for twenty thousand seats, and the booking path takes the whole stampede.',
+        },
+        {
+          grade: 'best',
+          title: 'A virtual waiting queue in front of booking',
+          text: 'Admit users in batches the booking service can serve. Demand is metered into capacity, and everyone waiting gets an honest position.',
+        },
+      ],
     },
     {
       kind: 'flow',
@@ -150,6 +198,24 @@ POST /bookings/{eventId}
     {
       kind: 'prose',
       text: 'Without it, the seat map empties faster than anyone can click and every user has a terrible time while your booking service melts. With it, demand is metered into capacity the system can actually serve, and users get an honest position and wait estimate instead of a race they cannot win.',
+    },
+  ],
+  followups: [
+    {
+      q: 'Holds live in Redis. How does the seat map show which seats are taken?',
+      a: 'It cannot read them from Postgres. Keep a sorted set per event scored by expiry: `ZADD event:{id}:held <expiresAt> ticketId`. The seat map counts only members with a future score, and stale entries are trimmed lazily with `ZREMRANGEBYSCORE`.',
+    },
+    {
+      q: 'Redis goes down mid on-sale. What happens?',
+      a: 'Correctness holds — optimistic concurrency on the booking write still prevents double-booking. A user may lose a race after paying, which you resolve with an automatic refund. That is far better than every seat appearing unavailable.',
+    },
+    {
+      q: 'The hold\'s TTL expires while the user is still paying. Now what?',
+      a: 'The conditional write fails, so you refund automatically. And you extend the lock when payment begins, so it rarely gets that far.',
+    },
+    {
+      q: 'What stops one account holding fifty seats and never buying?',
+      a: 'Cap seats per booking and per account per event, enforced when the hold is taken, not at checkout. The expiry bounds the damage of whatever slips through. Bots are the waiting queue\'s job: admission is where you challenge and rate-limit.',
     },
   ],
 }

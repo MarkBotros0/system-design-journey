@@ -37,14 +37,46 @@ export const whatsapp: Problem = {
       kind: 'prose',
       text: 'Non-functional: **no message may be lost**, ever — durability is the headline. Ordering within a conversation must be consistent for all participants. Sub-second delivery when both parties are online. Hundreds of millions of concurrent connections.',
     },
-    { kind: 'heading', text: 'Why WebSocket here' },
+    { kind: 'heading', text: 'Core entities' },
+    {
+      kind: 'prose',
+      text: '`User`, `Conversation` (one-to-one or group, with its members), `Message` (client-generated id, per-conversation sequence number, sender, body), and the `Inbox`: each recipient\'s queue of messages not yet acknowledged. The inbox per recipient, not one global log, is what makes offline delivery work.',
+    },
+    { kind: 'heading', text: '[[API]]' },
     {
       kind: 'prose',
       text: 'Both sides send constantly, so this is one of the genuine [[WebSocket]] cases rather than an [[SSE]] one. That decision brings its costs with it: [[L4]] load balancing, connection state, and reconnection logic you write yourself.',
     },
     {
-      kind: 'flow',
-      nodes: ['Client', 'L4 LB', 'Chat server (holds sockets)', 'Message store', 'Pub/sub', 'Recipient chat server'],
+      kind: 'code',
+      code: `// frames over one WebSocket, both directions
+send     { clientMsgId, conversationId, body } -> ack { seq }
+deliver  { conversationId, seq, senderId, body }  // server push
+receipt  { conversationId, seq, kind: 'delivered' | 'read' }
+sync     { afterSeq }  -> Message[]   // on every reconnect
+
+// plain REST for the rare, non-realtime things
+POST /groups   { name, memberIds[] }  -> { conversationId }`,
+    },
+    { kind: 'heading', text: 'High-level design' },
+    {
+      kind: 'figure',
+      caption: 'Sender to recipient: persist first, then find the server holding the other socket.',
+      figure: {
+        kind: 'flow',
+        nodes: [
+          { label: 'Client', to: 'WebSocket' },
+          { label: 'L4 LB', sub: 'long-lived connections', to: 'forwards' },
+          { label: 'Chat server', sub: 'holds sockets', tone: 'line', to: 'write first' },
+          { label: 'Message store', sub: 'inbox per recipient', tone: 'mastered', to: 'route' },
+          { label: 'Pub/sub', sub: 'or a connection registry', to: 'push' },
+          { label: 'Recipient chat server' },
+        ],
+      },
+    },
+    {
+      kind: 'prose',
+      text: 'Walk a send: the sender\'s chat server persists the message to the recipient\'s inbox, acknowledges, then tries to push. Three bottlenecks to note: finding the server that holds the recipient\'s socket, guaranteeing nothing is lost when they are offline, and groups multiplying every write.',
     },
     { kind: 'heading', text: 'Deep dive 1 — reaching the right server' },
     {
@@ -71,6 +103,42 @@ export const whatsapp: Problem = {
       },
       verdict: 'A registry scales better at this volume and keeps the broker off the hot path — but it is the piece most likely to go stale, so it needs a [[TTL]] refreshed by heartbeat.',
     },
+    { kind: 'heading', text: 'Deep dive 2 — never losing a message' },
+    {
+      kind: 'prose',
+      text: 'The recipient is offline more often than not. So delivery is not "push down the socket" — it is **write durably first, then attempt push**.',
+    },
+    {
+      kind: 'compare',
+      left: {
+        title: 'Push first, store if it fails',
+        points: [
+          'One fewer write when the recipient is online',
+          'A crash between push and store loses the message',
+          'Nothing to resume from after a reconnect',
+        ],
+      },
+      right: {
+        title: 'Store first, then push',
+        points: [
+          'The inbox is the truth; the push is an optimisation',
+          'Every message costs a durable write',
+          'Reconnection is a query, not a hope',
+        ],
+      },
+      verdict: 'Store first. Durability is the headline requirement, and a write per message is the price of keeping it.',
+    },
+    {
+      kind: 'list',
+      ordered: true,
+      items: [
+        'Client sends with a **client-generated message id** (a [[UUID]]). This makes the whole path idempotent — a retry after a flaky send does not duplicate the message.',
+        'Server persists to the recipient\'s inbox and assigns a **per-conversation sequence number**. Never order by wall-clock time: device clocks disagree, and two participants would see different orders.',
+        'Server acknowledges to the sender — one tick.',
+        'If the recipient is connected, push. On their ack, mark delivered — two ticks.',
+        'When they open the conversation, a read receipt goes back — blue ticks.',
+      ],
+    },
     {
       kind: 'figure',
       caption: 'One tick, two ticks, blue ticks — each is a different durable state.',
@@ -95,22 +163,6 @@ export const whatsapp: Problem = {
         note: 'Delivery is never "push down the socket" — it is write durably first, then attempt to push.',
       },
     },
-    { kind: 'heading', text: 'Deep dive 2 — never losing a message' },
-    {
-      kind: 'prose',
-      text: 'The recipient is offline more often than not. So delivery is not "push down the socket" — it is **write durably first, then attempt push**.',
-    },
-    {
-      kind: 'list',
-      ordered: true,
-      items: [
-        'Client sends with a **client-generated message id** (a [[UUID]]). This makes the whole path idempotent — a retry after a flaky send does not duplicate the message.',
-        'Server persists to the recipient\'s inbox and assigns a **per-conversation sequence number**. Never order by wall-clock time: device clocks disagree, and two participants would see different orders.',
-        'Server acknowledges to the sender — one tick.',
-        'If the recipient is connected, push. On their ack, mark delivered — two ticks.',
-        'When they open the conversation, a read receipt goes back — blue ticks.',
-      ],
-    },
     {
       kind: 'callout',
       tone: 'say',
@@ -122,6 +174,26 @@ export const whatsapp: Problem = {
       text: 'A group message is fan-out on write: one send becomes N inbox writes. At a few hundred members that is fine synchronously. Past that, it goes through a queue and workers — the same shape as a news feed, with the same reasoning about who pays the cost.',
     },
     {
+      kind: 'compare',
+      left: {
+        title: 'Write to every member\'s inbox',
+        points: [
+          'Each member reads only their own inbox',
+          'One send costs N writes',
+          'Fine at a few hundred members',
+        ],
+      },
+      right: {
+        title: 'One group log, a cursor per member',
+        points: [
+          'One send costs one write',
+          'Each member reads the group log from their cursor',
+          'Reconnect now touches every group you are in',
+        ],
+      },
+      verdict: 'Per-member inboxes at this size, through a queue past a few hundred. Switch to a shared log only if groups grow into the thousands.',
+    },
+    {
       kind: 'prose',
       text: 'Receipts are the hidden scaling problem: a 500-member group produces 500 delivered receipts and 500 read receipts **per message**. That is a 1000× write amplification on metadata nobody reads carefully. Aggregate them — store counts and a member list, push a summary rather than an event per member.',
     },
@@ -129,6 +201,24 @@ export const whatsapp: Problem = {
       kind: 'callout',
       tone: 'note',
       text: 'Worth one sentence: with end-to-end encryption the server stores ciphertext it cannot read. That rules out server-side search, server-side spam filtering, and previews — the client does all of it. Mentioning the consequence, not just the acronym, is what reads as depth.',
+    },
+  ],
+  followups: [
+    {
+      q: 'A user has a phone, a laptop and a tablet. How does one message reach all three?',
+      a: 'Each device is its own connection with its own cursor, so delivery and sync are tracked per device, not per user. With end-to-end encryption the sender also encrypts once per device, because each device holds its own keys.',
+    },
+    {
+      q: 'How do you show "online" and "last seen" for hundreds of millions of users?',
+      a: 'Presence is ephemeral: a heartbeat writes to Redis with a short [[TTL]], and the key expiring means offline. Push presence only to people with that conversation open, never to every contact. Broadcasting it would generate more traffic than the messages themselves.',
+    },
+    {
+      q: 'A chat server holding 500,000 sockets crashes. What happens?',
+      a: 'Clients reconnect, with jittered backoff so they do not stampede, and land on other servers. Their registry entries are overwritten on reconnect or expire. Nothing is lost, because every message was stored before it was pushed — each client syncs from its cursor.',
+    },
+    {
+      q: 'How long do you keep messages on the server?',
+      a: 'Only until delivered. The devices are the system of record, and an undelivered message is kept for a bounded time — WhatsApp\'s is 30 days — then dropped. That keeps storage proportional to what is in flight, not to all history.',
     },
   ],
 }
