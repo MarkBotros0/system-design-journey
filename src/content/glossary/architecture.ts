@@ -112,46 +112,4 @@ export const terms: GlossaryEntry[] = [
     caption: 'Standards you can name instead of inventing your own conventions.',
     seeAlso: ['HTTP', 'API'],
   },
-  {
-    id: 'TLS',
-    full: 'Transport Layer Security',
-    gist: 'The encryption under HTTPS. A handshake proves the server\'s identity with a certificate and agrees keys, then every byte is encrypted. Where you terminate it, at the edge or in each service, is an architecture decision.',
-    figure: {
-      kind: 'flow',
-      nodes: [
-        { label: 'Client', sub: 'hello', to: 'handshake' },
-        { label: 'Server certificate', sub: 'proves who the server is', tone: 'line', to: 'keys agreed' },
-        { label: 'Encrypted channel', tone: 'mastered' },
-      ],
-    },
-    caption: 'Identity first, then an encrypted channel.',
-    seeAlso: ['mTLS', 'HTTP'],
-  },
-  {
-    id: 'mTLS',
-    full: 'Mutual TLS',
-    gist: 'TLS in which both sides present a certificate, so the server knows which service is calling as surely as the caller knows the server. A service mesh issues and rotates these certificates for you, giving every internal call encryption and identity.',
-    figure: {
-      kind: 'split',
-      left: {
-        title: 'TLS',
-        nodes: [
-          { label: 'Client', to: 'checks the server' },
-          { label: 'Server', tone: 'line' },
-        ],
-        cost: 'The server is proven. The caller is anonymous.',
-      },
-      right: {
-        title: 'Mutual TLS',
-        tone: 'mastered',
-        nodes: [
-          { label: 'Checkout', to: 'both check' },
-          { label: 'Payments', tone: 'mastered' },
-        ],
-        cost: 'Both identities proven, so "only checkout may call payments" is enforceable.',
-      },
-    },
-    caption: 'One-way TLS proves the server. Mutual TLS proves both ends.',
-    seeAlso: ['TLS'],
-  },
 ]
