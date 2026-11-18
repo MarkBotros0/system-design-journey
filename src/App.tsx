@@ -20,6 +20,7 @@ import { GlossarySheet } from './components/content/GlossarySheet'
 import { BlocksFixture } from './routes/__fixtures/BlocksFixture'
 import { SeedFixture } from './routes/__fixtures/SeedFixture'
 import { HomeScreen } from './routes/HomeScreen'
+import { QuestionSessionScreen } from './routes/QuestionSessionScreen'
 
 /**
  * Where the viewport goes after a navigation.
@@ -144,6 +145,7 @@ export default function App() {
         <Route path="/m/:moduleId/quiz" element={<QuizScreen />} />
         <Route path="/practice/:problemId" element={<ProblemScreen />} />
         <Route path="/review/session" element={<ReviewSessionScreen />} />
+        <Route path="/questions/session" element={<QuestionSessionScreen />} />
 
         {import.meta.env.DEV && <Route path="/__fixtures/crash" element={<Crash />} />}
 

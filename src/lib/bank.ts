@@ -4,7 +4,7 @@
  * set survive a "Learn more" detour.
  */
 
-import { tracks } from '../content'
+import { getTrack, tracks } from '../content'
 import { bank, getQuestion, questionTopic } from '../content/bank'
 import type { Question, QuestionKind } from '../content/types'
 import { dayKey } from './progress'
@@ -233,4 +233,75 @@ export function advanceSet(s: QuestionSet, correct: boolean): QuestionSet {
 
 export function isFinished(s: QuestionSet): boolean {
   return s.at >= s.ids.length
+}
+
+/**
+ * A shuffled order of 0…n-1 that depends only on `seed` (the question id): options never
+ * reshuffle under the learner, even after "Learn more" and back, yet the correct answer is
+ * not always in the authored position.
+ */
+export function seededOrder(seed: string, n: number): number[] {
+  let h = 2166136261
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619)
+  const rand = () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507)
+    h = Math.imul(h ^ (h >>> 13), 3266489909)
+    return ((h ^= h >>> 16) >>> 0) / 4294967296
+  }
+  return shuffle(
+    Array.from({ length: n }, (_, i) => i),
+    rand,
+  )
+}
+
+/** Where a set came from, as a stable string: the same filters always name the same set. */
+export function setSource(params: URLSearchParams): string {
+  if (params.get('set') === 'daily') return 'daily'
+  const keep = ['scope', 'tracks', 'kinds', 'size']
+  return new URLSearchParams([...params].filter(([k]) => keep.includes(k)).sort(([a], [b]) => a.localeCompare(b))).toString()
+}
+
+/** Entry points call this before opening a set: a finished set is not resumed, it is replaced. */
+export function clearFinishedSet(): void {
+  const s = loadSet()
+  if (s && isFinished(s)) saveSet(null)
+}
+
+/* ------------------------------------------------------------------ */
+/* Session requests                                                    */
+/* ------------------------------------------------------------------ */
+
+const KINDS: QuestionKind[] = ['single', 'multi', 'truefalse', 'match']
+const SCOPES: BankScope[] = ['all', 'studied', 'weak']
+const SIZES = [5, 10, 20]
+
+export interface SetRequest {
+  daily: boolean
+  scope: BankScope
+  size: number
+  trackIds: string[]
+  kinds: QuestionKind[]
+}
+
+/** What a session URL asks for: `?set=daily`, or `?scope=&tracks=&kinds=&size=` from the bank screen. Unknown values are dropped. */
+export function setRequest(params: URLSearchParams, p: ProgressState): SetRequest {
+  if (params.get('set') === 'daily') {
+    const left = p.dailyGoal - todayCount(p).answered
+    return { daily: true, scope: 'all', size: left > 0 ? left : p.dailyGoal, trackIds: [], kinds: [] }
+  }
+  const scope = SCOPES.find((s) => s === params.get('scope')) ?? 'all'
+  const size = SIZES.find((n) => n === Number(params.get('size'))) ?? 10
+  const trackIds = (params.get('tracks') ?? '').split(',').filter((t) => getTrack(t))
+  const kinds = (params.get('kinds') ?? '').split(',').filter((k): k is QuestionKind => KINDS.includes(k as QuestionKind))
+  return { daily: false, scope, size, trackIds, kinds }
+}
+
+export function setLabel(req: SetRequest): string {
+  if (req.daily) return 'Daily questions'
+  const parts: string[] = []
+  if (req.trackIds.length === 1) parts.push(getTrack(req.trackIds[0])?.title ?? '')
+  else if (req.trackIds.length > 1) parts.push(`${req.trackIds.length} tracks`)
+  if (req.scope === 'weak') parts.push('weak spots')
+  if (req.scope === 'studied') parts.push('studied')
+  return parts.length ? `Questions · ${parts.join(' · ')}` : 'Questions'
 }

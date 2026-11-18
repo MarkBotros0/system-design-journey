@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Question } from '../content/types'
-import { advanceSet, buildSet, bankStats, isCorrect, isFinished, recordDay, scheduleAnswer, todayCount, isWeak } from './bank'
+import { getTrack } from '../content'
+import { advanceSet, buildSet, bankStats, isCorrect, isFinished, recordDay, scheduleAnswer, seededOrder, todayCount, isWeak, setLabel, setRequest } from './bank'
 import { emptyProgress, type ProgressState } from './storage'
 import { dayKey } from './progress'
 
@@ -174,5 +175,31 @@ describe('advanceSet', () => {
     const s = advanceSet(start, true)
     expect(s).toMatchObject({ ids: ['a', 'b'], at: 1 })
     expect(isFinished(s)).toBe(false)
+  })
+})
+
+describe('seededOrder', () => {
+  it('is a permutation, stable for the same seed', () => {
+    const a = seededOrder('db-acid-multi', 6)
+    expect([...a].sort()).toEqual([0, 1, 2, 3, 4, 5])
+    expect(seededOrder('db-acid-multi', 6)).toEqual(a)
+  })
+  it('differs across seeds, so the correct option is not always in one place', () => {
+    const firsts = new Set(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((s) => seededOrder(s, 4)[0]))
+    expect(firsts.size).toBeGreaterThan(1)
+  })
+})
+
+describe('setRequest', () => {
+  it('daily asks for what is left of the goal, or a full goal once it is met', () => {
+    const p = { ...emptyProgress(), dailyGoal: 10 as const, questionDays: { [dayKey()]: { answered: 4, correct: 3 } } }
+    expect(setRequest(new URLSearchParams('set=daily'), p).size).toBe(6)
+    const done = { ...p, questionDays: { [dayKey()]: { answered: 12, correct: 9 } } }
+    expect(setRequest(new URLSearchParams('set=daily'), done).size).toBe(10)
+  })
+  it('custom sets keep only known scopes, tracks, kinds and sizes', () => {
+    const r = setRequest(new URLSearchParams('scope=weak&tracks=databases,nope&kinds=match,essay&size=7'), emptyProgress())
+    expect(r).toMatchObject({ daily: false, scope: 'weak', trackIds: ['databases'], kinds: ['match'], size: 10 })
+    expect(setLabel(r)).toBe(`Questions · ${getTrack('databases')!.title} · weak spots`)
   })
 })
