@@ -2,16 +2,28 @@
 
 ## What this is
 
-A mobile-first web app that trains system design from beginner to senior interview level.
-Four tracks of modules ("stations") on a line, each with a lesson, a quiz, and flashcards;
-plus full design problems run against a 45-minute phase timer with a self-graded rubric.
+A mobile-first learning platform that prepares a software engineer for **senior interviews**:
+the system design round, the OOP / low-level design round, and the behavioral round.
+
+- **Learn** — eleven tracks of lessons ("stations"), each with a lesson, a quiz and review
+  cards, laid out on a *route* (a path through them). Nothing is locked; the route only
+  decides what "next" means.
+- **Practice** — famous interview questions (Ticketmaster, Uber, Instagram, a parking lot…)
+  run against a 45-minute phase timer, with interviewer follow-ups and a self-graded rubric,
+  plus a step-by-step walkthrough of each model answer.
+- **Review** — spaced repetition over the cards of every lesson read.
+- **Search** — one box over lessons, sections inside lessons, glossary terms, problems and
+  patterns (`/` or ⌘K from anywhere).
 
 Single user, no backend, no accounts. Everything is local and works offline.
+
+The product design is `docs/superpowers/specs/2026-11-18-learning-platform-design.md`; the
+voice and structure rules for content are `docs/superpowers/plans/2026-11-18-content-brief.md`.
 
 ## Stack
 
 Vite 8 · React 19 · TypeScript 6 · Tailwind 4 (`@tailwindcss/vite`) · react-router 7 ·
-`idb-keyval` · `lucide-react` · `vite-plugin-pwa`.
+`idb-keyval` · `lucide-react` · `minisearch` · `vite-plugin-pwa` · Vitest.
 
 No CSS framework config file — Tailwind 4 is configured entirely in `src/index.css` via
 `@theme inline`.
@@ -19,6 +31,7 @@ No CSS framework config file — Tailwind 4 is configured entirely in `src/index
 ```bash
 npm run dev        # port 5180, strict
 npm run typecheck  # tsc --noEmit
+npm test           # vitest run — includes the whole-curriculum check (content.test.ts)
 npm run build      # tsc -b && vite build
 npm run icons      # regenerate PNG app icons from public/favicon.svg (needs sharp)
 ```
@@ -27,22 +40,34 @@ npm run icons      # regenerate PNG app icons from public/favicon.svg (needs sha
 
 ```
 src/
-├── content/          THE CURRICULUM — typed data, the thing that grows
-│   ├── types.ts      Block / Module / QuizItem / CardItem / Problem
-│   ├── framework.ts  the 6 phases and their minute budgets (single source)
-│   ├── tracks.ts     four track definitions
-│   ├── patterns.ts   the 8 recognition patterns
-│   ├── modules/      one file per track
-│   ├── problems/     one file per design problem
-│   └── index.ts      aggregation, lookups, and DEV-only validation
+├── content/              THE CURRICULUM — typed data, the thing that grows
+│   ├── types.ts          Block / Module / QuizItem / CardItem / Problem / Route / Pattern
+│   ├── figures.ts        the Figure union (11 primitives)
+│   ├── framework.ts      interview phases + minute budgets, per round (hld / lld)
+│   ├── tracks.ts         the 11 tracks, in journey order
+│   ├── routes.ts         route specs (full, two-weeks, system-design, lld, databases,
+│   │                     behavioral), checkpoints, and the readiness ROUNDS
+│   ├── categories.ts     Practice shelves (social, realtime, … lld-components)
+│   ├── patterns.ts       system patterns + patterns-object.ts (design patterns)
+│   ├── glossary.ts       base terms + glossary/<author>.ts files, each with a figure
+│   ├── modules/          one file per track (two tracks split across two files)
+│   ├── problems/         one file per problem; problems/groups/*.ts register them
+│   ├── validate.ts       the abbreviation + figure + skeleton rules
+│   └── index.ts          aggregation, lookups, routes, checkCurriculum()
 ├── components/
-│   ├── content/      Blocks.tsx — renders a Block[]; Inline for **bold** / `code`
-│   ├── line/         LineMap.tsx — the signature route-map component
-│   ├── nav/          Shell.tsx — bottom tabs (mobile) / rail (≥1024px)
-│   └── ui/           Button, Bits (Badge, Meter, Panel, Empty, ScreenTitle)
-├── lib/              srs.ts · progress.ts · storage.ts · export.ts   (all pure or IO-only)
-├── state/            ProgressProvider.tsx — the single React state owner
-└── routes/           one screen per file
+│   ├── content/          Blocks, Inline, Figure (+ FigureSequence/Classes/Decision),
+│   │                     CodeView (highlighting), Followups, GlossarySheet
+│   ├── lesson/           LessonToc, Takeaways, RelatedRow, useLessonScroll
+│   ├── line/             LineMap (StationList) + groupStops — the route map
+│   ├── onboarding/       OnboardingSheet — pick a route (also "Change route")
+│   ├── nav/              Shell.tsx — five bottom tabs (mobile) / rail (≥1024px)
+│   └── ui/               TopBar/PageTitle, Sheet, Segmented, Chip, ProgressRing,
+│                         TrackIcon, SearchPill, Button, Bits
+├── lib/                  pure functions + IO wrappers, no React:
+│                         storage · progress · readiness · review · srs · search ·
+│                         walkthrough · slug · text · highlight · export
+├── state/                ProgressProvider.tsx — the single React state owner
+└── routes/               one screen per file; __fixtures/ are DEV-only
 ```
 
 ## Indexes and registries — what to update when you add something
@@ -53,22 +78,29 @@ forgetting is the most common way a change silently does nothing. This table is 
 
 | Adding | Write it in | Then register it in |
 |---|---|---|
-| A module | `content/modules/<track>.ts` (in that track's exported array) | nothing else — the array *is* the registry |
-| A whole track | `content/tracks.ts` | `content/index.ts` — import its module array into `modules` |
-| A design problem | `content/problems/<id>.ts` | **`content/problems/index.ts`** — add to the `problems` array, in easy→hard order |
-| An abbreviation | `content/glossary.ts` | nothing — `glossaryIds` is derived. But `validate.ts` will fail until it exists |
+| A module | `content/modules/<track>.ts` (in that track's exported array) | nothing else — the array *is* the registry. Then consider adding it to a route in `routes.ts` |
+| A whole track | `content/tracks.ts` | `content/index.ts` — import its module array into `modules`; `components/ui/TrackIcon.tsx` for its icon |
+| A design problem | `content/problems/<camelCase>.ts` (`kind`, `category`, ≥3 `followups`) | **a `content/problems/groups/*.ts` array**, easy→hard. A checkpoint? also `CHECKPOINTS` in `routes.ts` |
+| A Practice shelf | `content/categories.ts` | the `ProblemCategoryId` union in `types.ts` |
+| A route | `ROUTE_SPECS` in `content/routes.ts` | nothing — `index.ts` builds it. A test fails if it names a missing lesson or problem |
+| An abbreviation | `content/glossary/<file>.ts` (or the base list in `glossary.ts`) | nothing — `glossaryIds` is derived. Duplicate ids fail `checkCurriculum` |
 | A term that needs no expansion | — | `ALLOWED` in `content/validate.ts` |
 | A figure primitive | `content/figures.ts` (the `Figure` union) | `components/content/Figure.tsx` (`FigureView` switch) **and** `figureTexts()` in `validate.ts` |
 | A lesson block kind | `content/types.ts` (the `Block` union) | `components/content/Blocks.tsx` **and** `blockTexts()` in `validate.ts` |
 | A route/screen | `routes/<Name>Screen.tsx` | `App.tsx` — and `components/nav/Shell.tsx` if it deserves a tab |
-| A pattern | `content/patterns.ts` | referenced by id from a problem's `patterns` array |
+| A system pattern / design pattern | `content/patterns.ts` / `content/patterns-object.ts` | referenced by id from a problem's `patterns`; `moduleId` links its lesson |
 
 **The two easiest to forget** are the last column of the figure and block rows: a new kind that
 renders but is not added to `validate.ts` becomes a hole the abbreviation rule cannot see into.
 
 `content/index.ts` is the single aggregation point — `modules`, `tracks`, `populatedTracks`,
-`problems`, `allCards`, `getModule()`, `getProblem()`, `modulesOfTrack()`. Import from there,
-never from the individual track files, or the dev validation never runs.
+`problems`, `routes`, `allCards`, `getModule()`, `getProblem()`, `getRoute()`, `getTrack()`,
+`modulesOfTrack()`, `relatedOf()`, `stopTitle()`. Import from there, never from the individual
+track files, or the dev validation never runs.
+
+`checkCurriculum()` is the whole-curriculum check (ids, quiz shape, stations, prereqs,
+related, problem skeletons, glossary duplicates, routes, abbreviations). It logs in
+development and **fails `npm test`** — run the tests after any content change.
 
 ## Authoring content — the thing you will do most
 
@@ -85,27 +117,37 @@ console after adding content.
   trackId: 'core',
   title: 'CAP and consistency',
   station: 6,                     // unique within the track, ascending
-  prereqs: ['c-framework'],       // must be real module ids — drives the unlock graph
+  prereqs: ['c-framework'],       // real module ids — shown as "Builds on", never a lock
+  related: ['a-contention'],      // optional; back-links are derived, so link one way only
   minutes: 8,                     // honest reading estimate
   summary: '…',                   // one line, shown on the map
+  objectives: ['…'],              // "You will be able to" — 2–4 lines
+  keywords: ['…'],                // search-only synonyms: 'Kafka', 'double booking'
   lesson: [ /* Block[] */ ],
   quiz: [ /* 2–3 QuizItem */ ],
   cards: [ /* 2–3 CardItem */ ],
 }
 ```
 
-**Block kinds** — `prose` · `heading` · `list` · `callout` · `table` · `code` · `flow` ·
-`compare` · `ladder`. Use the structured ones; they exist because this subject is mostly
+**Block kinds** — `prose` · `heading` · `list` · `callout` · `table` · `code` · `codeCompare` ·
+`flow` · `compare` · `ladder` · `figure` · `followups`. Use the structured ones; they exist because this subject is mostly
 trade-offs and sequences, and a `compare` or a `ladder` reads far better on a phone than a
 paragraph describing the same thing.
 
 - `callout` tones: `say` (the line to use in an interview), `trap` (how people lose points),
-  `note`.
+  `note`, `example` (a real system doing it — or one marked as hypothetical).
+- `code` is TypeScript, highlighted by `lib/highlight.ts`. `codeCompare` is a before/after
+  pair (✗ / ✓) for principles and patterns — panes of 6–25 lines, ≤70 characters wide.
+- `followups` are the interviewer's pushes, answers behind a tap. Problems carry them in
+  their own `followups` field instead.
+- Headings get stable slug ids (`lib/slug.ts`) — the TOC, search deep links and "resume
+  where you left off" aim at them, so renaming a heading moves its anchor.
 - `ladder` grades: `bad` → `good` → `great` → `best`. `best` is highlighted as the one to pick.
 - `flow` is boxes and arrows — the vernacular of the subject. Keep node labels to a few words.
 
-**Inline markup inside any `text` field is `**bold**`, `` `code` ``, and `[[ABBR]]`.** Nothing
-else is parsed. Anything more structured wants a different block kind. `[[TTL|TTLs]]` gives a
+**Inline markup inside any `text` field is `**bold**`, `*emphasis*`, `` `code` ``, and
+`[[ABBR]]`.** Nothing else is parsed. `*emphasis*` only applies when the asterisks hug a word
+on both sides, so `2 * 3` and `SELECT *` stay literal. Anything more structured wants a different block kind. `[[TTL|TTLs]]` gives a
 different display form when the sentence needs a plural.
 
 ### Two rules the validator enforces
@@ -128,8 +170,10 @@ everything between backticks so identifiers are never wrapped. Safe to re-run.
 
 ### Figures
 
-Eight primitives in `src/content/figures.ts`, rendered by `components/content/Figure.tsx`:
-`flow` · `stack` · `split` · `ratio` · `grid` · `timeline` · `scale` · `cycle`.
+Eleven primitives in `src/content/figures.ts`, rendered by `components/content/Figure.tsx`:
+`flow` · `stack` · `split` · `ratio` · `grid` · `timeline` · `scale` · `cycle` · `sequence`
+(who calls whom, in order) · `classes` (UML-lite boxes + relations) · `decision` (a yes/no
+tree, at most three levels).
 
 They are **CSS, not SVG**, deliberately: labels stay real text, so they reflow and never shrink
 below legibility when a drawing scales down on a 375px screen. Geometry that carries meaning
@@ -163,9 +207,17 @@ so `correct` is an index into the array as authored.
 **Cards:** the `back` must be sayable in one breath. If it needs three sentences it is a
 lesson, not a card.
 
-**Problems** go in `src/content/problems/<id>.ts` and are registered in `problems/index.ts`.
-The `rubric` is split into `must` / `senior` / `staff` bars — that split is what the scoring
-screen reports against, so put a criterion at the bar it actually belongs to.
+**Problems** go in `src/content/problems/<camelCase>.ts` and are registered in a
+`problems/groups/*.ts` array. The `rubric` is split into `must` / `senior` / `staff` bars —
+that split is what the scoring screen reports against (weighted 3/2/1 in readiness), so put a
+criterion at the bar it actually belongs to.
+
+The `modelAnswer` **must** follow its round's skeleton, in order — `validateProblemShape`
+enforces it, and the walkthrough screen steps through it one heading at a time:
+
+- `hld`: Requirements → Core entities → API → (optional Data flow) → High-level design →
+  Deep dive…
+- `lld`: Requirements → Core objects → Classes → Key methods → Patterns → Concurrency
 
 ## Design tokens — the rules
 
@@ -247,13 +299,24 @@ app must still run without memory.
 existing field's meaning. An export written by an older build must still import cleanly —
 `parseImport` in `lib/export.ts` is the other half of that contract.
 
+**Version 2** adds `bookmarks`, `lastPlace` (lesson + section, for "continue reading"),
+`routeId`, `startStop`, `onboarded`, `activity` (study actions per day, pruned after 120 days)
+and `recentSearches`. `migrate()` upgrades v1 losslessly; a v1 learner with progress is
+treated as onboarded and starts at their first unpassed station.
+
+**Nothing is locked.** Prerequisites render as "Builds on" — a suggestion, with a tick when
+done. The learner's route decides what "next" means (`nextOnRoute` in `lib/progress.ts`),
+and readiness (`lib/readiness.ts`) scores each interview round: half lessons passed on that
+round's route, half best rubric coverage on its problems.
+
 **Two bars, deliberately different** (`lib/progress.ts`):
 
-- `passed` = lesson read + quiz ≥ 80%. **This is what unlocks the next station.**
+- `passed` = lesson read + quiz ≥ 80%. This is what counts as done on a route and in
+  readiness.
 - `mastered` = passed + every card learned (3 spaced reps).
 
-Unlocking uses the lighter bar on purpose: cards need real days to mature, and gating the next
-station behind a week of drilling would stall the journey for no benefit.
+"Done" uses the lighter bar on purpose: cards need real days to mature, and holding a route's
+progress behind a week of drilling would stall the journey for no benefit.
 
 ## Pushing
 
@@ -295,6 +358,11 @@ use that as evidence the push should have worked.
 - Screens live one-per-file in `routes/` and own their own state; `ProgressProvider` is the
   only shared state.
 - `lib/` is pure functions plus IO wrappers — no React imports.
-- Timed or scored screens (quiz, problem runner) render **outside** the tab shell so there is
-  one exit and no temptation to wander mid-attempt. Each has its own explicit close control.
+- Timed or scored screens (quiz, problem runner, review session) render **outside** the tab
+  shell so there is one exit and no temptation to wander mid-attempt. Each has its own
+  explicit close control. Walkthroughs are study, not attempts, so they live inside the shell.
+- Every shell screen owns a sticky `TopBar` (it carries the safe-area inset) and a `PageTitle`
+  h1; `App.tsx` moves focus to the h1 (or the `#hash` target) on navigation.
+- `/__fixtures/blocks` (every block and figure kind) and `/__fixtures/seed?to=<path>` (a
+  mid-journey learner; `&fresh=1` for a new one) are DEV-only routes for checking screens.
 - Comments explain *why*, not *what*. The what is in the code.
