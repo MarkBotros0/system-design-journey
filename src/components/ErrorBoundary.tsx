@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
   private async reset() {
     if (!window.confirm('Erase all progress on this device? Export it first if you want to keep it.')) return
     await clearProgress()
-    window.location.assign('/')
+    window.location.assign(import.meta.env.BASE_URL)
   }
 
   render() {
@@ -42,7 +42,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
           fixes it; if it keeps happening, export your progress first.
         </p>
         <div className="mt-6 flex flex-col gap-2">
-          <button type="button" onClick={() => window.location.assign('/')} className={`${button} bg-line text-line-ink hover:opacity-90`}>
+          <button type="button" onClick={() => window.location.assign(import.meta.env.BASE_URL)} className={`${button} bg-line text-line-ink hover:opacity-90`}>
             Reload Throughput
           </button>
           <button

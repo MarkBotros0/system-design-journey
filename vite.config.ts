@@ -4,7 +4,16 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+/**
+ * Where the app is served from. '/' locally and on a root domain; the GitHub Pages
+ * workflow sets BASE_PATH=/system-design-journey/ because Pages serves a project
+ * site under its repo name. Everything else (router, manifest, service worker scope)
+ * follows from this one value.
+ */
+const base = process.env.BASE_PATH ?? '/'
+
 export default defineConfig({
+  base,
   // .claude/worktrees holds parallel content-authoring checkouts; never watch or test them.
   server: { port: 5180, strictPort: true, watch: { ignored: ['**/.claude/**'] } },
   preview: { port: 5180, strictPort: true },
@@ -43,19 +52,20 @@ export default defineConfig({
         background_color: '#0D1014',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
-        scope: '/',
+        start_url: base,
+        scope: base,
         categories: ['education', 'productivity'],
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          // Relative, so they resolve under the manifest wherever the app is served from.
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           {
-            src: '/icon-512-maskable.png',
+            src: 'icon-512-maskable.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
           },
-          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
+          { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' },
         ],
       },
       workbox: {

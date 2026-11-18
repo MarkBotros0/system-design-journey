@@ -23,6 +23,8 @@ concepts, drilling them, and then running the famous questions against the clock
   patterns, from one box (`/` or ⌘K).
 - **Readiness** — a score per interview round and the single thing that would raise it most.
 
+**Live:** https://markbotros0.github.io/system-design-journey/ — install it from the browser to use it offline.
+
 No accounts and no backend: progress lives in IndexedDB on the device, and can be exported
 and imported as a file. Installable as a PWA.
 

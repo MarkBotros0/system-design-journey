@@ -350,6 +350,28 @@ round's route, half best rubric coverage on its problems.
 "Done" uses the lighter bar on purpose: cards need real days to mature, and holding a route's
 progress behind a week of drilling would stall the journey for no benefit.
 
+## Deploying
+
+GitHub Pages, from `.github/workflows/pages.yml`: every push to `main` runs the tests,
+builds with `BASE_PATH=/system-design-journey/`, copies `index.html` to `404.html`, and
+publishes to https://markbotros0.github.io/system-design-journey/. A red test means no
+deploy.
+
+- `base` in `vite.config.ts` comes from `BASE_PATH` (default `/`), and everything follows
+  it: the router's `basename` (`import.meta.env.BASE_URL`), the manifest's `start_url` and
+  `scope`, and the service worker's scope. Never hard-code a root path — use a router
+  `Link`/`navigate`, or `import.meta.env.BASE_URL` outside the router. Manifest icons are
+  relative for the same reason.
+- `404.html` is how deep links survive: Pages has no SPA rewrite, so any unknown path
+  serves the app and the router takes it from there. After the first visit the service
+  worker answers navigations itself.
+- To check a Pages build locally:
+  `BASE_PATH=/system-design-journey/ npm run build && BASE_PATH=/system-design-journey/ npx vite preview --port 5182`,
+  then open http://localhost:5182/system-design-journey/.
+
+The old Vercel deployment (`system-design-journey-ten.vercel.app`) answers 402 and is no
+longer used.
+
 ## Pushing
 
 Remote: `https://github.com/MarkBotros0/system-design-journey.git`, branch `main`.

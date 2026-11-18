@@ -13,7 +13,8 @@ if (!root) throw new Error('#root missing from index.html')
 createRoot(root).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      {/* GitHub Pages serves the app under /<repo>/; BASE_URL carries that prefix (or '/'). */}
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <ProgressProvider>
           <GlossaryProvider>
             <App />
