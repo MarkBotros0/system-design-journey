@@ -1,10 +1,12 @@
 import { Fragment, useMemo } from 'react'
+import { EMPHASIS } from '../../lib/text'
 import { Abbr } from './Abbr'
 
 /**
- * Inline markup. Three forms, nothing else:
+ * Inline markup. Four forms, nothing else:
  *
- *   **bold**     emphasis
+ *   **bold**     strong emphasis
+ *   *word*       light emphasis — the stress you would put on it saying it aloud
  *   `code`       an identifier, command, or literal
  *   [[TTL]]      an abbreviation — renders a tappable term backed by a glossary entry
  *                with its own illustration
@@ -14,18 +16,22 @@ import { Abbr } from './Abbr'
  * if a bare acronym slips into prose, so the rule cannot rot as content is added.
  */
 
-const TOKEN = /(\*\*[^*]+\*\*|`[^`]+`|\[\[[^\]]+\]\])/g
+const TOKEN = new RegExp(`(\\*\\*[^*]+\\*\\*|\`[^\`]+\`|\\[\\[[^\\]]+\\]\\]|${EMPHASIS.source})`, 'g')
 
 /* Re-exported so existing imports keep working; the implementation is pure and lives
    in lib/ so search and other non-React code can use it. */
 export { plainText } from '../../lib/text'
 
 export function Inline({ text }: { text: string }) {
-  const parts = useMemo(() => text.split(TOKEN).filter(Boolean), [text])
+  // One capture group, so split() puts every matched token at an odd index. Parity, not
+  // the token's first character, decides — a stray "* " in prose is never mistaken.
+  const parts = useMemo(() => text.split(TOKEN), [text])
 
   return (
     <>
       {parts.map((part, i) => {
+        if (!part) return null
+        if (i % 2 === 0) return <Fragment key={i}>{part}</Fragment>
         if (part.startsWith('**') && part.endsWith('**')) {
           // Recurse: an abbreviation is often the emphasised word, and `**[[TTL]] rules**`
           // must still produce a tappable term rather than printing the brackets.
@@ -53,7 +59,11 @@ export function Inline({ text }: { text: string }) {
           const [id, display] = inner.split('|')
           return <Abbr key={i} id={id.trim()} display={display?.trim()} />
         }
-        return <Fragment key={i}>{part}</Fragment>
+        return (
+          <em key={i}>
+            <Inline text={part.slice(1, -1)} />
+          </em>
+        )
       })}
     </>
   )

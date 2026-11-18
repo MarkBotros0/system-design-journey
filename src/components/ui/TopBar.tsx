@@ -35,7 +35,7 @@ export function TopBar({
   }
 
   return (
-    <header className="sticky top-0 z-30 -mx-4 border-b border-hairline/70 bg-paper/85 px-4 pt-safe backdrop-blur-md lg:-mx-8 lg:px-8">
+    <header className="sticky top-0 z-30 -mx-4 border-b border-hairline/70 bg-paper/95 px-4 pt-safe backdrop-blur-md lg:-mx-8 lg:px-8">
       <div className="flex min-h-14 items-center gap-1">
         {back && (
           <button
