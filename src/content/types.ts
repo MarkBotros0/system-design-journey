@@ -5,23 +5,30 @@
  * prereq id or a quiz whose `correct` index is out of range, and the whole curriculum
  * is statically analysable for the map and the unlock graph.
  *
- * Inline markup allowed inside any `text` field: **bold** and `code`. Nothing else —
- * see `renderInline` in components/content/Inline.tsx.
+ * Inline markup allowed inside any `text` field: **bold**, `code` and [[ABBR]]. Nothing
+ * else — see components/content/Inline.tsx.
  */
 
 import type { Figure as FigureSpec } from './figures'
 
 export type { FigureSpec }
 
-export type Level = 'foundations' | 'core' | 'applied' | 'interview'
-
 export interface Track {
   id: string
+  /** Short mono label — the track's identity on the map, since tracks share one accent. */
+  code: string
   title: string
-  level: Level
   /** One line, shown under the track heading on the map. */
   blurb: string
+  /** What you can do after the track. Three lines, shown on the track page. */
+  outcomes: string[]
   moduleIds: string[]
+}
+
+/** "Interviewer asks… / a strong answer…". Used in lessons and in every problem. */
+export interface Followup {
+  q: string
+  a: string
 }
 
 /* ------------------------------------------------------------------ */
@@ -38,8 +45,11 @@ export type Block =
    */
   | { kind: 'figure'; figure: FigureSpec; caption: string }
   | { kind: 'list'; items: string[]; ordered?: boolean }
-  /** `say` = the line to use in an interview. `trap` = the way people lose points. */
-  | { kind: 'callout'; tone: 'say' | 'trap' | 'note'; title?: string; text: string }
+  /**
+   * `say` = the line to use in an interview. `trap` = the way people lose points.
+   * `example` = a named, concrete real-world case.
+   */
+  | { kind: 'callout'; tone: 'say' | 'trap' | 'note' | 'example'; title?: string; text: string }
   | { kind: 'table'; head: string[]; rows: string[][] }
   | { kind: 'code'; code: string; caption?: string }
   /** Boxes and arrows, rendered as a responsive flow. The vernacular of the subject. */
@@ -56,6 +66,15 @@ export type Block =
       kind: 'ladder'
       rungs: { grade: 'bad' | 'good' | 'great' | 'best'; title: string; text: string }[]
     }
+  /** Before/after code — how a principle or pattern changes real code. Code is exempt from markup. */
+  | {
+      kind: 'codeCompare'
+      before: { title: string; code: string }
+      after: { title: string; code: string }
+      note?: string
+    }
+  /** The questions an interviewer pushes with, each with a strong answer behind a tap. */
+  | { kind: 'followups'; items: Followup[] }
 
 /* ------------------------------------------------------------------ */
 /* Practice items                                                      */
@@ -90,8 +109,17 @@ export interface Module {
   title: string
   /** Position on the line. Unique within a track, ascending. */
   station: number
-  /** Module ids that must be mastered first. Drives the unlock graph. */
+  /**
+   * Module ids this one builds on. Advisory — nothing is ever locked; the lesson shows
+   * "Builds on" links and the map a quiet hint when these are not passed yet.
+   */
   prereqs: string[]
+  /** Synonyms a learner might type into search. */
+  keywords?: string[]
+  /** "You'll learn" — two to four lines. */
+  objectives?: string[]
+  /** Lessons this one deepens or sits beside. Shown in both directions. */
+  related?: string[]
   summary: string
   /** Honest reading estimate in minutes. */
   minutes: number
@@ -106,6 +134,20 @@ export interface Module {
 
 export type Difficulty = 'easy' | 'medium' | 'hard'
 
+/** `hld` = system design (boxes and arrows). `lld` = object-oriented / low-level design. */
+export type ProblemKind = 'hld' | 'lld'
+
+export type ProblemCategoryId =
+  | 'social'
+  | 'realtime'
+  | 'media'
+  | 'location'
+  | 'commerce'
+  | 'infra'
+  | 'data'
+  | 'lld-systems'
+  | 'lld-components'
+
 export interface RubricRow {
   id: string
   criterion: string
@@ -116,6 +158,8 @@ export interface RubricRow {
 export interface Problem {
   id: string
   title: string
+  kind: ProblemKind
+  category: ProblemCategoryId
   difficulty: Difficulty
   /** What the interviewer says. Deliberately under-specified, like the real thing. */
   brief: string
@@ -123,9 +167,14 @@ export interface Problem {
   patterns: string[]
   /** Modules worth finishing first. Advisory, never blocking. */
   suggests: string[]
-  /** Revealed only after the attempt is submitted. */
+  /**
+   * The walkthrough. Its headings follow the interview skeleton for the problem's kind
+   * (see `validateProblemShape`) so it can be stepped through phase by phase.
+   */
   modelAnswer: Block[]
   rubric: RubricRow[]
+  /** What the interviewer pushes with in the last phase. Three to five. */
+  followups?: Followup[]
 }
 
 /* ------------------------------------------------------------------ */
@@ -134,9 +183,27 @@ export interface Problem {
 
 export interface Pattern {
   id: string
+  /** `system` = the recognition patterns of system design; `object` = design patterns. */
+  family: 'system' | 'object'
+  /** The lesson that teaches it. */
+  moduleId?: string
   name: string
   /** The phrase in the prompt that should make you reach for this. */
   tell: string
   move: string
   showsUpIn: string[]
+}
+
+/* ------------------------------------------------------------------ */
+/* Routes                                                              */
+/* ------------------------------------------------------------------ */
+
+export type RouteStop = { module: string } | { problem: string }
+
+/** An ordered path through the curriculum, with problems as checkpoints. */
+export interface Route {
+  id: string
+  title: string
+  blurb: string
+  stops: RouteStop[]
 }

@@ -1,7 +1,7 @@
 /**
  * Figures — the visual vocabulary of the curriculum.
  *
- * Eight primitives, driven by data rather than hand-authored per lesson. Two reasons:
+ * Eleven primitives, driven by data rather than hand-authored per lesson. Two reasons:
  *
  *  1. Consistency. Forty bespoke drawings read as forty drawings. One vocabulary applied
  *     forty times reads as a system, and the reader learns to parse it once.
@@ -81,3 +81,59 @@ export type Figure =
     }
   /** A loop. Crawlers, retry cycles, the delivery framework itself. */
   | { kind: 'cycle'; steps: { label: string; sub?: string }[]; note?: string }
+  /**
+   * A sequence diagram. Actors are columns; each step is a message from one column to
+   * another, top to bottom. `from === to` is a note on that actor (work it does alone).
+   * Use when the order of messages is the point — handshakes, 2PC, two interleaving
+   * transactions.
+   */
+  | { kind: 'sequence'; actors: string[]; steps: SequenceStep[]; note?: string }
+  /**
+   * UML-lite class diagram. Boxes in authored order (put parents and interfaces first),
+   * relations listed beneath. Keep to a handful of fields and methods per box.
+   */
+  | { kind: 'classes'; classes: ClassBox[]; relations: ClassRelation[]; note?: string }
+  /** A yes/no tree ending in recommendations. "Which database?", "Which pattern?". Depth ≤ 3. */
+  | { kind: 'decision'; root: DecisionNode; note?: string }
+
+export interface SequenceStep {
+  /** Index into `actors`. */
+  from: number
+  to: number
+  label: string
+  tone?: FigureTone
+  /** A reply or an asynchronous message. */
+  dashed?: boolean
+}
+
+export interface ClassBox {
+  name: string
+  stereotype?: 'interface' | 'abstract'
+  fields?: string[]
+  methods?: string[]
+  tone?: FigureTone
+}
+
+export interface ClassRelation {
+  /** Class names, as in `classes`. */
+  from: string
+  to: string
+  kind: 'inherits' | 'implements' | 'has' | 'uses'
+  label?: string
+}
+
+export interface DecisionLeaf {
+  answer: string
+  sub?: string
+  tone?: FigureTone
+}
+
+export interface DecisionNode {
+  question: string
+  yes: DecisionNode | DecisionLeaf
+  no: DecisionNode | DecisionLeaf
+}
+
+export function isDecisionNode(n: DecisionNode | DecisionLeaf): n is DecisionNode {
+  return 'question' in n
+}

@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const adClick: Problem = {
   id: 'ad-click',
   title: 'Design an ad click aggregator',
+  kind: 'hld',
+  category: 'data',
   difficulty: 'hard',
   brief:
     'Advertisers need near-real-time counts of clicks on their ads, sliced by campaign and by minute. Peak is a million clicks per second, and advertisers are billed from these numbers.',

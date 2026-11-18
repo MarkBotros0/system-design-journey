@@ -11,6 +11,7 @@ const calloutStyle = {
   say: { wrap: 'border-line bg-line-soft', label: 'text-line', fallback: 'Say this' },
   trap: { wrap: 'border-alert bg-alert-soft', label: 'text-alert', fallback: 'Trap' },
   note: { wrap: 'border-hairline bg-surface-2', label: 'text-ink-3', fallback: 'Note' },
+  example: { wrap: 'border-line bg-surface', label: 'text-line', fallback: 'In the real world' },
 } as const
 
 function Callout({ tone, title, text }: Extract<Block, { kind: 'callout' }>) {

@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const uber: Problem = {
   id: 'uber',
   title: 'Design Uber',
+  kind: 'hld',
+  category: 'location',
   difficulty: 'hard',
   brief:
     'Riders request a ride from where they are. Nearby drivers get offered it, one accepts, and both then watch each other move on a map.',

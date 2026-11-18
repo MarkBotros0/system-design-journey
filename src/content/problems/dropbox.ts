@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const dropbox: Problem = {
   id: 'dropbox',
   title: 'Design Dropbox',
+  kind: 'hld',
+  category: 'media',
   difficulty: 'easy',
   brief:
     'Users upload files, download them, and share them with other users. Files can be several gigabytes, and the same file often exists in many accounts.',

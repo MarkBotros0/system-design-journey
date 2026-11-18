@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const newsFeed: Problem = {
   id: 'news-feed',
   title: 'Design a news feed',
+  kind: 'hld',
+  category: 'social',
   difficulty: 'medium',
   brief:
     'Users post, follow other users, and read a reverse-chronological feed of posts from everyone they follow. Two billion users, and some of them have fifty million followers.',

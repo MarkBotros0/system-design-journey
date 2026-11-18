@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const ticketmaster: Problem = {
   id: 'ticketmaster',
   title: 'Design Ticketmaster',
+  kind: 'hld',
+  category: 'commerce',
   difficulty: 'medium',
   brief:
     'Users browse events, search for them, and book tickets to a specific seat. Popular events sell out in seconds.',

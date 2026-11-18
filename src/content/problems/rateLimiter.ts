@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const rateLimiter: Problem = {
   id: 'rate-limiter',
   title: 'Design a rate limiter',
+  kind: 'hld',
+  category: 'infra',
   difficulty: 'medium',
   brief:
     'Limit how many requests a client can make in a window — say 100 per minute. It sits in front of an [[API]] served by hundreds of hosts.',

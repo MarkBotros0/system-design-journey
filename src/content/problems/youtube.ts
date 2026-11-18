@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const youtube: Problem = {
   id: 'youtube',
   title: 'Design YouTube',
+  kind: 'hld',
+  category: 'media',
   difficulty: 'medium',
   brief:
     'Creators upload videos; viewers watch them. Videos are large, viewers are everywhere, and connections vary from fibre to a phone on the underground.',

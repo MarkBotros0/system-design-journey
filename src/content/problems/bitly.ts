@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const bitly: Problem = {
   id: 'bitly',
   title: 'Design Bitly',
+  kind: 'hld',
+  category: 'infra',
   difficulty: 'easy',
   brief:
     'Users paste a long [[URL]] and get a short one back. Visiting the short URL redirects them to the original. That is all you get — scope it yourself.',

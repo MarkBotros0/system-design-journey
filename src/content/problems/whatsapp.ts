@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const whatsapp: Problem = {
   id: 'whatsapp',
   title: 'Design WhatsApp',
+  kind: 'hld',
+  category: 'realtime',
   difficulty: 'medium',
   brief:
     'One-to-one and group messaging. Messages must arrive in order, survive the recipient being offline, and show delivered and read receipts.',

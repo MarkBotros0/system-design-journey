@@ -3,6 +3,8 @@ import type { Problem } from '../types'
 export const webCrawler: Problem = {
   id: 'web-crawler',
   title: 'Design a web crawler',
+  kind: 'hld',
+  category: 'infra',
   difficulty: 'hard',
   brief:
     'Crawl a large portion of the web, extract the text, and store it for later indexing. Target a billion pages.',

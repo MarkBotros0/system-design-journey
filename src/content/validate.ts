@@ -1,5 +1,8 @@
 import type { Block, FigureSpec, Module, Problem } from './types'
 import { glossaryIds } from './glossary'
+import { isDecisionNode, type DecisionLeaf, type DecisionNode } from './figures'
+import { getCategory } from './categories'
+import { plainText } from '../lib/text'
 
 /**
  * Content rules, checked at load time in development.
@@ -81,7 +84,21 @@ function blockTexts(block: Block): string[] {
       return block.rungs.flatMap((r) => [r.title, r.text])
     case 'figure':
       return [block.caption, ...figureTexts(block.figure)]
+    case 'codeCompare':
+      // The code itself is exempt, as with `code`; the titles and note are prose.
+      return [block.before.title, block.after.title, block.note ?? '']
+    case 'followups':
+      return block.items.flatMap((f) => [f.q, f.a])
   }
+}
+
+function decisionTexts(n: DecisionNode | DecisionLeaf): string[] {
+  if (!isDecisionNode(n)) return [n.answer, n.sub ?? '']
+  return [n.question, ...decisionTexts(n.yes), ...decisionTexts(n.no)]
+}
+
+function decisionDepth(n: DecisionNode | DecisionLeaf): number {
+  return isDecisionNode(n) ? 1 + Math.max(decisionDepth(n.yes), decisionDepth(n.no)) : 0
 }
 
 /** Labels inside a figure are prose too — an unexplained acronym in a box still counts. */
@@ -122,7 +139,87 @@ function figureTexts(f: FigureSpec): string[] {
       return [...f.items.flatMap((i) => [i.label, i.display]), f.note ?? '']
     case 'cycle':
       return [...f.steps.flatMap((s) => [s.label, s.sub ?? '']), f.note ?? '']
+    case 'sequence':
+      return [...f.actors, ...f.steps.map((s) => s.label), f.note ?? '']
+    case 'classes':
+      return [
+        ...f.classes.flatMap((c) => [c.name, ...(c.fields ?? []), ...(c.methods ?? [])]),
+        ...f.relations.map((r) => r.label ?? ''),
+        f.note ?? '',
+      ]
+    case 'decision':
+      return [...decisionTexts(f.root), f.note ?? '']
   }
+}
+
+/** Structural checks on figures that types cannot express. */
+function figureShapeIssues(blocks: Block[]): string[] {
+  const out: string[] = []
+  for (const b of blocks) {
+    if (b.kind !== 'figure') continue
+    const f = b.figure
+    if (f.kind === 'decision' && decisionDepth(f.root) > 3) {
+      out.push('a decision figure is deeper than 3 questions — split it or simplify')
+    }
+    if (f.kind === 'sequence') {
+      for (const s of f.steps) {
+        if (s.from < 0 || s.to < 0 || s.from >= f.actors.length || s.to >= f.actors.length) {
+          out.push(`sequence step "${s.label}" points at an actor that does not exist`)
+        }
+      }
+    }
+    if (f.kind === 'classes') {
+      const names = new Set(f.classes.map((c) => c.name))
+      for (const r of f.relations) {
+        if (!names.has(r.from) || !names.has(r.to)) {
+          out.push(`class relation ${r.from} → ${r.to} names a class that is not drawn`)
+        }
+      }
+    }
+  }
+  return out
+}
+
+/* ------------------------------------------------------------------ */
+/* Problem shape                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The walkthrough is stepped through phase by phase, so its headings must follow the
+ * interview skeleton for its kind, in order. Each entry is a heading prefix; matching is
+ * case-insensitive on the plain text. Extra headings in between are fine.
+ */
+const SKELETON: Record<Problem['kind'], string[]> = {
+  hld: ['Requirements', 'Core entities', 'API', 'High-level design', 'Deep dive'],
+  lld: ['Requirements', 'Core objects', 'Classes', 'Key methods', 'Patterns', 'Concurrency'],
+}
+
+export function validateProblemShape(p: Problem): string[] {
+  const out: string[] = []
+
+  const category = getCategory(p.category)
+  if (!category) out.push(`unknown category "${p.category}"`)
+  else if (category.kind !== p.kind) {
+    out.push(`category "${p.category}" is for ${category.kind} problems, but this is ${p.kind}`)
+  }
+
+  const headings = p.modelAnswer
+    .filter((b): b is Extract<Block, { kind: 'heading' }> => b.kind === 'heading')
+    .map((b) => plainText(b.text).toLowerCase())
+  let cursor = 0
+  for (const want of SKELETON[p.kind]) {
+    const at = headings.findIndex((h, i) => i >= cursor && h.startsWith(want.toLowerCase()))
+    if (at === -1) {
+      out.push(`walkthrough is missing a "${want}…" heading (in skeleton order)`)
+    } else {
+      cursor = at + 1
+    }
+  }
+
+  const n = p.followups?.length ?? 0
+  if (n < 3) out.push(`has ${n} follow-up questions — needs 3 to 5`)
+
+  return out
 }
 
 /** Remove code spans, then pull out and record every wrapped abbreviation. */
@@ -214,10 +311,11 @@ export function validateContent(modules: Module[], problems: Problem[]): Content
     ]
     checkUnit(
       `module ${m.id}`,
-      texts,
+      [...texts, ...(m.objectives ?? [])],
       m.lesson.some((b) => b.kind === 'figure'),
       issues,
     )
+    for (const message of figureShapeIssues(m.lesson)) issues.push({ where: `module ${m.id}`, message })
   }
 
   for (const p of problems) {
@@ -226,6 +324,7 @@ export function validateContent(modules: Module[], problems: Problem[]): Content
       p.brief,
       ...p.modelAnswer.flatMap(blockTexts),
       ...p.rubric.map((r) => r.criterion),
+      ...(p.followups ?? []).flatMap((f) => [f.q, f.a]),
     ]
     checkUnit(
       `problem ${p.id}`,
@@ -233,6 +332,7 @@ export function validateContent(modules: Module[], problems: Problem[]): Content
       p.modelAnswer.some((b) => b.kind === 'figure'),
       issues,
     )
+    for (const message of figureShapeIssues(p.modelAnswer)) issues.push({ where: `problem ${p.id}`, message })
   }
 
   return issues

@@ -16,17 +16,9 @@ import { Abbr } from './Abbr'
 
 const TOKEN = /(\*\*[^*]+\*\*|`[^`]+`|\[\[[^\]]+\]\])/g
 
-/**
- * Markup stripped to plain text, for the places a rendered term would be wrong:
- * anything already inside a link or a label, where a nested <button> is invalid HTML
- * and would steal the click from the control wrapping it.
- */
-export function plainText(text: string): string {
-  return text
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_m, id: string, display?: string) => display ?? id)
-}
+/* Re-exported so existing imports keep working; the implementation is pure and lives
+   in lib/ so search and other non-React code can use it. */
+export { plainText } from '../../lib/text'
 
 export function Inline({ text }: { text: string }) {
   const parts = useMemo(() => text.split(TOKEN).filter(Boolean), [text])
