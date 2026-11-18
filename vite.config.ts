@@ -5,9 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  server: { port: 5180, strictPort: true },
+  // .claude/worktrees holds parallel content-authoring checkouts; never watch or test them.
+  server: { port: 5180, strictPort: true, watch: { ignored: ['**/.claude/**'] } },
   preview: { port: 5180, strictPort: true },
-  test: { environment: 'node' },
+  test: { environment: 'node', include: ['src/**/*.test.ts'] },
   plugins: [
     react(),
     tailwindcss(),
