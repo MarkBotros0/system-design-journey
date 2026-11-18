@@ -1,21 +1,46 @@
 import type { CardItem, Module, Problem, Track } from './types'
 import { tracks as trackDefs } from './tracks'
 import { foundationsModules } from './modules/foundations'
+import { principlesModules } from './modules/principles'
+import { designPatternsModules } from './modules/designPatterns'
+import { designPatterns2Modules } from './modules/designPatterns2'
+import { lldModules } from './modules/lld'
 import { coreModules } from './modules/core'
+import { databasesModules } from './modules/databases'
+import { databases2Modules } from './modules/databases2'
+import { distributedModules } from './modules/distributed'
+import { architectureModules } from './modules/architecture'
+import { productionModules } from './modules/production'
 import { appliedModules } from './modules/applied'
 import { interviewModules } from './modules/interview'
+import { behavioralModules } from './modules/behavioral'
 import { problems as problemList } from './problems'
 import { validateContent, validateProblemShape } from './validate'
 import { glossary } from './glossary'
 import { patterns } from './patterns'
 
+const trackOrder = new Map(trackDefs.map((t, i) => [t.id, i]))
+
 /** Every module, in curriculum order. Track order first, then station within a track. */
 export const modules: Module[] = [
   ...foundationsModules,
+  ...principlesModules,
+  ...designPatternsModules,
+  ...designPatterns2Modules,
+  ...lldModules,
   ...coreModules,
+  ...databasesModules,
+  ...databases2Modules,
+  ...distributedModules,
+  ...architectureModules,
+  ...productionModules,
   ...appliedModules,
   ...interviewModules,
-]
+  ...behavioralModules,
+].sort(
+  (a, b) =>
+    (trackOrder.get(a.trackId) ?? 99) - (trackOrder.get(b.trackId) ?? 99) || a.station - b.station,
+)
 
 export const tracks: Track[] = trackDefs.map((t) => ({
   ...t,

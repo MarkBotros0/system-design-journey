@@ -1,4 +1,20 @@
 import type { Figure } from './figures'
+import { terms as principlesTerms } from './glossary/principles'
+import { terms as designPatternsTerms } from './glossary/designPatterns'
+import { terms as designPatterns2Terms } from './glossary/designPatterns2'
+import { terms as lldTerms } from './glossary/lld'
+import { terms as databasesTerms } from './glossary/databases'
+import { terms as databases2Terms } from './glossary/databases2'
+import { terms as distributedTerms } from './glossary/distributed'
+import { terms as architectureTerms } from './glossary/architecture'
+import { terms as productionTerms } from './glossary/production'
+import { terms as behavioralTerms } from './glossary/behavioral'
+import { terms as problemsATerms } from './glossary/problemsA'
+import { terms as problemsBTerms } from './glossary/problemsB'
+import { terms as problemsCTerms } from './glossary/problemsC'
+import { terms as problemsDTerms } from './glossary/problemsD'
+import { terms as problemsLldTerms } from './glossary/problemsLld'
+import { terms as existingTerms } from './glossary/existing'
 
 /**
  * Every abbreviation used anywhere in the curriculum, expanded, explained in one line,
@@ -21,7 +37,7 @@ export interface GlossaryEntry {
   seeAlso?: string[]
 }
 
-export const glossary: GlossaryEntry[] = [
+const baseTerms: GlossaryEntry[] = [
   /* ---------------- protocols and the network ---------------- */
   {
     id: 'API',
@@ -1220,6 +1236,27 @@ export const glossary: GlossaryEntry[] = [
     caption: 'The point on the ladder where sharding stops being premature.',
     seeAlso: ['GB', 'TiB', 'TPS'],
   },
+]
+
+/** The original entries plus every content author's file. Duplicate ids are a curriculum error. */
+export const glossary: GlossaryEntry[] = [
+  ...baseTerms,
+  ...principlesTerms,
+  ...designPatternsTerms,
+  ...designPatterns2Terms,
+  ...lldTerms,
+  ...databasesTerms,
+  ...databases2Terms,
+  ...distributedTerms,
+  ...architectureTerms,
+  ...productionTerms,
+  ...behavioralTerms,
+  ...problemsATerms,
+  ...problemsBTerms,
+  ...problemsCTerms,
+  ...problemsDTerms,
+  ...problemsLldTerms,
+  ...existingTerms,
 ]
 
 const byId = new Map(glossary.map((g) => [g.id.toLowerCase(), g]))

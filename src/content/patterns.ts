@@ -1,10 +1,11 @@
 import type { Pattern } from './types'
+import { objectPatterns } from './patterns-object'
 
 /**
  * The recognition layer. Almost every question is two or three of these wearing a
  * product's clothes — learn the tells and most of a design becomes recall.
  */
-export const patterns: Pattern[] = [
+export const systemPatterns: Pattern[] = [
   {
     id: 'realtime',
     family: 'system',
@@ -70,6 +71,9 @@ export const patterns: Pattern[] = [
     showsUpIn: ['Uber', 'Yelp', 'Local Delivery'],
   },
 ]
+
+/** Both families: system design recognition patterns, then design patterns. */
+export const patterns: Pattern[] = [...systemPatterns, ...objectPatterns]
 
 const byId = new Map(patterns.map((p) => [p.id, p]))
 export function getPattern(id: string): Pattern | undefined {

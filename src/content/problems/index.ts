@@ -9,9 +9,15 @@ import { youtube } from './youtube'
 import { webCrawler } from './webCrawler'
 import { adClick } from './adClick'
 import { uber } from './uber'
+import { problems as groupA } from './groups/a'
+import { problems as groupB } from './groups/b'
+import { problems as groupC } from './groups/c'
+import { problems as groupD } from './groups/d'
+import { problems as groupLld } from './groups/lld'
 
 /**
- * Ordered easy → hard; the practice list keeps this order.
+ * The Practice screen groups these by category and sorts easy → hard inside each, so
+ * order here only breaks ties.
  *
  * Between them these ten cover all eight patterns, most more than once, so working the
  * list top to bottom means meeting each shape in more than one costume.
@@ -27,4 +33,9 @@ export const problems: Problem[] = [
   webCrawler,
   adClick,
   uber,
+  ...groupA,
+  ...groupB,
+  ...groupC,
+  ...groupD,
+  ...groupLld,
 ]
