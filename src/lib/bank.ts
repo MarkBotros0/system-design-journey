@@ -4,8 +4,8 @@
  * set survive a "Learn more" detour.
  */
 
-import { getTrack, tracks } from '../content'
-import { bank, getQuestion, questionTopic } from '../content/bank'
+import { getModule, getTrack, tracks } from '../content'
+import { bank, getQuestion } from '../content/bank'
 import type { Question, QuestionKind } from '../content/types'
 import { dayKey } from './progress'
 import { newCard, review, type CardState } from './srs'
@@ -56,7 +56,8 @@ export interface SetOptions {
 
 /** Generated questions (glossary, patterns) belong to no track. */
 const REFERENCE = '_reference'
-const trackOf = (q: Question) => questionTopic(q).trackId ?? REFERENCE
+// Direct lookup — questionTopic() also resolves the section slug, which filtering never needs.
+const trackOf = (q: Question) => (q.moduleId ? getModule(q.moduleId)?.trackId : undefined) ?? REFERENCE
 
 function shuffle<T>(items: T[], rand: () => number): T[] {
   const a = [...items]

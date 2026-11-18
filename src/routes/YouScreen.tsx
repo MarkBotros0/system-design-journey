@@ -31,7 +31,7 @@ import { isLearned } from "../lib/srs";
 import { attemptCoverage, readiness } from "../lib/readiness";
 import { downloadProgress, parseImport } from "../lib/export";
 import { plainText } from "../lib/text";
-import type { Theme } from "../lib/storage";
+import { DAILY_GOALS, type DailyGoal, type Theme } from "../lib/storage";
 import { Button } from "../components/ui/Button";
 import { Badge, Meter, Panel } from "../components/ui/Bits";
 import { TopBar, PageTitle } from "../components/ui/TopBar";
@@ -69,7 +69,7 @@ function Stat({
 }
 
 export function YouScreen() {
-  const { progress, theme, setTheme, replaceAll, resetAll } = useProgress();
+  const { progress, theme, setTheme, replaceAll, resetAll, setDailyGoal } = useProgress();
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<{
     kind: "ok" | "error";
@@ -422,6 +422,21 @@ export function YouScreen() {
           </span>
           <span className="text-[0.875rem] font-medium text-line">Change</span>
         </button>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-1 text-[1.125rem] font-semibold">Daily questions</h2>
+        <p className="mb-3 text-[0.875rem] text-ink-2">
+          How many quick questions a day you aim for. Ten takes about two minutes.
+        </p>
+        <div className="max-w-sm">
+          <Segmented<string>
+            label="Daily goal"
+            value={String(progress.dailyGoal)}
+            onChange={(v) => setDailyGoal(Number(v) as DailyGoal)}
+            options={DAILY_GOALS.map((g) => ({ value: String(g), label: `${g} a day` }))}
+          />
+        </div>
       </section>
 
       <section className="mt-8">

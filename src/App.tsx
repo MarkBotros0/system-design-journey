@@ -21,6 +21,7 @@ import { BlocksFixture } from './routes/__fixtures/BlocksFixture'
 import { SeedFixture } from './routes/__fixtures/SeedFixture'
 import { HomeScreen } from './routes/HomeScreen'
 import { QuestionSessionScreen } from './routes/QuestionSessionScreen'
+import { QuestionBankScreen } from './routes/QuestionBankScreen'
 
 /**
  * Where the viewport goes after a navigation.
@@ -134,6 +135,7 @@ export default function App() {
           <Route path="/practice" element={<PracticeScreen />} />
           <Route path="/practice/:problemId/walkthrough" element={<WalkthroughScreen />} />
           <Route path="/review" element={<ReviewScreen />} />
+          <Route path="/questions" element={<QuestionBankScreen />} />
           <Route path="/you" element={<YouScreen />} />
           <Route path="/glossary" element={<GlossaryScreen />} />
           <Route path="/search" element={<SearchScreen />} />

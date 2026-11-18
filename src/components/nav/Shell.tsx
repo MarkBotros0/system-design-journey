@@ -30,7 +30,7 @@ const TABS: Tab[] = [
     match: (p) => p.startsWith('/learn') || p.startsWith('/m/') || p.startsWith('/glossary') || p.startsWith('/patterns'),
   },
   { to: '/practice', label: 'Practice', icon: Timer, match: (p) => p.startsWith('/practice') },
-  { to: '/review', label: 'Review', icon: Layers, match: (p) => p.startsWith('/review') },
+  { to: '/review', label: 'Review', icon: Layers, match: (p) => p.startsWith('/review') || p.startsWith('/questions') },
   { to: '/you', label: 'You', icon: CircleUser, match: (p) => p.startsWith('/you') },
 ]
 

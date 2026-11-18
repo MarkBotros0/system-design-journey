@@ -10,6 +10,7 @@ import { Empty, Meter, Skeleton } from '../components/ui/Bits'
 import { ButtonLink } from '../components/ui/Button'
 import { TrackTile } from '../components/ui/TrackIcon'
 import { useScrolledPast } from '../components/ui/useScrolledPast'
+import { DailyCard } from '../components/questions/DailyCard'
 
 export function ReviewScreen() {
   const { progress, ready } = useProgress()
@@ -33,8 +34,19 @@ export function ReviewScreen() {
   return (
     <div>
       <TopBar title="Review" showTitle={scrolled} />
-      <PageTitle title="Review" titleRef={titleRef} sub="Spaced repetition over everything you have read. A few minutes a day is the whole trick." />
+      <PageTitle
+        title="Review"
+        titleRef={titleRef}
+        sub="Quick questions on every topic, and cards from what you have read. A few minutes a day is the whole trick."
+      />
 
+      {ready && (
+        <div className="mb-8">
+          <DailyCard />
+        </div>
+      )}
+
+      {ready && <h2 className="mb-3 text-[1.125rem] font-semibold">Cards</h2>}
       {!ready ? (
         <Skeleton className="h-40" />
       ) : deck.cards.length === 0 ? (

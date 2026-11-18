@@ -36,6 +36,7 @@ import { ProgressRing } from '../components/ui/ProgressRing'
 import { TrackTile } from '../components/ui/TrackIcon'
 import { useScrolledPast } from '../components/ui/useScrolledPast'
 import { OnboardingSheet } from '../components/onboarding/OnboardingSheet'
+import { DailyCard } from '../components/questions/DailyCard'
 
 function greeting(now = new Date()): string {
   const h = now.getHours()
@@ -427,6 +428,9 @@ export function HomeScreen() {
       ) : (
         <>
           <ContinueCard />
+          <div className="mt-4">
+            <DailyCard />
+          </div>
           <RouteSnapshot onChangeRoute={() => setRouteSheet(true)} />
           <Readiness />
           <ReviewAndPractice />
