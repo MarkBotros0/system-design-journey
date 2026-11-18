@@ -32,6 +32,7 @@ import { attemptCoverage, readiness } from "../lib/readiness";
 import { downloadProgress, parseImport } from "../lib/export";
 import { plainText } from "../lib/text";
 import { DAILY_GOALS, type DailyGoal, type Theme } from "../lib/storage";
+import { finishedAttempts } from "../lib/attempts";
 import { Button } from "../components/ui/Button";
 import { Badge, Meter, Panel } from "../components/ui/Bits";
 import { TopBar, PageTitle } from "../components/ui/TopBar";
@@ -101,7 +102,7 @@ export function YouScreen() {
   const learned = allCards.filter((c) =>
     isLearned(progress.cards[c.id]),
   ).length;
-  const attempts = progress.attempts.filter((a) => a.finishedAt);
+  const attempts = finishedAttempts(progress);
   const streak = liveStreak(progress.streak);
 
   const quizRecords = Object.values(progress.quiz);

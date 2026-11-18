@@ -11,7 +11,9 @@ the system design round, the OOP / low-level design round, and the behavioral ro
 - **Practice** — famous interview questions (Ticketmaster, Uber, Instagram, a parking lot…)
   run against a 45-minute phase timer, with interviewer follow-ups and a self-graded rubric,
   plus a step-by-step walkthrough of each model answer.
-- **Review** — spaced repetition over the cards of every lesson read.
+- **Review** — spaced repetition over the cards of every lesson read, and the **question
+  bank**: quick single-choice, select-all, true/false and matching questions on every lesson,
+  a few a day ("Daily questions"), each linking to the section that teaches it.
 - **Search** — one box over lessons, sections inside lessons, glossary terms, problems and
   patterns (`/` or ⌘K from anywhere).
 
@@ -52,6 +54,8 @@ src/
 │   ├── glossary.ts       base terms + glossary/<author>.ts files, each with a figure
 │   ├── modules/          one file per track (two tracks split across two files)
 │   ├── problems/         one file per problem; problems/groups/*.ts register them
+│   ├── bank/             the question bank: authored files, authored.ts (registry),
+│   │                     generated.ts (glossary/pattern matches), index.ts (assembly)
 │   ├── validate.ts       the abbreviation + figure + skeleton rules
 │   └── index.ts          aggregation, lookups, routes, checkCurriculum()
 ├── components/
@@ -60,12 +64,15 @@ src/
 │   ├── lesson/           LessonToc, Takeaways, RelatedRow, useLessonScroll
 │   ├── line/             LineMap (StationList) + groupStops — the route map
 │   ├── onboarding/       OnboardingSheet — pick a route (also "Change route")
+│   ├── questions/        the four answer kinds, Feedback, DailyCard
 │   ├── nav/              Shell.tsx — five bottom tabs (mobile) / rail (≥1024px)
 │   └── ui/               TopBar/PageTitle, Sheet, Segmented, Chip, ProgressRing,
 │                         TrackIcon, SearchPill, Button, Bits
 ├── lib/                  pure functions + IO wrappers, no React:
 │                         storage · progress · readiness · review · srs · search ·
-│                         walkthrough · slug · text · highlight · export
+│                         walkthrough · slug · text · highlight · export ·
+│                         bank (answer checks, set building, the set in progress) ·
+│                         attempts (finished vs draft problem attempts)
 ├── state/                ProgressProvider.tsx — the single React state owner
 └── routes/               one screen per file; __fixtures/ are DEV-only
 ```
@@ -82,6 +89,7 @@ forgetting is the most common way a change silently does nothing. This table is 
 | A whole track | `content/tracks.ts` | `content/index.ts` — import its module array into `modules`; `components/ui/TrackIcon.tsx` for its icon |
 | A design problem | `content/problems/<camelCase>.ts` (`kind`, `category`, ≥3 `followups`) | **a `content/problems/groups/*.ts` array**, easy→hard. A checkpoint? also `CHECKPOINTS` in `routes.ts` |
 | A Practice shelf | `content/categories.ts` | the `ProblemCategoryId` union in `types.ts` |
+| A bank question | the lesson's author file in `content/bank/` (id `<moduleId>-<tf1\|tf2\|multi\|match>`, a `section` naming a real heading) | nothing — `bank/authored.ts` imports every author file. A **new** author file: add it to `authored.ts` |
 | A route | `ROUTE_SPECS` in `content/routes.ts` | nothing — `index.ts` builds it. A test fails if it names a missing lesson or problem |
 | An abbreviation | `content/glossary/<file>.ts` (or the base list in `glossary.ts`) | nothing — `glossaryIds` is derived. Duplicate ids fail `checkCurriculum` |
 | A term that needs no expansion | — | `ALLOWED` in `content/validate.ts` |
@@ -207,6 +215,19 @@ so `correct` is an index into the array as authored.
 **Cards:** the `back` must be sayable in one breath. If it needs three sentences it is a
 lesson, not a card.
 
+**Bank questions** follow `docs/superpowers/plans/2026-11-18-question-brief.md`. The bank
+(`content/bank/index.ts`) is three sources: authored questions, every lesson's quiz items
+(as `single`, id `quiz:<item id>`), and matching sets generated from the glossary and the
+patterns (ids `gloss:A+B+C`, `pat:x+y+z` — they name their members, so adding a term retires
+only the groups it lands in and never changes what a saved schedule points at). The ids of
+authored questions are permanent for the same reason. `validateQuestions` (run by
+`checkCurriculum`) checks each kind's shape, that `section` is a real heading, that no
+`[[…]]` sits in an option or match item, and the abbreviation rule with **each question as
+its own unit** — it is read alone, without the lesson around it. Options and match items
+render as buttons, so they go through `plainText`; prompt and explain go through `Inline`.
+Options are shuffled at render (a stable order per question id), so `correct` indexes the
+array as authored.
+
 **Problems** go in `src/content/problems/<camelCase>.ts` and are registered in a
 `problems/groups/*.ts` array. The `rubric` is split into `must` / `senior` / `staff` bars —
 that split is what the scoring screen reports against (weighted 3/2/1 in readiness), so put a
@@ -304,6 +325,17 @@ existing field's meaning. An export written by an older build must still import 
 and `recentSearches`. `migrate()` upgrades v1 losslessly; a v1 learner with progress is
 treated as onboarded and starts at their first unpassed station.
 
+**Version 3** adds the question bank: `questions` (id → the same SM-2 state as cards; a hit
+is graded `good`, a miss `again`), `questionDays` (answered and right per day, pruned like
+`activity`) and `dailyGoal` (5, 10 or 20). A problem attempt is saved as a **draft** (no
+`finishedAt`, plus `resume`) from the moment the clock starts; only finished attempts count
+anywhere — screens use `finishedAttempts()` / `draftOf()` in `lib/attempts.ts` rather than
+filtering `progress.attempts` themselves. `migrate()` checks every nested record field by field: an
+import is untrusted, and a bad value surfacing inside a render would blank the app.
+
+The question set being answered lives in `sessionStorage` (`tp:qset`), not in progress: it
+survives "Learn more" and Back, and dies with the tab. One set at a time.
+
 **Nothing is locked.** Prerequisites render as "Builds on" — a suggestion, with a tick when
 done. The learner's route decides what "next" means (`nextOnRoute` in `lib/progress.ts`),
 and readiness (`lib/readiness.ts`) scores each interview round: half lessons passed on that
@@ -358,11 +390,13 @@ use that as evidence the push should have worked.
 - Screens live one-per-file in `routes/` and own their own state; `ProgressProvider` is the
   only shared state.
 - `lib/` is pure functions plus IO wrappers — no React imports.
-- Timed or scored screens (quiz, problem runner, review session) render **outside** the tab
+- Timed or scored screens (quiz, problem runner, review session, question session) render **outside** the tab
   shell so there is one exit and no temptation to wander mid-attempt. Each has its own
   explicit close control. Walkthroughs are study, not attempts, so they live inside the shell.
 - Every shell screen owns a sticky `TopBar` (it carries the safe-area inset) and a `PageTitle`
   h1; `App.tsx` moves focus to the h1 (or the `#hash` target) on navigation.
 - `/__fixtures/blocks` (every block and figure kind) and `/__fixtures/seed?to=<path>` (a
   mid-journey learner; `&fresh=1` for a new one) are DEV-only routes for checking screens.
+  `/__fixtures/crash` throws while rendering, to check `ErrorBoundary` (in `main.tsx`), which
+  replaces a blank page with reload / export / reset.
 - Comments explain *why*, not *what*. The what is in the code.

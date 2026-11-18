@@ -15,6 +15,9 @@ concepts, drilling them, and then running the famous questions against the clock
   system, a key-value store… and the low-level classics (parking lot, LRU cache, elevator).
   Each runs on a 45-minute phase timer with the interviewer's follow-ups, is graded against a
   must / senior / staff rubric, and has a step-by-step walkthrough.
+- **Questions** — a bank of 554 quick questions (true or false, pick one, select all,
+  match) on every lesson, for a commute or a coffee break: a few a day against a daily goal,
+  misses coming back sooner, each with a "Learn more" link to the section that teaches it.
 - **Review** — spaced repetition over 208 cards from what you have read.
 - **Search** — lessons, sections inside lessons, 141 illustrated terms, problems and 22
   patterns, from one box (`/` or ⌘K).
