@@ -210,12 +210,11 @@ export function FigureView({ figure }: { figure: Figure }) {
             {figure.layers.map((l, i) => (
               <div
                 key={i}
-                className={`flex items-baseline justify-between gap-3 rounded-lg border px-3 py-2 ${boxTone[l.tone ?? 'neutral']}`}
+                className={`flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-lg border px-3 py-2 ${boxTone[l.tone ?? 'neutral']}`}
               >
-                <span className="text-[0.8125rem] font-medium">{l.label}</span>
-                {l.sub && (
-                  <span className="shrink-0 font-mono text-[0.625rem] text-ink-3">{l.sub}</span>
-                )}
+                <span className="min-w-0 text-[0.8125rem] font-medium">{l.label}</span>
+                {/* Wraps under the label when it does not fit beside it — never pushes the page sideways. */}
+                {l.sub && <span className="ml-auto min-w-0 text-right font-mono text-[0.625rem] text-ink-3">{l.sub}</span>}
               </div>
             ))}
           </div>

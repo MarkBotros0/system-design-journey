@@ -9,6 +9,22 @@ export default defineConfig({
   server: { port: 5180, strictPort: true, watch: { ignored: ['**/.claude/**'] } },
   preview: { port: 5180, strictPort: true },
   test: { environment: 'node', include: ['src/**/*.test.ts'] },
+  build: {
+    // The curriculum is ~90% of the JavaScript and changes far more often than the app
+    // or its libraries. Its own chunk keeps the app shell small and lets an app-only
+    // update reuse the cached curriculum (and vice versa). All three are precached.
+    chunkSizeWarningLimit: 2500,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'curriculum', test: /src[\\/]content[\\/]/ },
+            { name: 'vendor', test: /node_modules/ },
+          ],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

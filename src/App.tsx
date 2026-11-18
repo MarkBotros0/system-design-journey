@@ -42,7 +42,17 @@ function ScrollManager() {
     if (hash) {
       const id = decodeURIComponent(hash.slice(1))
       const aim = () => document.getElementById(id)?.scrollIntoView({ block: 'start' })
-      requestAnimationFrame(aim)
+      requestAnimationFrame(() => {
+        aim()
+        // Keyboard and screen-reader users continue from the heading they were sent to,
+        // not from wherever focus happened to be. Not on first load: that would steal
+        // the skip link's first Tab.
+        const el = document.getElementById(id)
+        if (el && !initial) {
+          if (!el.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SUMMARY)$/.test(el.tagName)) el.setAttribute('tabindex', '-1')
+          el.focus({ preventScroll: true })
+        }
+      })
       const t = setTimeout(aim, 300)
       return () => clearTimeout(t)
     }
