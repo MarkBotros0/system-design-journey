@@ -6,7 +6,8 @@ import { TrackScreen } from './routes/TrackScreen'
 import { PatternsScreen } from './routes/PatternsScreen'
 import { ModuleScreen } from './routes/ModuleScreen'
 import { QuizScreen } from './routes/QuizScreen'
-import { DrillScreen } from './routes/DrillScreen'
+import { ReviewScreen } from './routes/ReviewScreen'
+import { ReviewSessionScreen } from './routes/ReviewSessionScreen'
 import { PracticeScreen } from './routes/PracticeScreen'
 import { ProblemScreen } from './routes/ProblemScreen'
 import { WalkthroughScreen } from './routes/WalkthroughScreen'
@@ -116,7 +117,7 @@ export default function App() {
           <Route path="/m/:moduleId" element={<ModuleScreen />} />
           <Route path="/practice" element={<PracticeScreen />} />
           <Route path="/practice/:problemId/walkthrough" element={<WalkthroughScreen />} />
-          <Route path="/review" element={<DrillScreen />} />
+          <Route path="/review" element={<ReviewScreen />} />
           <Route path="/you" element={<YouScreen />} />
           <Route path="/glossary" element={<GlossaryScreen />} />
           <Route path="/search" element={<SearchScreen />} />
@@ -127,6 +128,7 @@ export default function App() {
         {/* Focus modes — timed or scored, so the tab bar comes off and each has its own exit. */}
         <Route path="/m/:moduleId/quiz" element={<QuizScreen />} />
         <Route path="/practice/:problemId" element={<ProblemScreen />} />
+        <Route path="/review/session" element={<ReviewSessionScreen />} />
 
         <Route path="/drill" element={<Navigate to="/review" replace />} />
         <Route path="*" element={<NotFound />} />
