@@ -10,6 +10,12 @@ software engineer for a senior interview**: the concepts of design, not coding s
 should feel like a **learning platform**. That means a logical journey through every topic,
 topics you can find instantly, and lessons rich in examples and visuals.
 
+**It is an interview-preparation app first.** Every lesson, screen and feature is judged by
+one question: does it make someone perform better in the interview room? Lessons end in
+what to say and what the interviewer will ask next. Practice is the famous questions
+companies actually ask ("Design Ticketmaster", "Design Uber", "Design Instagram"), run
+the way the real round runs. Progress is reported as readiness for each kind of round.
+
 **The edge is UI and UX.** Content breadth matters, but what should set this apart is how
 easy it is to find something, pick up where you left off, understand a concept from a
 picture, and always know what to do next. When a trade-off appears between "more content"
@@ -27,7 +33,11 @@ and "a better experience", the experience wins.
    patterns, low-level design, databases in depth (incl. ACID and isolation), distributed
    systems, architecture and APIs, production readiness, and behavioral answers for
    seniors. This is on top of the existing system-design tracks.
-5. **Lessons that teach by showing:** every lesson has diagrams, real-world examples,
+5. **Ready for the famous questions.** The canonical "design X" questions (Ticketmaster,
+   Uber, Instagram, WhatsApp, YouTube, Google Docs, …) each have a worked walkthrough to
+   study and a timed attempt to rehearse. Together they cover every recognition pattern
+   several times over.
+6. **Lessons that teach by showing:** every lesson has diagrams, real-world examples,
    before/after code where it helps, the line to say in the interview, the trap to avoid,
    and the follow-up questions an interviewer will ask.
 
@@ -132,10 +142,14 @@ Top to bottom on a phone:
    route's name and `12 / 68` progress. Tap → Learn.
 4. **Review:** "14 cards due · ~5 min" → `/review/session`. Hidden when nothing has been
    read; "All caught up, next in 3 h" when nothing is due.
-5. **Practice next:** one problem whose patterns you have mostly covered and haven't
-   attempted (or your weakest past attempt).
-6. **This week:** seven day dots (activity per day) and the streak.
-7. **Explore tracks:** horizontal scroller of track cards with progress rings.
+5. **Interview readiness:** three meters, one per round: **System design**, **OOP / LLD**,
+   **Behavioral**. Each blends lessons passed on that round's route with problems
+   attempted and their best rubric coverage (must-bar rows weigh most). The weakest round
+   carries a one-line "do this next" (a lesson or a problem). Tap → You for the breakdown.
+6. **Practice next:** one famous problem whose patterns you have mostly covered and haven't
+   attempted (or your weakest past attempt), with "Surprise me" beside it.
+7. **This week:** seven day dots (activity per day) and the streak.
+8. **Explore tracks:** horizontal scroller of track cards with progress rings.
 
 **First run:** a skippable sheet with one question and one toggle.
 
@@ -213,9 +227,26 @@ the new Software design track, which appears on their map as unstarted.
 
 ### Practice `/practice`
 
-- Segmented: **System design** | **Low-level design**. Filter chips: difficulty, pattern
-  (horizontal scroll). Cards show difficulty, patterns, status (new / best score / last
-  attempted).
+- Segmented: **System design** | **Low-level design**.
+- System design problems are grouped by **category** (Social & feeds, Messaging &
+  real-time, Media & files, Location, Commerce & booking, Infrastructure, Data &
+  analytics). Category headers act as jump chips in a horizontal row.
+- Filter chips: difficulty, pattern, status (new / attempted). Cards show difficulty,
+  patterns, status (new / best score / last attempted).
+- **Surprise me:** picks an unattempted problem at your level and starts the timed attempt.
+  This is the closest thing to a real interview, where you don't choose the question.
+- **Problem page** `/practice/:problemId` opens on the brief with two clear choices:
+  - **Attempt on the clock** (primary): the timed runner below.
+  - **Study the walkthrough** (secondary): the model answer stepped through **by interview
+    phase** (Requirements → Entities → API → High-level → Deep dives). It has a phase
+    stepper at the top, prev/next between phases, and the follow-up questions at the end.
+    Before opening it, a one-line nudge says: "Trying it first makes it stick. Study
+    anyway?" It nudges and never blocks, because worked examples are how beginners learn
+    the shape.
+- **Interviewer follow-ups during the attempt:** in the Deep dives phase, the runner shows
+  the problem's follow-up questions one at a time ("Interviewer asks: what happens when a
+  driver's phone goes offline?"). Each comes with a notes field, as an interviewer would
+  push. The strong answers appear on the grading screen.
 - Problem runner keeps its phase timer and self-graded rubric, now with the framework
   chosen by problem kind:
   - `hld` (existing): Requirements 5 · Entities 2 · API 5 · Data flow 5 (optional) ·
@@ -234,7 +265,8 @@ the new Software design track, which appears on their map as unstarted.
 
 ### You `/you`
 
-Stats tiles, a per-track progress list, **Bookmarks**, recent attempts, **Route and
+Interview readiness breakdown (per round: what's done, what's missing, the next best
+action), stats tiles, a per-track progress list, **Bookmarks**, recent attempts, **Route and
 starting point** (re-run the first-run choices), appearance, install, backup, reset. The install,
 backup and reset sections keep today's behaviour.
 
@@ -303,7 +335,32 @@ automatically, with no edits to existing content. There is no inline link markup
   LSP, ISP, DIP, DI, DRY, KISS, YAGNI, ER, BCNF, LSM, WAL, 2PC, OIDC, RBAC, SLI, SLO, SLA,
   MTTR, CQRS, DDD, UML, STAR, … as they appear.
 
-**New practice problems**
+**The famous-systems catalog (practice problems)**
+
+Existing ten: Bitly, Dropbox, Rate limiter, Ticketmaster, News feed, WhatsApp, YouTube,
+Web crawler, Ad click aggregator, Uber.
+
+New system design problems (≈18), chosen because they are the questions most often asked
+in senior rounds and between them exercise every pattern more than once:
+
+| Category | New problems |
+|---|---|
+| Social & feeds | Instagram (photos, feed, stories) · Facebook post search · Top-K / trending (e.g. YouTube trending) · Reddit-style voting and ranking |
+| Messaging & real-time | Facebook Live comments · Google Docs (collaborative editing) · Notification service |
+| Location | Yelp (nearby search) · Food delivery (DoorDash-style dispatch) |
+| Commerce & booking | Airbnb / hotel booking · Online auction (eBay) · Flash sale (Amazon) · Payment system (Stripe-like) |
+| Infrastructure | Distributed key-value store · Distributed job scheduler · Search autocomplete / typeahead · Metrics monitoring & alerting · Online judge (LeetCode) |
+
+Existing problems are filed under the same categories (e.g. Ticketmaster → Commerce &
+booking, Uber → Location).
+
+Every system design problem's walkthrough follows the same skeleton, so the phase stepper
+works: `Requirements` (functional + quantified non-functional) · `Core entities` · `API` ·
+`Data flow` (only if pipeline-shaped) · `High-level design` (≥1 figure of the full
+architecture) · `Deep dive 1..3` (each a `ladder` or `compare` of options ending in a pick)
+· a `followups` block (3–5 likely interviewer questions with strong answers). The rubric
+keeps the must / senior / staff split. Existing problems get `category` and `followups`
+added, and their headings are aligned to the skeleton.
 
 **Patterns get two families.** `Pattern` gains `family: 'system' | 'object'`. The existing
 eight are `system`. New `object` entries cover the design patterns, using the same "tell →
@@ -316,9 +373,8 @@ read.
 
 - LLD (`kind: 'lld'`): Parking lot (easy), Vending machine (easy), LRU cache (medium),
   Elevator system (medium), Library/booking system (medium), Rate limiter as classes
-  (hard). The model answers use `classes`, `codeCompare` and `sequence`.
-- HLD additions: Notification service (medium), Payment system (hard), Distributed
-  key-value store (hard).
+  (hard). The model answers use `classes`, `codeCompare` and `sequence`, and follow the
+  LLD phase skeleton.
 
 **Routes** (`content/routes.ts`): ordered lists of `{ module }` and `{ problem }` stops.
 
@@ -341,7 +397,11 @@ read.
   in-track order.
 - `Pattern`: add `family: 'system' | 'object'` and optional `moduleId` (the lesson that
   teaches it).
-- `Problem`: add `kind: 'hld' | 'lld'` (default `hld`). `framework.ts` exports a phase list
+- `Problem`: add `kind: 'hld' | 'lld'` (default `hld`), `category` (one of the catalog
+  categories; LLD problems use their own small set), and `followups: { q: string; a:
+  string }[]` (3–5, surfaced in the runner and the walkthrough). `modelAnswer` headings
+  follow the skeleton above. The validator checks the phase headings exist, so the stepper
+  can find them. `framework.ts` exports a phase list
   per kind.
 - New `Route { id, title, blurb, items: ({ module: string } | { problem: string })[] }`.
   Validated: every id exists, no duplicates.
@@ -400,7 +460,9 @@ chunk, still precached by Workbox.
 2. **Content:** new tracks authored in parallel batches (one subagent per track, given this
    doc, CLAUDE.md's content rules and an existing module as the style reference). The lead
    reviews each batch, runs the validator, and fixes what it reports.
-3. **Problems, glossary and routes:** new problems, glossary entries, route curation.
+3. **Problems, glossary and routes:** ≈18 new famous-system problems + 6 LLD problems
+   (authored in parallel batches by category), existing problems aligned to the skeleton
+   with `category` and `followups`, glossary entries, route curation.
 4. **Polish and QA:** 375 / 768 / 1024 / 1440, light and dark, reduced motion, keyboard
    only, offline (`build` + `preview`), console clean. CLAUDE.md updated (registry table,
    soft-prereq semantics, new kinds, routes).
