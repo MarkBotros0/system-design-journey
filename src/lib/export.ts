@@ -12,7 +12,7 @@ const FORMAT = 'throughput.progress'
 interface Envelope {
   format: typeof FORMAT
   /** Envelope version tracks the progress record's. Older envelopes import via `migrate`. */
-  version: 1 | 2
+  version: 1 | 2 | 3
   exportedAt: string
   progress: ProgressState
 }
@@ -27,7 +27,7 @@ export function exportFilename(now = new Date()): string {
 export function toJson(progress: ProgressState): string {
   const envelope: Envelope = {
     format: FORMAT,
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     progress,
   }

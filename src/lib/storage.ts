@@ -38,7 +38,7 @@ export interface ProblemAttempt {
 }
 
 export interface ProgressState {
-  version: 2
+  version: 3
   /** moduleId -> when you finished reading it. */
   lessonsRead: Record<string, number>
   /** moduleId -> best quiz result. */
@@ -62,13 +62,24 @@ export interface ProgressState {
   activity: Record<string, number>
   /** Newest first, at most 8. */
   recentSearches: string[]
+
+  /* ---- v3 ---- */
+  /** Question-bank id -> spacing state. A hit is graded `good`, a miss `again`. */
+  questions: Record<string, CardState>
+  /** dayKey -> questions answered and answered right that day. Pruned like `activity`. */
+  questionDays: Record<string, { answered: number; correct: number }>
+  /** Questions a day the learner aims for. */
+  dailyGoal: DailyGoal
 }
+
+export const DAILY_GOALS = [5, 10, 20] as const
+export type DailyGoal = (typeof DAILY_GOALS)[number]
 
 export const MAX_RECENT_SEARCHES = 8
 
 export function emptyProgress(): ProgressState {
   return {
-    version: 2,
+    version: 3,
     lessonsRead: {},
     quiz: {},
     cards: {},
@@ -82,6 +93,9 @@ export function emptyProgress(): ProgressState {
     onboarded: false,
     activity: {},
     recentSearches: [],
+    questions: {},
+    questionDays: {},
+    dailyGoal: 10,
   }
 }
 
@@ -137,6 +151,8 @@ const strings = (v: unknown): string[] =>
  * field it understands. Bump `version` and add to this when the shape changes — an
  * export written by any older build must always import cleanly.
  *
+ * v2 → v3: the question bank fields get defaults; nothing else changes.
+ *
  * v1 → v2: the v2 fields get defaults. A v1 learner with any progress has, by
  * definition, already started, so they skip onboarding and their start pointer goes to
  * the first station of the old line they had not passed. New tracks inserted earlier
@@ -155,7 +171,7 @@ export function migrate(raw: unknown): ProgressState {
 
   const shared = { lessonsRead, quiz, cards, attempts, streak, updatedAt }
 
-  if (raw.version !== 2) {
+  if (raw.version !== 2 && raw.version !== 3) {
     const started =
       Object.keys(lessonsRead).length > 0 || Object.keys(quiz).length > 0 || attempts.length > 0
     // Inline rather than imported from progress.ts — that module imports this one.
@@ -188,7 +204,34 @@ export function migrate(raw: unknown): ProgressState {
     onboarded: raw.onboarded === true,
     activity,
     recentSearches: strings(raw.recentSearches).slice(0, MAX_RECENT_SEARCHES),
+    // v2 records have none of these; the readers below default them.
+    questions: cardStates(raw.questions),
+    questionDays: questionDays(raw.questionDays),
+    dailyGoal: DAILY_GOALS.find((g) => g === raw.dailyGoal) ?? base.dailyGoal,
   }
+}
+
+/** Keeps only entries that are recognisably a schedule, so a bad import cannot poison a later read. */
+function cardStates(v: unknown): Record<string, CardState> {
+  const out: Record<string, CardState> = {}
+  if (!isRecord(v)) return out
+  for (const [id, s] of Object.entries(v)) {
+    if (isRecord(s) && ['reps', 'ease', 'intervalDays', 'dueAt', 'lapses'].every((k) => typeof s[k] === 'number')) {
+      out[id] = s as unknown as CardState
+    }
+  }
+  return out
+}
+
+function questionDays(v: unknown): ProgressState['questionDays'] {
+  const out: ProgressState['questionDays'] = {}
+  if (!isRecord(v)) return out
+  for (const [day, c] of Object.entries(v)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(day) && isRecord(c) && typeof c.answered === 'number' && typeof c.correct === 'number') {
+      out[day] = { answered: c.answered, correct: c.correct }
+    }
+  }
+  return out
 }
 
 /* ------------------------------------------------------------------ */

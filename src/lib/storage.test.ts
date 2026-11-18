@@ -25,7 +25,7 @@ const FOUNDATIONS = ['f-what', 'f-network', 'f-api', 'f-db', 'f-storage', 'f-cac
 describe('migrate', () => {
   it('empty v1 → onboarding pending, route full', () => {
     const p = migrate(v1())
-    expect(p.version).toBe(2)
+    expect(p.version).toBe(3)
     expect(p.onboarded).toBe(false)
     expect(p.routeId).toBe('full')
     expect(p.startStop).toBeNull()
@@ -58,9 +58,35 @@ describe('migrate', () => {
     expect(p.startStop).toBeNull()
   })
 
-  it('v2 round-trips unchanged', () => {
+  it('v2 → v3 keeps everything and adds an empty question bank', () => {
     const v2 = {
       ...migrate(v1()),
+      version: 2,
+      bookmarks: ['c-cap'],
+      lastPlace: { moduleId: 'c-cap', sectionId: 'pacelc', at: 5 },
+      routeId: 'lld',
+      startStop: 'm:p-oop',
+      onboarded: true,
+      activity: { '2026-11-18': 3 },
+      recentSearches: ['acid'],
+    } as Record<string, unknown>
+    delete v2.questions
+    delete v2.questionDays
+    delete v2.dailyGoal
+    const p = migrate(structuredClone(v2))
+    expect(p.version).toBe(3)
+    expect(p).toMatchObject({ bookmarks: ['c-cap'], routeId: 'lld', startStop: 'm:p-oop', onboarded: true })
+    expect(p.questions).toEqual({})
+    expect(p.questionDays).toEqual({})
+    expect(p.dailyGoal).toBe(10)
+  })
+
+  it('v3 round-trips unchanged', () => {
+    const v3 = {
+      ...migrate(v1()),
+      questions: { 'c-cap-tf1': { reps: 1, ease: 2.5, intervalDays: 1, dueAt: 9, lapses: 0, lastGrade: 'good' as const, lastAt: 8 } },
+      questionDays: { '2026-11-18': { answered: 4, correct: 3 } },
+      dailyGoal: 20,
       bookmarks: ['c-cap'],
       lastPlace: { moduleId: 'c-cap', sectionId: 'pacelc', at: 5 },
       routeId: 'lld',
@@ -69,7 +95,7 @@ describe('migrate', () => {
       activity: { '2026-11-18': 3 },
       recentSearches: ['acid'],
     }
-    expect(migrate(structuredClone(v2))).toEqual(v2)
+    expect(migrate(structuredClone(v3))).toEqual(v3)
   })
 
   it('garbage fields are defaulted', () => {
@@ -81,8 +107,14 @@ describe('migrate', () => {
         recentSearches: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'],
         lastPlace: 7,
         routeId: 42,
+        questions: { ok: { reps: 1, ease: 2.5, intervalDays: 1, dueAt: 9, lapses: 0 }, bad: { dueAt: 'soon' }, worse: 3 },
+        questionDays: { '2026-11-18': { answered: 2, correct: 1 }, junk: 'x' },
+        dailyGoal: 7,
       }),
     )
+    expect(Object.keys(p.questions)).toEqual(['ok'])
+    expect(Object.keys(p.questionDays)).toEqual(['2026-11-18'])
+    expect(p.dailyGoal).toBe(10)
     expect(p.bookmarks).toEqual([])
     expect(p.activity).toEqual({})
     expect(p.recentSearches).toHaveLength(8)
@@ -91,7 +123,7 @@ describe('migrate', () => {
   })
 
   it('non-object input gives a fresh record', () => {
-    expect(migrate(null).version).toBe(2)
+    expect(migrate(null).version).toBe(3)
     expect(migrate('nope').onboarded).toBe(false)
   })
 })
@@ -104,7 +136,23 @@ describe('stopKey', () => {
 })
 
 describe('parseImport', () => {
-  it('imports a v1 export as v2 with progress intact', () => {
+  it('imports a v2 export as v3 with progress intact', () => {
+    const text = JSON.stringify({
+      format: 'throughput.progress',
+      version: 2,
+      exportedAt: '2026-11-01T00:00:00.000Z',
+      progress: { ...v1({ quiz: quiz(['c-cap'], 1), lessonsRead: read(['c-cap']) }), version: 2, onboarded: true, routeId: 'lld' },
+    })
+    const r = parseImport(text)
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.progress.version).toBe(3)
+    expect(r.progress.routeId).toBe('lld')
+    expect(r.progress.quiz['c-cap'].best).toBe(1)
+    expect(r.progress.questions).toEqual({})
+  })
+
+  it('imports a v1 export as v3 with progress intact', () => {
     const text = JSON.stringify({
       format: 'throughput.progress',
       version: 1,
@@ -114,7 +162,7 @@ describe('parseImport', () => {
     const r = parseImport(text)
     expect(r.ok).toBe(true)
     if (!r.ok) return
-    expect(r.progress.version).toBe(2)
+    expect(r.progress.version).toBe(3)
     expect(r.progress.quiz['f-what'].best).toBe(0.9)
     expect(r.progress.onboarded).toBe(true)
   })

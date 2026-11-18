@@ -18,6 +18,7 @@ import {
   clearProgress,
   stopKey,
   MAX_RECENT_SEARCHES,
+  type DailyGoal,
   type ProblemAttempt,
   type ProgressState,
   type Theme,
@@ -25,6 +26,7 @@ import {
 import { bumpActivity, touchStreak } from '../lib/progress'
 import { getModule, getRoute } from '../content'
 import { newCard, review, type Grade } from '../lib/srs'
+import { recordDay, scheduleAnswer } from '../lib/bank'
 
 interface ProgressContextValue {
   progress: ProgressState
@@ -33,6 +35,9 @@ interface ProgressContextValue {
   markLessonRead: (moduleId: string) => void
   recordQuiz: (moduleId: string, score: number) => void
   gradeCard: (cardId: string, grade: Grade) => void
+  /** Schedules a bank question and counts it toward today. Counts as study for the streak. */
+  answerQuestion: (questionId: string, correct: boolean) => void
+  setDailyGoal: (goal: DailyGoal) => void
   saveAttempt: (attempt: ProblemAttempt) => void
   replaceAll: (next: ProgressState) => void
   resetAll: () => Promise<void>
@@ -143,6 +148,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [study],
   )
 
+  const answerQuestion = useCallback(
+    (questionId: string, correct: boolean) => {
+      study((p) => ({
+        ...p,
+        questions: { ...p.questions, [questionId]: scheduleAnswer(p.questions[questionId], correct) },
+        questionDays: recordDay(p.questionDays, correct),
+      }))
+    },
+    [study],
+  )
+
+  const setDailyGoal = useCallback((dailyGoal: DailyGoal) => {
+    setProgress((p) => ({ ...p, dailyGoal }))
+  }, [])
+
   const saveAttempt = useCallback(
     (attempt: ProblemAttempt) => {
       study((p) => {
@@ -220,6 +240,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markLessonRead,
       recordQuiz,
       gradeCard,
+      answerQuestion,
+      setDailyGoal,
       saveAttempt,
       replaceAll,
       resetAll,
@@ -244,6 +266,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markLessonRead,
       recordQuiz,
       gradeCard,
+      answerQuestion,
+      setDailyGoal,
       saveAttempt,
       replaceAll,
       resetAll,
