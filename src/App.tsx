@@ -9,6 +9,7 @@ import { PracticeScreen } from './routes/PracticeScreen'
 import { ProblemScreen } from './routes/ProblemScreen'
 import { YouScreen } from './routes/YouScreen'
 import { GlossaryScreen } from './routes/GlossaryScreen'
+import { SearchScreen } from './routes/SearchScreen'
 import { ButtonLink } from './components/ui/Button'
 import { PwaBanner } from './components/pwa/PwaBanner'
 import { GlossarySheet } from './components/content/GlossarySheet'
@@ -110,6 +111,7 @@ export default function App() {
           <Route path="/review" element={<DrillScreen />} />
           <Route path="/you" element={<YouScreen />} />
           <Route path="/glossary" element={<GlossaryScreen />} />
+          <Route path="/search" element={<SearchScreen />} />
           {import.meta.env.DEV && <Route path="/__fixtures/blocks" element={<BlocksFixture />} />}
         </Route>
 

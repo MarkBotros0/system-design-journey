@@ -204,7 +204,7 @@ function getIndex(): MiniSearch<Doc> {
   index = new MiniSearch<Doc>({
     idField: 'key',
     fields: ['title', 'keywords', 'parent', 'text'],
-    storeFields: ['id', 'type', 'title', 'parent', 'context', 'href'],
+    storeFields: ['id', 'type', 'title', 'parent', 'context', 'href', 'text'],
     processTerm,
     searchOptions: {
       boost: { title: 4, keywords: 3, parent: 1.5, text: 1 },
@@ -217,6 +217,22 @@ function getIndex(): MiniSearch<Doc> {
   return index
 }
 
+/**
+ * The context line, re-centred on the first matched word when the match is not already
+ * near the start — a section result should show *why* it matched.
+ */
+function snippet(fallback: string, text: string, terms: string[]): string {
+  const flat = text.replace(/\s+/g, ' ')
+  let at = -1
+  for (const t of terms) {
+    const m = new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').exec(flat)
+    if (m && (at === -1 || m.index < at)) at = m.index
+  }
+  if (at < 60) return fallback
+  const start = flat.lastIndexOf(' ', at - 30) + 1
+  return `…${clip(flat.slice(start), 108)}`
+}
+
 const EMPTY: SearchResult = { groups: [], total: 0, suggestions: [] }
 
 export function search(query: string, limitPerGroup = 5): SearchResult {
@@ -224,7 +240,10 @@ export function search(query: string, limitPerGroup = 5): SearchResult {
   if (query.replace(/[^\p{L}\p{N}]/gu, '').length < 2) return EMPTY
 
   const idx = getIndex()
-  let results = idx.search(query, { combineWith: 'AND' })
+  // Exact (prefix) matches first; typo tolerance only when they find nothing, so a
+  // correctly spelled query is never diluted by near-misses ("isolation" ≠ "solution").
+  let results = idx.search(query, { combineWith: 'AND', fuzzy: false })
+  if (!results.length) results = idx.search(query, { combineWith: 'AND' })
   if (!results.length) results = idx.search(query, { combineWith: 'OR' })
 
   if (!results.length) {
@@ -243,7 +262,7 @@ export function search(query: string, limitPerGroup = 5): SearchResult {
       id: r.id as string,
       type,
       title: r.title as string,
-      context: r.context as string,
+      context: type === 'section' || type === 'lesson' ? snippet(r.context as string, r.text as string, r.terms) : (r.context as string),
       parent: (r.parent as string) || undefined,
       href: r.href as string,
       terms: r.terms,

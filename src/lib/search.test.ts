@@ -84,3 +84,10 @@ describe('search', () => {
     }
   })
 })
+
+describe('search precision', () => {
+  it('does not dilute an exact match with fuzzy near-misses', () => {
+    const titles = search('isolation').groups.flatMap((g) => g.hits.map((h) => h.title))
+    expect(titles).not.toContain('What gets scored')
+  })
+})
