@@ -1170,7 +1170,7 @@ GET  /v1/feed?cursor=&limit=      -> { items: Tweet[], nextCursor }`,
         head: ['Component', 'One gives you', 'Scale when'],
         rows: [
           ['Cache', '~1 ms, 100k+ ops/sec, up to ~1 [[TB]]', 'hit rate < 80%, memory > 80%'],
-          ['Database', '~50k txn/sec, 64 [[TiB]]+', 'writes > 10k [[TPS]], uncached reads > 5 ms'],
+          ['Database', '~50k txn/sec, 64 [[TiB]]+', 'writes nearing ~40k [[TPS]], uncached reads > 5 ms'],
           ['App server', '100k+ connections, 64–512 GB RAM', '[[CPU]] > 70%, latency past [[SLA]]'],
           ['Queue', '~1M msgs/sec per broker', 'nearing 800k msgs/sec, consumer lag growing'],
         ],

@@ -46,7 +46,7 @@ export const appliedModules: Module[] = [
           {
             grade: 'best',
             title: '[[WebSocket]] — when the client genuinely pushes',
-            text: 'Chat, collaborative editing, multiplayer. Costs you [[L4]] load balancing, connection state to manage, and reconnection logic you write yourself. Worth it only when both directions are hot.',
+            text: 'Chat, collaborative editing, multiplayer. Costs you long-lived connections the load balancer must hold and drain on every deploy, connection state to manage, and reconnection logic you write yourself. Worth it only when both directions are hot.',
           },
         ],
       },
@@ -59,7 +59,7 @@ export const appliedModules: Module[] = [
             { label: 'Polling', sub: 'mostly empty responses', tone: 'alert' },
             { label: 'Long polling', sub: 'fewer wasted trips, still a connection each', tone: 'streak' },
             { label: 'Server-sent events', sub: 'server pushes, plain HTTP, auto-reconnect', tone: 'mastered' },
-            { label: 'WebSocket', sub: 'both directions — costs L4 balancing and connection state', tone: 'line' },
+            { label: 'WebSocket', sub: 'both directions — costs held connections and state', tone: 'line' },
           ],
           note: 'Most features labelled "real time" only need the third rung.',
         },
@@ -108,7 +108,7 @@ export const appliedModules: Module[] = [
         ],
         correct: 1,
         explain:
-          'The push is one-directional; posts go over regular [[HTTP]]. SSE covers it with automatic reconnect and no [[L4]] balancing requirement. WebSocket buys bidirectionality you are not using.',
+          'The push is one-directional; posts go over regular [[HTTP]]. SSE covers it over plain [[HTTP]] with automatic reconnect. WebSocket buys bidirectionality you are not using.',
       },
       {
         id: 'q-a-realtime-2',
@@ -130,7 +130,7 @@ export const appliedModules: Module[] = [
         id: 'c-a-realtime-1',
         moduleId: 'a-realtime',
         front: 'The real-time transport ladder.',
-        back: 'Polling → long polling → [[SSE]] (server push, plain [[HTTP]], auto-reconnect) → [[WebSocket]] (only when the client pushes too, and it costs [[L4]] balancing plus connection state).',
+        back: 'Polling → long polling → [[SSE]] (server push, plain [[HTTP]], auto-reconnect) → [[WebSocket]] (only when the client pushes too; it costs held connections to balance and drain, plus connection state).',
         tag: 'Real-time',
       },
       {

@@ -128,7 +128,7 @@ throw new Conflict() // lost three times in a row`,
       },
       {
         kind: 'prose',
-        text: 'Why a version number and not the old value? `WHERE balance = 100` passes if the balance went 100 → 70 → 100 between your read and your write, and you overwrite a change you never saw. A counter that only goes up cannot come back round.',
+        text: 'Why a version number and not the old value? `WHERE balance = 100` is safe only while the new balance depends on nothing but the old one. Your decision usually rests on more — the account was active, the daily limit was not reached — and those can change while the balance happens to read 100 again. A version that bumps on every write catches any change to the row, not just the column you remembered to check.',
       },
       {
         kind: 'prose',

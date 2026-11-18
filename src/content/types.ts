@@ -232,7 +232,7 @@ interface QuestionBase {
 export type Question =
   /** Four options; `correct` indexes them as authored (shuffled at render). */
   | (QuestionBase & { kind: 'single'; options: string[]; correct: number })
-  /** Select all that apply: 4–6 options, at least two correct, never all. */
+  /** Select all that apply: 4–6 options, at least two correct, never all. Shuffled at render, like `single`. */
   | (QuestionBase & { kind: 'multi'; options: string[]; correct: number[] })
   | (QuestionBase & { kind: 'truefalse'; answer: boolean })
   /** 3–5 pairs, unique on both sides. The right column is shuffled at render. */
