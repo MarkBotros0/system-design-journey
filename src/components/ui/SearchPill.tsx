@@ -18,7 +18,7 @@ export function SearchPill({ compact = false }: { compact?: boolean }) {
       style={{ boxShadow: 'var(--shadow-card)' }}
     >
       <Search size={18} strokeWidth={2} aria-hidden="true" className="shrink-0 text-ink-2" />
-      <span className="min-w-0 flex-1 truncate">Search topics, terms, problems</span>
+      <span className="min-w-0 flex-1 truncate">{compact ? 'Search' : 'Search topics, terms, problems'}</span>
       <kbd className="hidden shrink-0 rounded-md border border-hairline bg-surface-2 px-1.5 py-0.5 font-mono text-[0.6875rem] text-ink-3 [@media(pointer:fine)]:inline">
         {isMac ? '⌘K' : 'Ctrl K'}
       </kbd>

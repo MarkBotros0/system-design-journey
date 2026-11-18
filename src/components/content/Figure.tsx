@@ -1,6 +1,11 @@
 import { Fragment } from 'react'
-import type { Figure, FigureTone, FlowNode, SplitSide } from '../../content/figures'
+import type { Figure, FlowNode, SplitSide } from '../../content/figures'
 import { Inline } from './Inline'
+import { Frame } from './figureKit'
+import { barTone, boxTone, softTone, textTone } from './figureTones'
+import { SequenceFigure } from './FigureSequence'
+import { ClassesFigure } from './FigureClasses'
+import { DecisionFigure } from './FigureDecision'
 
 /**
  * Renders a Figure.
@@ -10,54 +15,6 @@ import { Inline } from './Inline'
  * 375px screen. Geometry that matters (timeline positions, log scales) is expressed as
  * percentage widths, which is exact enough and costs nothing in readability.
  */
-
-/* Tone classes are written out in full — Tailwind scans source text, so a computed
-   class name like `bg-${tone}-soft` would never make it into the stylesheet. */
-
-const boxTone: Record<FigureTone, string> = {
-  line: 'border-line bg-line-soft text-ink',
-  mastered: 'border-mastered bg-mastered-soft text-ink',
-  streak: 'border-streak bg-streak-soft text-ink',
-  alert: 'border-alert bg-alert-soft text-ink',
-  neutral: 'border-hairline bg-surface text-ink',
-}
-
-const barTone: Record<FigureTone, string> = {
-  line: 'bg-line',
-  mastered: 'bg-mastered',
-  streak: 'bg-streak',
-  alert: 'bg-alert',
-  neutral: 'bg-ink-3',
-}
-
-const softTone: Record<FigureTone, string> = {
-  line: 'bg-line-soft',
-  mastered: 'bg-mastered-soft',
-  streak: 'bg-streak-soft',
-  alert: 'bg-alert-soft',
-  neutral: 'bg-surface-2',
-}
-
-const textTone: Record<FigureTone, string> = {
-  line: 'text-line',
-  mastered: 'text-mastered',
-  streak: 'text-streak',
-  alert: 'text-alert',
-  neutral: 'text-ink-3',
-}
-
-function Frame({ children, note }: { children: React.ReactNode; note?: string }) {
-  return (
-    <div className="rounded-2xl border border-hairline bg-surface-2/50 p-3.5">
-      {children}
-      {note && (
-        <p className="mt-3 text-[0.8125rem] leading-relaxed text-ink-3">
-          <Inline text={note} />
-        </p>
-      )}
-    </div>
-  )
-}
 
 function Arrow({ label }: { label?: string }) {
   return (
@@ -351,6 +308,15 @@ export function FigureView({ figure }: { figure: Figure }) {
 
     case 'scale':
       return <Scale figure={figure} />
+
+    case 'sequence':
+      return <SequenceFigure figure={figure} />
+
+    case 'classes':
+      return <ClassesFigure figure={figure} />
+
+    case 'decision':
+      return <DecisionFigure figure={figure} />
 
     case 'cycle':
       return (

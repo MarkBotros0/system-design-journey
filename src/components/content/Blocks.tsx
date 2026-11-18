@@ -1,7 +1,11 @@
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
+import { Check, Lightbulb, X } from 'lucide-react'
 import type { Block } from '../../content/types'
+import { headingSlugs } from '../../lib/slug'
 import { Inline } from './Inline'
 import { FigureView } from './Figure'
+import { CodeView } from './CodeView'
+import { Followups } from './Followups'
 
 /* ------------------------------------------------------------------ */
 /* Callouts                                                            */
@@ -17,8 +21,9 @@ const calloutStyle = {
 function Callout({ tone, title, text }: Extract<Block, { kind: 'callout' }>) {
   const s = calloutStyle[tone]
   return (
-    <div className={`rounded-r-xl border-l-2 py-3 pr-4 pl-4 ${s.wrap}`}>
-      <p className={`mb-1 font-mono text-[0.6875rem] tracking-[0.12em] uppercase ${s.label}`}>
+    <div className={`rounded-r-xl border-l-2 py-3 pr-4 pl-4 ${s.wrap} ${tone === 'example' ? 'border-y border-r border-y-hairline border-r-hairline' : ''}`}>
+      <p className={`mb-1 flex items-center gap-1.5 font-mono text-[0.6875rem] tracking-[0.12em] uppercase ${s.label}`}>
+        {tone === 'example' && <Lightbulb size={13} strokeWidth={2.2} aria-hidden="true" />}
         {title ?? s.fallback}
       </p>
       <p className="text-[0.9375rem] leading-relaxed text-ink">
@@ -175,16 +180,55 @@ function Table({ head, rows }: Extract<Block, { kind: 'table' }>) {
 /* Renderer                                                            */
 /* ------------------------------------------------------------------ */
 
+function CodeCompare({ before, after, note }: Extract<Block, { kind: 'codeCompare' }>) {
+  return (
+    <figure>
+      <div className="grid gap-3 md:grid-cols-2">
+        <CodeView
+          code={before.code}
+          accent="alert"
+          label={
+            <>
+              <X size={13} strokeWidth={2.5} aria-hidden="true" className="text-alert" />
+              <Inline text={before.title} />
+            </>
+          }
+        />
+        <CodeView
+          code={after.code}
+          accent="mastered"
+          label={
+            <>
+              <Check size={13} strokeWidth={2.5} aria-hidden="true" className="text-mastered" />
+              <Inline text={after.title} />
+            </>
+          }
+        />
+      </div>
+      {note && (
+        <figcaption className="mt-2 text-[0.8125rem] leading-relaxed text-ink-3">
+          <Inline text={note} />
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+
+/**
+ * Renders a lesson or walkthrough. Headings carry stable slug ids (see lib/slug) — the
+ * table of contents, search deep links and the reading-place memory all aim at them.
+ */
 export function Blocks({ blocks }: { blocks: Block[] }) {
+  const slugs = useMemo(() => headingSlugs(blocks), [blocks])
   return (
     <div className="flex flex-col gap-5">
       {blocks.map((b, i) => {
         switch (b.kind) {
           case 'heading':
             return (
-              <h3 key={i} className="mt-3 text-[1.1875rem] font-semibold first:mt-0">
+              <h2 key={i} id={slugs.get(i)} className="mt-4 text-[1.1875rem] font-semibold first:mt-0">
                 <Inline text={b.text} />
-              </h3>
+              </h2>
             )
           case 'prose':
             return (
@@ -232,14 +276,16 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
           case 'code':
             return (
               <figure key={i}>
-                <pre className="overflow-x-auto rounded-xl border border-hairline bg-surface-2 p-3.5 font-mono text-[0.8125rem] leading-relaxed text-ink">
-                  <code>{b.code}</code>
-                </pre>
+                <CodeView code={b.code} />
                 {b.caption && (
                   <figcaption className="mt-2 text-[0.8125rem] text-ink-3">{b.caption}</figcaption>
                 )}
               </figure>
             )
+          case 'codeCompare':
+            return <CodeCompare key={i} {...b} />
+          case 'followups':
+            return <Followups key={i} items={b.items} />
         }
       })}
     </div>

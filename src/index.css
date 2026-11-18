@@ -202,6 +202,24 @@
   }
 }
 
+/* A quiet arrival for each screen — confirms the navigation without moving anything. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@utility animate-page-in {
+  animation: page-in 150ms var(--ease-out) both;
+}
+
+/* Anchored headings land below the sticky top bar, not under it. */
+[id] {
+  scroll-margin-top: calc(env(safe-area-inset-top) + 4.5rem);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
