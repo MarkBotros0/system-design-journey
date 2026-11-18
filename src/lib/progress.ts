@@ -174,3 +174,15 @@ export function liveStreak(streak: ProgressState['streak'], now = Date.now()): n
   const gap = daysBetween(streak.lastDay, dayKey(now))
   return gap <= 1 ? streak.current : 0
 }
+
+/**
+ * What the route sheet should tell `chooseRoute`. Only a real change moves the start
+ * pointer: re-saving the sheet as it opened must not reset a pointer the learner never
+ * touched — notably a migrated v1 learner's, which nothing else can restore.
+ */
+export function routeChangeOpts(
+  initial: { routeId: string; skipBasics: boolean },
+  chosen: { routeId: string; skipBasics: boolean },
+): { skipBasics?: boolean } {
+  return chosen.routeId !== initial.routeId || chosen.skipBasics !== initial.skipBasics ? { skipBasics: chosen.skipBasics } : {}
+}

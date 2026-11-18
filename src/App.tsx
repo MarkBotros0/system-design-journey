@@ -91,6 +91,11 @@ function GlobalKeys() {
   return null
 }
 
+/** DEV only: throws while rendering, to check the error boundary's recovery screen. */
+function Crash(): never {
+  throw new Error('Deliberate render error from /__fixtures/crash')
+}
+
 function NotFound() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4 text-center">
@@ -139,6 +144,8 @@ export default function App() {
         <Route path="/m/:moduleId/quiz" element={<QuizScreen />} />
         <Route path="/practice/:problemId" element={<ProblemScreen />} />
         <Route path="/review/session" element={<ReviewSessionScreen />} />
+
+        {import.meta.env.DEV && <Route path="/__fixtures/crash" element={<Crash />} />}
 
         <Route path="/drill" element={<Navigate to="/review" replace />} />
         <Route path="*" element={<NotFound />} />

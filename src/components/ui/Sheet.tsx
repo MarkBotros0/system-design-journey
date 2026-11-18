@@ -20,6 +20,12 @@ export function Sheet({
   wide?: boolean
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
+  // Callers pass a fresh onClose on every render; depending on it would re-run the effect
+  // below — and pull focus back to the panel — on every choice made inside the sheet.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
 
   useEffect(() => {
     if (!open) return
@@ -27,7 +33,7 @@ export function Sheet({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
-        onClose()
+        onCloseRef.current()
         return
       }
       if (e.key !== 'Tab' || !panelRef.current) return
@@ -37,7 +43,8 @@ export function Sheet({
       if (!focusable.length) return
       const first = focusable[0]
       const last = focusable[focusable.length - 1]
-      if (e.shiftKey && document.activeElement === first) {
+      // From the panel itself (where focus starts), Shift+Tab must wrap too, not escape.
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
         e.preventDefault()
         last.focus()
       } else if (!e.shiftKey && document.activeElement === last) {
@@ -57,7 +64,7 @@ export function Sheet({
       document.body.style.overflow = previous
       returnTo?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 

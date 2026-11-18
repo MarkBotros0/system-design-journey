@@ -35,6 +35,8 @@ export interface ProblemAttempt {
   phaseSeconds: Record<string, number>
   /** rubric row id -> did you hit it. */
   scored: Record<string, boolean>
+  /** Drafts only: where the runner was, so Resume lands there. */
+  resume?: { stage: 'running' | 'grading'; phaseIndex: number }
 }
 
 export interface ProgressState {
@@ -162,11 +164,19 @@ export function migrate(raw: unknown): ProgressState {
   const base = emptyProgress()
   if (!isRecord(raw)) return base
 
-  const lessonsRead = isRecord(raw.lessonsRead) ? (raw.lessonsRead as ProgressState['lessonsRead']) : {}
-  const quiz = isRecord(raw.quiz) ? (raw.quiz as ProgressState['quiz']) : {}
-  const cards = isRecord(raw.cards) ? (raw.cards as ProgressState['cards']) : {}
-  const attempts = Array.isArray(raw.attempts) ? (raw.attempts as ProblemAttempt[]) : []
-  const streak = isRecord(raw.streak) ? (raw.streak as ProgressState['streak']) : base.streak
+  // Every nested record is checked field by field: an import is untrusted, and one bad
+  // value surfacing later inside a render would blank the whole app.
+  const lessonsRead = typed(raw.lessonsRead, (v): v is number => typeof v === 'number')
+  const quiz = typed(raw.quiz, (v): v is QuizRecord => isRecord(v) && ['best', 'attempts', 'lastAt'].every((k) => typeof v[k] === 'number'))
+  const cards = cardStates(raw.cards)
+  const attempts = Array.isArray(raw.attempts) ? raw.attempts.flatMap(attempt) : []
+  const streak =
+    isRecord(raw.streak) &&
+    typeof raw.streak.current === 'number' &&
+    typeof raw.streak.longest === 'number' &&
+    (raw.streak.lastDay === null || typeof raw.streak.lastDay === 'string')
+      ? (raw.streak as ProgressState['streak'])
+      : base.streak
   const updatedAt = typeof raw.updatedAt === 'number' ? raw.updatedAt : base.updatedAt
 
   const shared = { lessonsRead, quiz, cards, attempts, streak, updatedAt }
@@ -209,6 +219,32 @@ export function migrate(raw: unknown): ProgressState {
     questionDays: questionDays(raw.questionDays),
     dailyGoal: DAILY_GOALS.find((g) => g === raw.dailyGoal) ?? base.dailyGoal,
   }
+}
+
+/** The entries of a record whose values pass `ok`. */
+function typed<T>(v: unknown, ok: (x: unknown) => x is T): Record<string, T> {
+  const out: Record<string, T> = {}
+  if (isRecord(v)) for (const [k, x] of Object.entries(v)) if (ok(x)) out[k] = x
+  return out
+}
+
+/** An attempt with its identity intact is kept and its maps repaired; anything less is dropped. */
+function attempt(v: unknown): ProblemAttempt[] {
+  if (!isRecord(v) || typeof v.id !== 'string' || typeof v.problemId !== 'string' || typeof v.startedAt !== 'number') return []
+  const a: ProblemAttempt = {
+    id: v.id,
+    problemId: v.problemId,
+    startedAt: v.startedAt,
+    notes: typed(v.notes, (x): x is string => typeof x === 'string'),
+    phaseSeconds: typed(v.phaseSeconds, (x): x is number => typeof x === 'number'),
+    scored: typed(v.scored, (x): x is boolean => typeof x === 'boolean'),
+  }
+  if (typeof v.finishedAt === 'number') a.finishedAt = v.finishedAt
+  const r = v.resume
+  if (isRecord(r) && (r.stage === 'running' || r.stage === 'grading') && typeof r.phaseIndex === 'number') {
+    a.resume = { stage: r.stage, phaseIndex: r.phaseIndex }
+  }
+  return [a]
 }
 
 /** Keeps only entries that are recognisably a schedule, so a bad import cannot poison a later read. */

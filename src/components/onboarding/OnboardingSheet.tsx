@@ -3,6 +3,7 @@ import { Check } from 'lucide-react'
 import { getModule, getProblem, routes } from '../../content'
 import type { Route } from '../../content/types'
 import { useProgress } from '../../state/ProgressProvider'
+import { routeChangeOpts } from '../../lib/progress'
 import { Sheet } from '../ui/Sheet'
 import { Button } from '../ui/Button'
 
@@ -33,13 +34,14 @@ export function routeSize(route: Route): { lessons: number; problems: number; ho
 export function OnboardingSheet({ open, onClose, mode = 'first-run' }: { open: boolean; onClose: () => void; mode?: 'first-run' | 'edit' }) {
   const { progress, chooseRoute, dismissOnboarding } = useProgress()
   const [routeId, setRouteId] = useState(progress.routeId)
-  const [skipBasics, setSkipBasics] = useState(() => {
+  const [initial] = useState(() => {
     const s = progress.startStop
-    return !!s && s.startsWith('m:') && getModule(s.slice(2))?.trackId !== 'foundations'
+    return { routeId: progress.routeId, skipBasics: !!s && s.startsWith('m:') && getModule(s.slice(2))?.trackId !== 'foundations' }
   })
+  const [skipBasics, setSkipBasics] = useState(initial.skipBasics)
 
   function done() {
-    chooseRoute(routeId, { skipBasics })
+    chooseRoute(routeId, routeChangeOpts(initial, { routeId, skipBasics }))
     onClose()
   }
 

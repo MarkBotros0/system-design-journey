@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ProgressProvider } from './state/ProgressProvider'
 import { GlossaryProvider } from './state/GlossaryProvider'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 
 const root = document.getElementById('root')
@@ -11,12 +12,14 @@ if (!root) throw new Error('#root missing from index.html')
 
 createRoot(root).render(
   <StrictMode>
-    <BrowserRouter>
-      <ProgressProvider>
-        <GlossaryProvider>
-          <App />
-        </GlossaryProvider>
-      </ProgressProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ProgressProvider>
+          <GlossaryProvider>
+            <App />
+          </GlossaryProvider>
+        </ProgressProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

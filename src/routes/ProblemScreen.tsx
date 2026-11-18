@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowRight, BookOpen, Check, MessageSquareQuote, SkipForward, X } from 'lucide-react'
 import { getModule, getProblem, problems } from '../content'
@@ -8,6 +8,7 @@ import type { Problem, RubricRow } from '../content/types'
 import { useProgress } from '../state/ProgressProvider'
 import type { ProblemAttempt } from '../lib/storage'
 import { isPassed } from '../lib/progress'
+import { draftOf, finishedAttempts, resumePoint } from '../lib/attempts'
 import { attemptCoverage, bestCoverage, surpriseMe } from '../lib/readiness'
 import { plainText } from '../lib/text'
 import { Blocks } from '../components/content/Blocks'
@@ -48,10 +49,20 @@ function Frame({ children, onClose, closeLabel = 'Practice' }: { children: React
   )
 }
 
-function BriefStage({ problem, onStart }: { problem: Problem; onStart: () => void }) {
+function BriefStage({
+  problem,
+  onStart,
+  draft,
+  onResume,
+}: {
+  problem: Problem
+  onStart: () => void
+  draft?: ProblemAttempt
+  onResume: () => void
+}) {
   const { progress } = useProgress()
   const [confirmStudy, setConfirmStudy] = useState(false)
-  const attempts = progress.attempts.filter((a) => a.problemId === problem.id).length
+  const attempts = finishedAttempts(progress, problem.id).length
   const best = bestCoverage(progress, problem.id, problem)
   const phases = phasesFor(problem.kind)
   const suggested = problem.suggests.map((id) => getModule(id)).filter((m) => !!m)
@@ -115,10 +126,14 @@ function BriefStage({ problem, onStart }: { problem: Problem; onStart: () => voi
         </details>
       )}
 
+      {draft && <DraftCard draft={draft} phases={phases} onResume={onResume} onStartOver={onStart} />}
+
       <div className="mt-7 flex flex-col gap-2 sm:flex-row">
-        <Button size="lg" onClick={onStart} className="sm:flex-1">
-          Attempt on the clock
-        </Button>
+        {!draft && (
+          <Button size="lg" onClick={onStart} className="sm:flex-1">
+            Attempt on the clock
+          </Button>
+        )}
         {!confirmStudy && (
           <Button size="lg" variant="secondary" onClick={() => setConfirmStudy(true)} className="sm:flex-1">
             Study the walkthrough
@@ -143,11 +158,52 @@ function BriefStage({ problem, onStart }: { problem: Problem; onStart: () => voi
   )
 }
 
+/** An attempt left part-way: where it stopped, and the choice to carry on or start again. */
+function DraftCard({
+  draft,
+  phases,
+  onResume,
+  onStartOver,
+}: {
+  draft: ProblemAttempt
+  phases: ReturnType<typeof phasesFor>
+  onResume: () => void
+  onStartOver: () => void
+}) {
+  const at = resumePoint(draft, phases.length)
+  const minutes = Math.round(Object.values(draft.phaseSeconds).reduce((n, x) => n + x, 0) / 60)
+  const where = at.stage === 'grading' ? 'Ready to grade' : `Phase ${at.phaseIndex + 1} of ${phases.length}: ${phases[at.phaseIndex].name}`
+  return (
+    <section aria-label="Unfinished attempt" className="mt-6 rounded-2xl border border-line/40 bg-line-soft/40 p-4">
+      <p className="text-[0.9375rem] font-medium">You left an attempt part-way through.</p>
+      <p className="mt-0.5 font-mono text-[0.75rem] text-ink-2 tabular">
+        {where} · {minutes} min in · notes saved
+      </p>
+      <div className="mt-3 flex gap-2">
+        <Button onClick={onResume} className="flex-1">
+          Resume
+        </Button>
+        <Button variant="secondary" onClick={onStartOver} className="flex-1">
+          Start over
+        </Button>
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Keyed by problem, so "Try another" — a link from one problem to the next — starts a
+ * fresh run instead of carrying the last one's stage, notes and ticks across.
+ */
 export function ProblemScreen() {
   const { problemId } = useParams()
+  return <ProblemRun key={problemId} problemId={problemId} />
+}
+
+function ProblemRun({ problemId }: { problemId?: string }) {
   const problem = getProblem(problemId)
   const navigate = useNavigate()
-  const { progress, saveAttempt } = useProgress()
+  const { progress, saveAttempt, keepDraft, discardAttempt } = useProgress()
 
   const [stage, setStage] = useState<Stage>('brief')
   const [phaseIndex, setPhaseIndex] = useState(0)
@@ -158,7 +214,9 @@ export function ProblemScreen() {
   const [phaseStartedAt, setPhaseStartedAt] = useState(0)
   const [now, setNow] = useState(0)
   const [fuIndex, setFuIndex] = useState(0)
-  const [attemptId] = useState(() => `a-${Date.now()}`)
+  const [attemptId, setAttemptId] = useState(() => `a-${Date.now()}`)
+  /** When this attempt first began — survives a resume, unlike the clock's `startedAt`. */
+  const [openedAt, setOpenedAt] = useState(0)
   const [another, setAnother] = useState<Problem | undefined>(undefined)
 
   // One clock for the whole run; the countdown is derived from it.
@@ -177,6 +235,52 @@ export function ProblemScreen() {
   }, [stage])
 
   const phases = useMemo(() => (problem ? phasesFor(problem.kind) : []), [problem])
+  // The draft as of the latest render, for the save timers below. Assigned in an effect so
+  // render stays pure; read only from timers and cleanup.
+  const draftRef = useRef<() => ProblemAttempt | null>(() => null)
+  useEffect(() => {
+    draftRef.current = () => {
+      if (!problem || (stage !== 'running' && stage !== 'grading')) return null
+      const ph = phases[phaseIndex]
+      const live = stage === 'running' && ph ? Math.round((Date.now() - phaseStartedAt) / 1000) : 0
+      return {
+        id: attemptId,
+        problemId: problem.id,
+        startedAt: openedAt,
+        notes,
+        phaseSeconds: live > 0 ? { ...phaseSeconds, [ph.id]: (phaseSeconds[ph.id] ?? 0) + live } : phaseSeconds,
+        scored,
+        resume: { stage, phaseIndex },
+      }
+    }
+  })
+
+  // Kept as a draft from the first second: shortly after each change, when the tab is
+  // hidden (a phone call, iOS suspending the app), and on leaving the screen by any route.
+  useEffect(() => {
+    if (stage !== 'running' && stage !== 'grading') return
+    const t = setTimeout(() => {
+      const d = draftRef.current()
+      if (d) keepDraft(d)
+    }, 800)
+    return () => clearTimeout(t)
+  }, [stage, phaseIndex, notes, scored, keepDraft])
+
+  useEffect(() => {
+    const flush = () => {
+      const d = draftRef.current()
+      if (d) keepDraft(d)
+    }
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush()
+    }
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      flush()
+    }
+  }, [keepDraft])
+
   const grouped = useMemo(() => {
     if (!problem) return []
     const bars: RubricRow['bar'][] = ['must', 'senior', 'staff']
@@ -197,16 +301,39 @@ export function ProblemScreen() {
 
   const followups = problem.followups ?? []
   const phase = phases[phaseIndex]
-  const elapsedInPhase = stage === 'running' ? Math.max(0, (now - phaseStartedAt) / 1000) : 0
+  const draft = draftOf(progress, problem.id)
+  // A resumed phase carries the seconds it had already used.
+  const elapsedInPhase = stage === 'running' ? (phaseSeconds[phase.id] ?? 0) + Math.max(0, (now - phaseStartedAt) / 1000) : 0
   const remaining = phase ? phase.minutes * 60 - elapsedInPhase : 0
   const totalElapsed = stage === 'running' ? Math.max(0, (now - startedAt) / 1000) : 0
 
   function start() {
+    if (draft) discardAttempt(draft.id)
     const t = Date.now()
+    setOpenedAt(t)
     setStartedAt(t)
     setPhaseStartedAt(t)
     setNow(t)
     setStage('running')
+    window.scrollTo(0, 0)
+  }
+
+  function resume() {
+    if (!draft) return
+    const at = resumePoint(draft, phases.length)
+    const t = Date.now()
+    const spent = Object.values(draft.phaseSeconds).reduce((n, x) => n + x, 0)
+    setAttemptId(draft.id)
+    setOpenedAt(draft.startedAt)
+    setNotes(draft.notes)
+    setPhaseSeconds(draft.phaseSeconds)
+    setScored(draft.scored)
+    setPhaseIndex(at.phaseIndex)
+    // The overall clock resumes from the time already spent, not from the time away.
+    setStartedAt(t - spent * 1000)
+    setPhaseStartedAt(t)
+    setNow(t)
+    setStage(at.stage)
     window.scrollTo(0, 0)
   }
 
@@ -233,7 +360,7 @@ export function ProblemScreen() {
     const attempt: ProblemAttempt = {
       id: attemptId,
       problemId: problem!.id,
-      startedAt: startedAt || Date.now(),
+      startedAt: openedAt || startedAt || Date.now(),
       finishedAt: Date.now(),
       notes,
       phaseSeconds,
@@ -246,14 +373,14 @@ export function ProblemScreen() {
     setStage('done')
   }
 
+  /** Nothing to confirm: the attempt is kept as a draft and offered back on the brief. */
   function leave() {
-    if (stage === 'running' && !window.confirm('Leave this attempt? Your notes will be lost.')) return
     navigate('/practice')
   }
 
   /* ---------------------------------------------------------------- */
 
-  if (stage === 'brief') return <BriefStage problem={problem} onStart={start} />
+  if (stage === 'brief') return <BriefStage problem={problem} onStart={start} draft={draft} onResume={resume} />
 
   if (stage === 'running') {
     const over = remaining < 0
@@ -266,7 +393,7 @@ export function ProblemScreen() {
             <button
               type="button"
               onClick={leave}
-              aria-label="Leave this attempt"
+              aria-label="Leave — the attempt is kept to resume"
               className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2 hover:text-ink"
             >
               <X size={18} strokeWidth={2} />

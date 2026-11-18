@@ -6,6 +6,7 @@ import { categories } from '../content/categories'
 import { getPattern, patterns } from '../content/patterns'
 import type { Difficulty, Problem, ProblemKind } from '../content/types'
 import { useProgress } from '../state/ProgressProvider'
+import { finishedAttempts } from '../lib/attempts'
 import { bestCoverage, surpriseMe } from '../lib/readiness'
 import { plainText } from '../lib/text'
 import { TopBar, PageTitle } from '../components/ui/TopBar'
@@ -24,7 +25,7 @@ const reduceMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)
 
 function ProblemCard({ p }: { p: Problem }) {
   const { progress } = useProgress()
-  const attempts = progress.attempts.filter((a) => a.problemId === p.id).length
+  const attempts = finishedAttempts(progress, p.id).length
   const best = bestCoverage(progress, p.id, p)
   const names = p.patterns.map((id) => getPattern(id)?.name).filter(Boolean)
   return (
@@ -67,7 +68,7 @@ export function PracticeScreen() {
   const family = kind === 'hld' ? 'system' : 'object'
   const ofKind = useMemo(() => problems.filter((p) => p.kind === kind), [kind])
   const familyPatterns = patterns.filter((p) => p.family === family && ofKind.some((x) => x.patterns.includes(p.id)))
-  const attempted = (id: string) => progress.attempts.some((a) => a.problemId === id)
+  const attempted = (id: string) => finishedAttempts(progress, id).length > 0
 
   const shown = ofKind.filter(
     (p) =>

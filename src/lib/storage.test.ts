@@ -122,6 +122,32 @@ describe('migrate', () => {
     expect(p.routeId).toBe('full')
   })
 
+  it('malformed nested records are repaired or dropped, never trusted', () => {
+    const p = migrate(
+      v1({
+        version: 3,
+        lessonsRead: { 'c-cap': 5, bad: 'yes' },
+        quiz: { 'c-cap': { best: 0.9, attempts: 1, lastAt: 1 }, bad: { best: 'high' }, worse: null },
+        cards: { ok: { reps: 1, ease: 2.5, intervalDays: 1, dueAt: 9, lapses: 0 }, bad: 'x' },
+        streak: {},
+        attempts: [
+          { id: 'a1', problemId: 'bitly', startedAt: 1, finishedAt: 2 },
+          { id: 'a2', problemId: 'bitly', startedAt: 1, notes: { x: 'y', n: 3 }, scored: { r1: true, r2: 'yes' }, phaseSeconds: { p: 60, q: 'x' } },
+          { problemId: 'no-id', startedAt: 1 },
+          'junk',
+        ],
+      }),
+    )
+    expect(p.lessonsRead).toEqual({ 'c-cap': 5 })
+    expect(Object.keys(p.quiz)).toEqual(['c-cap'])
+    expect(Object.keys(p.cards)).toEqual(['ok'])
+    expect(p.streak).toEqual({ current: 0, longest: 0, lastDay: null })
+    expect(p.attempts.map((a) => a.id)).toEqual(['a1', 'a2'])
+    expect(p.attempts[0]).toMatchObject({ notes: {}, phaseSeconds: {}, scored: {}, finishedAt: 2 })
+    expect(p.attempts[1]).toMatchObject({ notes: { x: 'y' }, phaseSeconds: { p: 60 }, scored: { r1: true } })
+    expect(p.attempts[1].finishedAt).toBeUndefined()
+  })
+
   it('non-object input gives a fresh record', () => {
     expect(migrate(null).version).toBe(3)
     expect(migrate('nope').onboarded).toBe(false)

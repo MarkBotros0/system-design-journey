@@ -39,6 +39,9 @@ interface ProgressContextValue {
   answerQuestion: (questionId: string, correct: boolean) => void
   setDailyGoal: (goal: DailyGoal) => void
   saveAttempt: (attempt: ProblemAttempt) => void
+  /** Saves an unfinished attempt. Not a study action: typing notes moves no streak. */
+  keepDraft: (attempt: ProblemAttempt) => void
+  discardAttempt: (attemptId: string) => void
   replaceAll: (next: ProgressState) => void
   resetAll: () => Promise<void>
   toggleBookmark: (moduleId: string) => void
@@ -163,6 +166,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setProgress((p) => ({ ...p, dailyGoal }))
   }, [])
 
+  const keepDraft = useCallback((attempt: ProblemAttempt) => {
+    setProgress((p) => ({ ...p, attempts: [...p.attempts.filter((a) => a.id !== attempt.id), attempt] }))
+  }, [])
+
+  const discardAttempt = useCallback((attemptId: string) => {
+    setProgress((p) => ({ ...p, attempts: p.attempts.filter((a) => a.id !== attemptId) }))
+  }, [])
+
   const saveAttempt = useCallback(
     (attempt: ProblemAttempt) => {
       study((p) => {
@@ -243,6 +254,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       answerQuestion,
       setDailyGoal,
       saveAttempt,
+      keepDraft,
+      discardAttempt,
       replaceAll,
       resetAll,
       toggleBookmark,
@@ -269,6 +282,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       answerQuestion,
       setDailyGoal,
       saveAttempt,
+      keepDraft,
+      discardAttempt,
       replaceAll,
       resetAll,
       theme,

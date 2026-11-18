@@ -132,7 +132,9 @@ function Session({ track }: { track: Track | undefined }) {
         <Meter value={session.total ? Math.min(1, reviewed / (reviewed + left)) : 0} label="Session progress" />
       </header>
 
-      <div className="[perspective:1200px]">
+      {/* Keyed by card: the next card mounts face-down rather than rotating back into view
+          with its own answer already on the back face. */}
+      <div key={card.id} className="[perspective:1200px]">
         <div
           className="grid transition-transform duration-[250ms] ease-out [transform-style:preserve-3d] motion-reduce:transition-none"
           style={{ transform: revealed ? 'rotateY(180deg)' : 'none' }}

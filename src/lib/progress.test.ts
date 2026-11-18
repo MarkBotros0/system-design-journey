@@ -4,6 +4,7 @@ import { checkCurriculum, getModule, getRoute, routeIssues, routes } from '../co
 import { phasesFor, PHASES } from '../content/framework'
 import { emptyProgress, type ProgressState } from './storage'
 import {
+  routeChangeOpts,
   bumpActivity,
   missingPrereqs,
   moduleStatus,
@@ -149,5 +150,17 @@ describe('framework', () => {
   it('hld phases are the existing six, with follow-ups in the deep dives', () => {
     expect(phasesFor('hld')).toBe(PHASES)
     expect(PHASES.find((p) => p.id === 'deepdives')?.followups).toBe(true)
+  })
+})
+
+describe('routeChangeOpts', () => {
+  it('saving the sheet unchanged keeps the start pointer (a migrated learner stays in Core)', () => {
+    expect(routeChangeOpts({ routeId: 'full', skipBasics: true }, { routeId: 'full', skipBasics: true })).toEqual({})
+  })
+  it('flipping the toggle moves the pointer', () => {
+    expect(routeChangeOpts({ routeId: 'full', skipBasics: true }, { routeId: 'full', skipBasics: false })).toEqual({ skipBasics: false })
+  })
+  it('a new route always sets its own starting point', () => {
+    expect(routeChangeOpts({ routeId: 'full', skipBasics: true }, { routeId: 'lld', skipBasics: true })).toEqual({ skipBasics: true })
   })
 })
