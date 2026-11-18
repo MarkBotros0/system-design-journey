@@ -95,7 +95,9 @@ function FinishRow({ m }: { m: Module }) {
       )}
       {m.cards.length > 0 && (
         <p className="mt-4 text-[0.8125rem] text-ink-3">
-          {m.cards.length} review card{m.cards.length === 1 ? '' : 's'} from this lesson join your deck once it is read.
+          {read
+            ? `${m.cards.length} review card${m.cards.length === 1 ? '' : 's'} from this lesson ${m.cards.length === 1 ? 'is' : 'are'} in your deck.`
+            : `${m.cards.length} review card${m.cards.length === 1 ? '' : 's'} from this lesson join your deck once it is read.`}
         </p>
       )}
     </section>
@@ -132,31 +134,20 @@ function NextOnRoute({ m }: { m: Module }) {
           </Link>
         </section>
       )}
-      {(prev || next) && (
-        <nav aria-label="Previous and next" className="mt-4 grid grid-cols-2 gap-3">
-          {prev ? (
-            <Link to={stopHref(prev)} className="flex min-h-16 flex-col justify-center rounded-2xl border border-hairline px-4 py-3 hover:border-line">
-              <span className="flex items-center gap-1 text-[0.75rem] text-ink-3">
-                <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" /> Previous
-              </span>
-              <span className="mt-0.5 line-clamp-2 text-[0.875rem] leading-snug font-medium">{plainText(stopTitle(prev))}</span>
-            </Link>
-          ) : (
-            <span />
-          )}
-          {next ? (
-            <Link
-              to={stopHref(next)}
-              className="flex min-h-16 flex-col items-end justify-center rounded-2xl border border-hairline px-4 py-3 text-right hover:border-line"
-            >
-              <span className="flex items-center gap-1 text-[0.75rem] text-ink-3">
-                Next <ArrowRight size={13} strokeWidth={2} aria-hidden="true" />
-              </span>
-              <span className="mt-0.5 line-clamp-2 text-[0.875rem] leading-snug font-medium">{plainText(stopTitle(next))}</span>
-            </Link>
-          ) : (
-            <span />
-          )}
+      {/* The way forward is the card above; this row only offers the way back. A second
+          "Next" here would point at the same stop. */}
+      {prev && (
+        <nav aria-label="Previous" className={next ? 'mt-4' : 'mt-10'}>
+          <Link
+            to={stopHref(prev)}
+            className="flex min-h-14 items-center gap-3 rounded-2xl border border-hairline px-4 py-3 hover:border-line"
+          >
+            <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" className="shrink-0 text-ink-3" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.75rem] text-ink-3">Previous</span>
+              <span className="line-clamp-2 text-[0.875rem] leading-snug font-medium">{plainText(stopTitle(prev))}</span>
+            </span>
+          </Link>
         </nav>
       )}
     </>
