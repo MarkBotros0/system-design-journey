@@ -40,13 +40,18 @@ export function Chip({
   )
 }
 
-/** A row of chips that scrolls sideways inside itself, never the page. */
+/**
+ * A row of chips that scrolls sideways inside itself, never the page. `py-1` is room for
+ * each chip's hit area (4px past it); without it the row overflows vertically, and a
+ * sideways-scrolling row then scrolls up and down too — on iOS the chips can be dragged.
+ * `overflow-y-hidden` keeps that true for anything else put in the row.
+ */
 export function ChipRow({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div
       role="group"
       aria-label={label}
-      className="-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] lg:-mx-8 lg:px-8 [&::-webkit-scrollbar]:hidden"
+      className="-mx-4 flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-1 [scrollbar-width:none] lg:-mx-8 lg:px-8 [&::-webkit-scrollbar]:hidden"
     >
       {children}
     </div>

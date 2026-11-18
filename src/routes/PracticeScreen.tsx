@@ -146,8 +146,8 @@ export function PracticeScreen() {
         </div>
       ) : (
         <>
-          <div className="sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 -mx-4 mt-3 border-b border-hairline/60 bg-paper/95 py-2 backdrop-blur-md lg:-mx-8">
-            <div role="group" aria-label="Filters" className="flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] lg:px-8 [&::-webkit-scrollbar]:hidden">
+          <div className="sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 -mx-4 mt-3 border-b border-hairline/60 bg-paper/95 py-1 backdrop-blur-md lg:-mx-8">
+            <div role="group" aria-label="Filters" className="flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-1 [scrollbar-width:none] lg:px-8 [&::-webkit-scrollbar]:hidden">
               {DIFFS.map((d) => (
                 <Chip
                   key={d}
@@ -189,7 +189,7 @@ export function PracticeScreen() {
               )}
             </div>
             {sections.length > 1 && (
-              <div role="group" aria-label="Jump to category" className="mt-1.5 flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] lg:px-8 [&::-webkit-scrollbar]:hidden">
+              <div role="group" aria-label="Jump to category" className="mt-0.5 flex gap-1 overflow-x-auto overflow-y-hidden px-4 [scrollbar-width:none] lg:px-8 [&::-webkit-scrollbar]:hidden">
                 {sections.map((s) => (
                   <button
                     key={s.id}
