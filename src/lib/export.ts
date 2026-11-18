@@ -5,13 +5,14 @@
  * or a new phone means starting over.
  */
 
-import { emptyProgress, type ProgressState } from './storage'
+import { migrate, type ProgressState } from './storage'
 
 const FORMAT = 'throughput.progress'
 
 interface Envelope {
   format: typeof FORMAT
-  version: 1
+  /** Envelope version tracks the progress record's. Older envelopes import via `migrate`. */
+  version: 1 | 2
   exportedAt: string
   progress: ProgressState
 }
@@ -26,7 +27,7 @@ export function exportFilename(now = new Date()): string {
 export function toJson(progress: ProgressState): string {
   const envelope: Envelope = {
     format: FORMAT,
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     progress,
   }
@@ -75,19 +76,5 @@ export function parseImport(text: string): ParseResult {
     return { ok: false, error: 'The export is missing its progress record.' }
   }
 
-  const base = emptyProgress()
-  return {
-    ok: true,
-    progress: {
-      ...base,
-      ...p,
-      version: 1,
-      lessonsRead: p.lessonsRead ?? {},
-      quiz: p.quiz ?? {},
-      cards: p.cards ?? {},
-      attempts: Array.isArray(p.attempts) ? p.attempts : [],
-      streak: p.streak ?? base.streak,
-      updatedAt: Date.now(),
-    },
-  }
+  return { ok: true, progress: { ...migrate(p), updatedAt: Date.now() } }
 }
