@@ -15,7 +15,8 @@ import { appliedModules } from './modules/applied'
 import { interviewModules } from './modules/interview'
 import { behavioralModules } from './modules/behavioral'
 import { problems as problemList } from './problems'
-import { validateContent, validateProblemShape } from './validate'
+import { validateContent, validateProblemShape, validateQuestions } from './validate'
+import { authoredQuestions } from './bank/authored'
 import { buildRoutes } from './routes'
 import { glossary } from './glossary'
 import { patterns } from './patterns'
@@ -227,6 +228,7 @@ export function checkCurriculum(): string[] {
 
   // Figures on every unit, no unexplained abbreviations, well-formed figures.
   for (const issue of validateContent(modules, problems)) out.push(`${issue.where}: ${issue.message}`)
+  out.push(...validateQuestions(authoredQuestions, modules))
 
   return out
 }

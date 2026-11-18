@@ -1,8 +1,9 @@
-import type { Block, FigureSpec, Module, Problem } from './types'
+import type { Block, FigureSpec, Module, Problem, Question } from './types'
 import { glossaryIds } from './glossary'
 import { isDecisionNode, type DecisionLeaf, type DecisionNode } from './figures'
 import { getCategory } from './categories'
 import { plainText } from '../lib/text'
+import { headingSlugs } from '../lib/slug'
 
 /**
  * Content rules, checked at load time in development.
@@ -337,3 +338,81 @@ export function validateContent(modules: Module[], problems: Problem[]): Content
 
   return issues
 }
+
+/* ------------------------------------------------------------------ */
+/* Question bank                                                       */
+/* ------------------------------------------------------------------ */
+
+const RESERVED_PREFIX = /^(quiz|gloss|pat):/
+
+/**
+ * Hand-written bank questions. Structure per kind, a real lesson and heading to link to,
+ * no markup inside anything rendered as a button (options and match items), and each
+ * question is its own unit for the abbreviation rule — it is read alone, on a train,
+ * without the lesson around it.
+ */
+export function validateQuestions(questions: Question[], modules: Module[]): string[] {
+  const out: string[] = []
+  const byModule = new Map(modules.map((m) => [m.id, m]))
+  const seen = new Set<string>()
+
+  for (const q of questions) {
+    const at = `question ${q.id}`
+    if (seen.has(q.id)) out.push(`${at}: duplicate id`)
+    seen.add(q.id)
+    if (RESERVED_PREFIX.test(q.id)) out.push(`${at}: ids starting quiz:, gloss: or pat: are reserved for derived questions`)
+    if (!q.prompt.trim()) out.push(`${at}: empty prompt`)
+    if (!q.explain.trim()) out.push(`${at}: empty explain`)
+
+    const m = q.moduleId ? byModule.get(q.moduleId) : undefined
+    if (!q.moduleId) out.push(`${at}: no moduleId`)
+    else if (!m) out.push(`${at}: unknown module ${q.moduleId}`)
+    if (m && q.section) {
+      const want = plainText(q.section).trim()
+      const found = [...headingSlugs(m.lesson).keys()].some((i) => {
+        const b = m.lesson[i]
+        return b.kind === 'heading' && plainText(b.text).trim() === want
+      })
+      if (!found) out.push(`${at}: section "${q.section}" is not a heading in ${m.id}`)
+    }
+
+    const buttons: string[] = []
+    switch (q.kind) {
+      case 'single':
+        if (q.options.length !== 4) out.push(`${at}: single needs exactly 4 options`)
+        if (!Number.isInteger(q.correct) || q.correct < 0 || q.correct >= q.options.length) out.push(`${at}: correct out of range`)
+        buttons.push(...q.options)
+        break
+      case 'multi': {
+        if (q.options.length < 4 || q.options.length > 6) out.push(`${at}: multi needs 4–6 options`)
+        const set = new Set(q.correct)
+        if (set.size !== q.correct.length) out.push(`${at}: duplicate correct index`)
+        if (q.correct.some((i) => !Number.isInteger(i) || i < 0 || i >= q.options.length)) out.push(`${at}: correct out of range`)
+        if (set.size < 2) out.push(`${at}: multi needs at least two correct options (use single otherwise)`)
+        if (set.size >= q.options.length) out.push(`${at}: multi cannot have every option correct`)
+        buttons.push(...q.options)
+        break
+      }
+      case 'truefalse':
+        if (q.prompt.trim().endsWith('?')) out.push(`${at}: true/false prompt must be a statement, not a question`)
+        break
+      case 'match': {
+        if (q.pairs.length < 3 || q.pairs.length > 5) out.push(`${at}: match needs 3–5 pairs`)
+        const lefts = q.pairs.map((x) => plainText(x.left).trim())
+        const rights = q.pairs.map((x) => plainText(x.right).trim())
+        if (new Set(lefts).size !== lefts.length) out.push(`${at}: duplicate left item`)
+        if (new Set(rights).size !== rights.length) out.push(`${at}: duplicate right item`)
+        if ([...lefts, ...rights].some((t) => !t)) out.push(`${at}: empty match item`)
+        buttons.push(...q.pairs.flatMap((x) => [x.left, x.right]))
+        break
+      }
+    }
+    if (buttons.some((t) => t.includes('[['))) out.push(`${at}: no [[…]] in options or match items — they render as buttons; wrap the term in the prompt or explain`)
+
+    const issues: ContentIssue[] = []
+    checkUnit(at, [q.prompt, q.explain, ...buttons], true, issues)
+    for (const i of issues) out.push(`${i.where}: ${i.message}`)
+  }
+  return out
+}
+

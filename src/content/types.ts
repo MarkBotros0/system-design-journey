@@ -207,3 +207,34 @@ export interface Route {
   blurb: string
   stops: RouteStop[]
 }
+
+/* ------------------------------------------------------------------ */
+/* Question bank                                                       */
+/* ------------------------------------------------------------------ */
+
+export type QuestionKind = 'single' | 'multi' | 'truefalse' | 'match'
+
+interface QuestionBase {
+  /** Stable forever: per-question schedules are keyed by it. */
+  id: string
+  /** The lesson it tests. Authored questions always have one. */
+  moduleId?: string
+  /** The exact text of a heading in that lesson — "Learn more" deep-links to it. */
+  section?: string
+  /** For questions with no lesson (generated from the glossary or patterns). */
+  topic?: { title: string; href: string }
+  /** Inline markup allowed. For true/false, a statement, not a question. */
+  prompt: string
+  /** Why — one or two sentences. Inline markup allowed. */
+  explain: string
+}
+
+export type Question =
+  /** Four options; `correct` indexes them as authored (shuffled at render). */
+  | (QuestionBase & { kind: 'single'; options: string[]; correct: number })
+  /** Select all that apply: 4–6 options, at least two correct, never all. */
+  | (QuestionBase & { kind: 'multi'; options: string[]; correct: number[] })
+  | (QuestionBase & { kind: 'truefalse'; answer: boolean })
+  /** 3–5 pairs, unique on both sides. The right column is shuffled at render. */
+  | (QuestionBase & { kind: 'match'; pairs: { left: string; right: string }[] })
+
