@@ -18,6 +18,7 @@ export const foundationsModules: Module[] = [
     prereqs: [],
     minutes: 6,
     summary: 'The shape of the problem, what an interviewer is scoring, and why there is no single right answer.',
+    keywords: ['system design interview', 'how interviews are scored', 'competencies', 'what interviewers look for', 'senior signal'],
     lesson: [
       {
         kind: 'prose',
@@ -174,6 +175,7 @@ export const foundationsModules: Module[] = [
     prereqs: ['f-what'],
     minutes: 12,
     summary: 'What actually happens between a tap and a response, which protocol to pick, what a load balancer layer means, and the latency floor physics imposes.',
+    keywords: ['client server', 'HTTP', 'TCP UDP', 'DNS', 'load balancer', 'latency numbers'],
     lesson: [
       {
         kind: 'prose',
@@ -465,6 +467,7 @@ export const foundationsModules: Module[] = [
     prereqs: ['f-network'],
     minutes: 7,
     summary: 'One endpoint per feature, the auth rule interviewers watch for, and why cursors beat offsets.',
+    keywords: ['REST', 'GraphQL', 'gRPC', 'endpoints', 'API design', 'pagination'],
     lesson: [
       {
         kind: 'prose',
@@ -621,6 +624,7 @@ GET  /v1/feed?cursor=&limit=      -> { items: Tweet[], nextCursor }`,
     prereqs: ['f-api'],
     minutes: 9,
     summary: 'Indexes, transactions, and the one question that decides whether a query is fast or a table scan.',
+    keywords: ['SQL vs NoSQL', 'relational database', 'Postgres', 'indexes', 'transactions'],
     lesson: [
       {
         kind: 'prose',
@@ -785,6 +789,7 @@ GET  /v1/feed?cursor=&limit=      -> { items: Tweet[], nextCursor }`,
     prereqs: ['f-db'],
     minutes: 8,
     summary: 'Relational, NoSQL, blob, and the SQL-versus-NoSQL argument you should refuse to have.',
+    keywords: ['blob storage', 'S3', 'object storage', 'CDN', 'where data lives'],
     lesson: [
       {
         kind: 'prose',
@@ -924,6 +929,7 @@ GET  /v1/feed?cursor=&limit=      -> { items: Tweet[], nextCursor }`,
     prereqs: ['f-storage'],
     minutes: 8,
     summary: 'A 20–50× speedup, the pattern to default to, and the two failure modes that separate levels.',
+    keywords: ['Redis', 'cache aside', 'TTL', 'cache hit rate', 'in-memory cache'],
     lesson: [
       {
         kind: 'prose',
@@ -1084,6 +1090,7 @@ GET  /v1/feed?cursor=&limit=      -> { items: Tweet[], nextCursor }`,
     prereqs: ['f-cache'],
     minutes: 8,
     summary: 'Vertical versus horizontal, read replicas, and the order to reach for things in.',
+    keywords: ['horizontal scaling', 'vertical scaling', 'stateless servers', 'replicas', 'scale out'],
     lesson: [
       {
         kind: 'prose',

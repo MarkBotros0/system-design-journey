@@ -17,6 +17,7 @@ export const interviewModules: Module[] = [
     prereqs: ['a-proximity'],
     minutes: 9,
     summary: 'What separates E4 from E5 from E6, how people actually lose, and what to do when you do not know.',
+    keywords: ['interview communication', 'driving the interview', 'talking through trade-offs', 'interviewer hints', 'time management'],
     lesson: [
       {
         kind: 'prose',
@@ -192,6 +193,7 @@ export const interviewModules: Module[] = [
     prereqs: ['i-room'],
     minutes: 8,
     summary: 'Decompose an unfamiliar prompt into two or three known patterns, in about ninety seconds.',
+    keywords: ['unfamiliar question', 'pattern recognition', 'new problem', 'where to start', 'mapping to patterns'],
     lesson: [
       {
         kind: 'prose',

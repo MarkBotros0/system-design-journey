@@ -17,6 +17,7 @@ export const coreModules: Module[] = [
     prereqs: ['f-scale'],
     minutes: 9,
     summary: 'Six phases, fixed order, minute budgets. The structure that stops you drifting.',
+    keywords: ['interview framework', '45 minutes', 'phases', 'how to structure the interview', 'delivery'],
     lesson: [
       {
         kind: 'prose',
@@ -164,6 +165,7 @@ export const coreModules: Module[] = [
     prereqs: ['c-framework'],
     minutes: 9,
     summary: 'Scoping to three, quantifying the rest, and the only arithmetic worth doing.',
+    keywords: ['functional requirements', 'non-functional requirements', 'back of the envelope', 'capacity estimation', 'QPS'],
     lesson: [
       {
         kind: 'prose',
@@ -334,6 +336,7 @@ export const coreModules: Module[] = [
     prereqs: ['c-requirements'],
     minutes: 8,
     summary: 'Access patterns first, secondary indexes, and how an external index stays in sync.',
+    keywords: ['data model', 'schema design', 'indexing', 'secondary index', 'partition key'],
     lesson: [
       {
         kind: 'prose',
@@ -479,6 +482,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
     prereqs: ['c-modelling'],
     minutes: 8,
     summary: 'Invalidation, hot keys, and the layers a request passes through.',
+    keywords: ['cache invalidation', 'write-through', 'write-back', 'thundering herd', 'cache stampede', 'hot keys'],
     lesson: [
       {
         kind: 'prose',
@@ -632,6 +636,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
     prereqs: ['c-caching'],
     minutes: 8,
     summary: 'The shard key is the design. Plus the ring, in one paragraph.',
+    keywords: ['partitioning', 'consistent hashing', 'hash ring', 'shard key', 'hot partition', 'rebalancing'],
     lesson: [
       {
         kind: 'prose',
@@ -766,6 +771,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
     prereqs: ['c-sharding'],
     minutes: 8,
     summary: 'The one they always probe. Pick availability, except when you must not.',
+    keywords: ['CAP theorem', 'PACELC', 'eventual consistency', 'strong consistency', 'availability vs consistency'],
     lesson: [
       {
         kind: 'prose',
@@ -927,6 +933,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
     prereqs: ['c-cap'],
     minutes: 8,
     summary: 'What a queue buys you, why retention makes a stream different, and where not to put one.',
+    keywords: ['message queue', 'Kafka', 'SQS', 'stream processing', 'pub/sub', 'backpressure'],
     lesson: [
       {
         kind: 'prose',
@@ -1084,6 +1091,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
     prereqs: ['c-queues'],
     minutes: 7,
     summary: 'Why LIKE is a table scan, what Elasticsearch actually does, and the lighter option.',
+    keywords: ['Elasticsearch', 'inverted index', 'full-text search', 'tokenization', 'ranking'],
     lesson: [
       {
         kind: 'prose',

@@ -18,6 +18,7 @@ export const appliedModules: Module[] = [
     prereqs: ['c-search'],
     minutes: 8,
     summary: 'Tell: "live", "as it happens". Pick the cheapest transport that works, then solve fan-out.',
+    keywords: ['WebSocket', 'server-sent events', 'SSE', 'long polling', 'push updates', 'live updates'],
     lesson: [
       {
         kind: 'prose',
@@ -151,6 +152,7 @@ export const appliedModules: Module[] = [
     prereqs: ['a-realtime'],
     minutes: 7,
     summary: 'Tell: "encode", "process", "generate". Acknowledge fast, work asynchronously, expose status.',
+    keywords: ['async jobs', 'background workers', 'job queue', 'video processing', 'status polling'],
     lesson: [
       {
         kind: 'prose',
@@ -287,6 +289,7 @@ export const appliedModules: Module[] = [
     prereqs: ['a-longrunning'],
     minutes: 9,
     summary: 'Tell: "book", "reserve", "bid", "limited". The highest-value deep dive in the catalogue.',
+    keywords: ['race condition', 'double booking', 'optimistic locking', 'distributed lock', 'reservation', 'concurrency'],
     lesson: [
       {
         kind: 'prose',
@@ -451,6 +454,7 @@ export const appliedModules: Module[] = [
     prereqs: ['a-contention'],
     minutes: 7,
     summary: 'Tell: a feed, a profile, 100:1. Cheap levers first, then own the costs you created.',
+    keywords: ['read replicas', 'denormalisation', 'read-heavy', 'CDN', 'caching reads'],
     lesson: [
       {
         kind: 'prose',
@@ -571,6 +575,7 @@ export const appliedModules: Module[] = [
     prereqs: ['a-reads'],
     minutes: 7,
     summary: 'Tell: events, clicks, metrics, millions per second. Batch, partition, and shed.',
+    keywords: ['write-heavy', 'batching writes', 'write throughput', 'sharding writes', 'buffering'],
     lesson: [
       {
         kind: 'prose',
@@ -687,6 +692,7 @@ export const appliedModules: Module[] = [
     prereqs: ['a-writes'],
     minutes: 6,
     summary: 'Tell: video, images, file sync. Bytes never touch your servers.',
+    keywords: ['file upload', 'presigned URL', 'multipart upload', 'large files', 'chunking', 'video storage'],
     lesson: [
       {
         kind: 'prose',
@@ -787,6 +793,7 @@ export const appliedModules: Module[] = [
     prereqs: ['a-blobs'],
     minutes: 7,
     summary: 'Tell: "order", "payment", "onboarding". Steps that must survive failure halfway through.',
+    keywords: ['saga', 'workflow', 'orchestration', 'Temporal', 'state machine', 'compensation'],
     lesson: [
       {
         kind: 'prose',
@@ -912,6 +919,7 @@ export const appliedModules: Module[] = [
     prereqs: ['a-multistep'],
     minutes: 6,
     summary: 'Tell: "near me", "within 5 km", a map. Often simpler than candidates make it.',
+    keywords: ['geospatial', 'geohash', 'quadtree', 'nearby search', 'location', 'PostGIS'],
     lesson: [
       {
         kind: 'prose',
