@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Flame } from 'lucide-react'
-import { modules, modulesOfTrack, populatedTracks } from '../content'
-import { liveStreak, moduleStatus, nextModule } from '../lib/progress'
+import { getModule, getRoute, modules, modulesOfTrack, populatedTracks } from '../content'
+import { liveStreak, moduleStatus, nextOnRoute } from '../lib/progress'
 import { useProgress } from '../state/ProgressProvider'
 import { LineMap } from '../components/line/LineMap'
 import { Badge, Meter } from '../components/ui/Bits'
@@ -10,7 +10,8 @@ export function MapScreen() {
   const { progress, ready } = useProgress()
 
   const streak = liveStreak(progress.streak)
-  const next = nextModule(progress, modules)
+  const stop = nextOnRoute(progress, getRoute(progress.routeId))
+  const next = stop && 'module' in stop ? getModule(stop.module) : undefined
   const done = modules.filter((m) => {
     const s = moduleStatus(progress, m)
     return s === 'passed' || s === 'mastered'

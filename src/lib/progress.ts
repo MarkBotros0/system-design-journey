@@ -1,23 +1,23 @@
 /**
- * Mastery, unlocking, and streaks — pure functions over a ProgressState.
+ * Mastery, routes, activity and streaks — pure functions over a ProgressState.
  *
- * Two bars, deliberately different:
+ * Two bars:
  *
- *   passed    lesson read + quiz ≥ 80%.  Unlocks whatever depends on this module.
+ *   passed    lesson read + quiz ≥ 80%. Counts toward a route and toward readiness.
  *   mastered  passed + every card in the module learned (3 spaced reps).
  *
- * Unlocking uses the lighter bar on purpose. Cards need real days to mature, and gating
- * the next station behind a week of drilling would stall the journey for no benefit —
- * you should be able to move forward while yesterday's cards are still settling.
+ * Nothing is locked. Prerequisites are "builds on" hints, and a route only decides what
+ * "next" means — someone who searched for a topic can always open it.
  */
 
-import type { Module, Track } from '../content/types'
+import type { Module, Route, RouteStop, Track } from '../content/types'
+import { getModule } from '../content'
 import { isLearned } from './srs'
-import type { ProgressState } from './storage'
+import { stopKey, type ProgressState } from './storage'
 
 export const QUIZ_PASS = 0.8
 
-export type ModuleStatus = 'locked' | 'available' | 'started' | 'passed' | 'mastered'
+export type ModuleStatus = 'available' | 'started' | 'passed' | 'mastered'
 
 export function hasReadLesson(p: ProgressState, moduleId: string): boolean {
   return !!p.lessonsRead[moduleId]
@@ -36,12 +36,15 @@ export function isMastered(p: ProgressState, m: Module): boolean {
   return m.cards.every((c) => isLearned(p.cards[c.id]))
 }
 
-export function isUnlocked(p: ProgressState, m: Module): boolean {
-  return m.prereqs.every((id) => isPassed(p, id))
+/** Prerequisites not yet passed — shown as a hint, never enforced. */
+export function missingPrereqs(p: ProgressState, m: Module): Module[] {
+  return m.prereqs
+    .filter((id) => !isPassed(p, id))
+    .map((id) => getModule(id))
+    .filter((x): x is Module => !!x)
 }
 
 export function moduleStatus(p: ProgressState, m: Module): ModuleStatus {
-  if (!isUnlocked(p, m)) return 'locked'
   if (isMastered(p, m)) return 'mastered'
   if (isPassed(p, m.id)) return 'passed'
   if (hasReadLesson(p, m.id) || p.quiz[m.id]) return 'started'
@@ -62,13 +65,75 @@ export function trackProgress(p: ProgressState, track: Track, modules: Module[])
   return total / inTrack.length
 }
 
-/** The next thing to actually do. Drives the map's "continue" affordance. */
-export function nextModule(p: ProgressState, modules: Module[]): Module | undefined {
-  const started = modules.find(
-    (m) => moduleStatus(p, m) === 'started' || (isUnlocked(p, m) && hasReadLesson(p, m.id) && !quizPassed(p, m.id)),
-  )
+/* ------------------------------------------------------------------ */
+/* Routes                                                              */
+/* ------------------------------------------------------------------ */
+
+export function problemDone(p: ProgressState, problemId: string): boolean {
+  return p.attempts.some((a) => a.problemId === problemId && !!a.finishedAt)
+}
+
+export function stopDone(p: ProgressState, stop: RouteStop): boolean {
+  return 'module' in stop ? isPassed(p, stop.module) : problemDone(p, stop.problem)
+}
+
+export function routeProgress(p: ProgressState, route: Route): { done: number; total: number } {
+  return { done: route.stops.filter((s) => stopDone(p, s)).length, total: route.stops.length }
+}
+
+/**
+ * The next thing to actually do on a route:
+ *   1. a lesson you started and have not passed — finish what you began;
+ *   2. otherwise the first unfinished stop at or after your start pointer;
+ *   3. otherwise the first unfinished stop anywhere — the ones you skipped.
+ */
+export function nextOnRoute(p: ProgressState, route: Route): RouteStop | undefined {
+  const started = route.stops.find((s) => 'module' in s && !isPassed(p, s.module) && isStarted(p, s.module))
   if (started) return started
-  return modules.find((m) => moduleStatus(p, m) === 'available')
+
+  const from = Math.max(0, route.stops.findIndex((s) => stopKey(s) === p.startStop))
+  return route.stops.slice(from).find((s) => !stopDone(p, s)) ?? route.stops.find((s) => !stopDone(p, s))
+}
+
+function isStarted(p: ProgressState, moduleId: string): boolean {
+  return hasReadLesson(p, moduleId) || !!p.quiz[moduleId]
+}
+
+/** The stop after `stop` on a route, if it is on it. */
+export function stopAfter(route: Route, stop: RouteStop): RouteStop | undefined {
+  const i = route.stops.findIndex((s) => stopKey(s) === stopKey(stop))
+  return i === -1 ? undefined : route.stops[i + 1]
+}
+
+export function stopBefore(route: Route, stop: RouteStop): RouteStop | undefined {
+  const i = route.stops.findIndex((s) => stopKey(s) === stopKey(stop))
+  return i <= 0 ? undefined : route.stops[i - 1]
+}
+
+/* ------------------------------------------------------------------ */
+/* Activity                                                            */
+/* ------------------------------------------------------------------ */
+
+const KEEP_DAYS = 120
+
+/** One more study action today; days older than KEEP_DAYS are dropped. */
+export function bumpActivity(activity: Record<string, number>, now = Date.now()): Record<string, number> {
+  const today = dayKey(now)
+  const next: Record<string, number> = {}
+  for (const [day, n] of Object.entries(activity)) {
+    if (daysBetween(day, today) <= KEEP_DAYS) next[day] = n
+  }
+  next[today] = (next[today] ?? 0) + 1
+  return next
+}
+
+/** The last seven local days, oldest first. */
+export function weekActivity(activity: Record<string, number>, now = Date.now()): { day: string; count: number }[] {
+  const d = new Date(now)
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = dayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - (6 - i), 12).getTime())
+    return { day, count: activity[day] ?? 0 }
+  })
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,4 +1,4 @@
-import type { CardItem, Module, Problem, Track } from './types'
+import type { CardItem, Module, Problem, Route, RouteStop, Track } from './types'
 import { tracks as trackDefs } from './tracks'
 import { foundationsModules } from './modules/foundations'
 import { principlesModules } from './modules/principles'
@@ -16,6 +16,7 @@ import { interviewModules } from './modules/interview'
 import { behavioralModules } from './modules/behavioral'
 import { problems as problemList } from './problems'
 import { validateContent, validateProblemShape } from './validate'
+import { buildRoutes } from './routes'
 import { glossary } from './glossary'
 import { patterns } from './patterns'
 
@@ -65,6 +66,37 @@ export function getProblem(id: string | undefined): Problem | undefined {
 const trackById = new Map(tracks.map((t) => [t.id, t]))
 export function getTrack(id: string | undefined): Track | undefined {
   return id ? trackById.get(id) : undefined
+}
+
+/** Every route, built against the content that exists. See routes.ts. */
+export const routes: Route[] = buildRoutes({
+  modules,
+  problems,
+  trackOrder: trackDefs.map((t) => t.id),
+})
+
+const routeById = new Map(routes.map((r) => [r.id, r]))
+/** Unknown ids fall back to the full journey — a stale stored route id must never strand anyone. */
+export function getRoute(id: string | undefined): Route {
+  return (id && routeById.get(id)) || routes[0]
+}
+
+/** A stop's referent must exist, and no stop may repeat on a route. */
+export function routeIssues(route: Route): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const s of route.stops) {
+    const key = 'module' in s ? `m:${s.module}` : `p:${s.problem}`
+    if (seen.has(key)) out.push(`route ${route.id}: ${key} appears twice`)
+    seen.add(key)
+    const ok = 'module' in s ? byId.has(s.module) : problemById.has(s.problem)
+    if (!ok) out.push(`route ${route.id}: ${key} does not exist`)
+  }
+  return out
+}
+
+export function stopTitle(stop: RouteStop): string {
+  return 'module' in stop ? (byId.get(stop.module)?.title ?? stop.module) : (problemById.get(stop.problem)?.title ?? stop.problem)
 }
 
 export function modulesOfTrack(trackId: string): Module[] {
@@ -201,6 +233,8 @@ export function checkCurriculum(): string[] {
     if (seenTerms.has(g.id)) out.push(`duplicate glossary id: ${g.id}`)
     seenTerms.add(g.id)
   }
+
+  for (const r of routes) out.push(...routeIssues(r))
 
   // Figures on every unit, no unexplained abbreviations, well-formed figures.
   for (const issue of validateContent(modules, problems)) out.push(`${issue.where}: ${issue.message}`)

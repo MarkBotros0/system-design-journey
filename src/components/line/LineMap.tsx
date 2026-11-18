@@ -77,7 +77,7 @@ function Station({
   railDone: boolean
 }) {
   const status = moduleStatus(progress, module)
-  const locked = status === 'locked'
+  const locked = false
   const label = statusLabel(status, module, progress)
   const pct = moduleProgress(progress, module)
 
