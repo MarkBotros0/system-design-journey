@@ -9,7 +9,7 @@ export const jobScheduler: Problem = {
   brief:
     'Teams across the company need to run jobs on a schedule — every night at 2am, every five minutes, or once, three days from now. Design the service that runs them.',
   patterns: ['longrunning', 'contention'],
-  suggests: ['c-queues', 'a-longrunning', 'a-contention'],
+  suggests: ['c-queues', 'a-longrunning', 'a-contention', 'd-delivery'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Separated the job definition from its runs, with one run record per firing' },
     { id: 'r2', bar: 'must', criterion: "Kept schedules in a durable store, not in a scheduler's memory" },

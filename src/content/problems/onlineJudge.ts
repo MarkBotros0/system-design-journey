@@ -9,7 +9,7 @@ export const onlineJudge: Problem = {
   brief:
     'Users solve coding problems in the browser, submit code in a choice of languages, and get a verdict. Every week there is a contest where tens of thousands of people compete at once on a live leaderboard.',
   patterns: ['longrunning', 'realtime'],
-  suggests: ['a-longrunning', 'c-queues', 'a-realtime'],
+  suggests: ['a-longrunning', 'c-queues', 'a-realtime', 'o-security'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Made submission asynchronous: store, enqueue, return, then poll or push the verdict' },
     { id: 'r2', bar: 'must', criterion: 'Ran every submission in an isolated sandbox with no network access' },

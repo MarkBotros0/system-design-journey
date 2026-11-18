@@ -9,7 +9,7 @@ export const kvStore: Problem = {
   brief:
     'Build a key-value store: clients call get and put. The data is far too big for one machine, machines fail every day, and the teams using it want it to stay writable through all of that.',
   patterns: ['scaling-writes', 'scaling-reads'],
-  suggests: ['c-sharding', 'c-cap', 'a-writes'],
+  suggests: ['c-sharding', 'c-cap', 'a-writes', 'db-engines', 'd-consistency'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Kept the interface to single-key get, put and delete, and named range scans and transactions as out of scope' },
     { id: 'r2', bar: 'must', criterion: 'Partitioned with consistent hashing rather than hash mod N, and said why' },

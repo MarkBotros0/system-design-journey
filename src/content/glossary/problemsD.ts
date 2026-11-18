@@ -18,38 +18,6 @@ export const terms: GlossaryEntry[] = [
     seeAlso: ['CRDT'],
   },
   {
-    id: 'LSM',
-    full: 'Log-Structured Merge tree',
-    gist: 'A storage engine that turns every write into a sequential append: writes go to a sorted in-memory table, which is flushed to immutable sorted files that are merged in the background. Very fast writes; reads may check several files, and the merging costs disk bandwidth.',
-    figure: {
-      kind: 'stack',
-      layers: [
-        { label: 'Memtable', sub: 'in memory · newest', tone: 'line' },
-        { label: 'Level 0 files', sub: 'fresh flushes' },
-        { label: 'Levels 1 to n', sub: 'merged · oldest' },
-      ],
-      note: 'A read goes top down and stops at the first match. A Bloom filter per file lets it skip files that cannot hold the key.',
-    },
-    caption: 'Newest data on top, older merged data below. Nothing is ever updated in place.',
-    seeAlso: ['WAL', 'SSD'],
-  },
-  {
-    id: 'WAL',
-    full: 'Write-Ahead Log',
-    gist: 'An append-only file that every change is written to before it is applied anywhere else. After a crash the engine replays it, so an acknowledged write survives — and appending is the cheapest thing a disk can do.',
-    figure: {
-      kind: 'flow',
-      nodes: [
-        { label: 'Write arrives', to: 'append, fsync' },
-        { label: 'Log on disk', sub: 'sequential, durable', tone: 'line', to: 'then' },
-        { label: 'Apply in memory', sub: 'lost in a crash', tone: 'streak', to: 'on restart' },
-        { label: 'Replay the log', sub: 'nothing acknowledged is lost', tone: 'mastered' },
-      ],
-    },
-    caption: 'Durable first, applied second. A crash in between is undone by replaying the log.',
-    seeAlso: ['LSM', 'ACID'],
-  },
-  {
     id: 'UTC',
     full: 'Coordinated Universal Time',
     gist: "The world's reference clock: no time zones and no daylight saving, so it never skips or repeats an hour. Store and compare times in it, and convert to local time only to show a person or to interpret a schedule written in local terms.",

@@ -9,7 +9,7 @@ export const metrics: Problem = {
   brief:
     'Every service in the company emits metrics — request counts, latencies, queue depths. Engineers want dashboards over them, and to be paged when something breaks. Design the system, like Datadog or Prometheus.',
   patterns: ['scaling-writes', 'scaling-reads'],
-  suggests: ['a-writes', 'c-queues', 'f-storage'],
+  suggests: ['a-writes', 'c-queues', 'f-storage', 'o-observability'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Modelled a series as a metric name plus tags, holding points of timestamp and value' },
     { id: 'r2', bar: 'must', criterion: 'Buffered ingestion with batching agents and a durable log such as Kafka' },
