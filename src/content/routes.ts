@@ -52,7 +52,7 @@ function problemsOfKind(ctx: Ctx, kind: ProblemKind): RouteStop[] {
     .map(({ x }) => p(x.id))
 }
 
-const SPECS: RouteSpec[] = [
+export const ROUTE_SPECS: RouteSpec[] = [
   {
     id: 'full',
     title: 'Full journey',
@@ -130,7 +130,7 @@ export function buildRoutes(ctx: Ctx): Route[] {
   const moduleIds = new Set(ctx.modules.map((x) => x.id))
   const problemIds = new Set(ctx.problems.map((x) => x.id))
   const exists = (s: RouteStop) => ('module' in s ? moduleIds.has(s.module) : problemIds.has(s.problem))
-  return SPECS.map(({ id, title, blurb, build }) => ({ id, title, blurb, stops: build(ctx).filter(exists) }))
+  return ROUTE_SPECS.map(({ id, title, blurb, build }) => ({ id, title, blurb, stops: build(ctx).filter(exists) }))
 }
 
 /**

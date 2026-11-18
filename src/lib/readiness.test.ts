@@ -45,8 +45,8 @@ describe('readiness', () => {
     expect(r.map((x) => x.id)).toEqual(['system-design', 'lld', 'behavioral'])
     for (const round of r) {
       expect(round.score).toBe(0)
-      // TIGHTEN (Task 21): every round has lessons once the content wave has landed.
-      if (round.lessonsTotal > 0) expect(round.next).toBeDefined()
+      expect(round.lessonsTotal, round.id).toBeGreaterThan(0)
+      expect(round.next, round.id).toBeDefined()
     }
     expect(r.find((x) => x.id === 'system-design')!.lessonsTotal).toBeGreaterThan(0)
     expect(r.find((x) => x.id === 'behavioral')!.lessonsTotal).toBeGreaterThan(0)
