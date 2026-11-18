@@ -19,6 +19,7 @@ export function Abbr({ id, display }: { id: string; display?: string }) {
   return (
     <button
       type="button"
+      data-abbr={id}
       onClick={() => open(id)}
       title={entry.full}
       className="cursor-pointer border-b border-dotted border-line/70 font-medium text-ink underline-offset-2 transition-colors hover:border-line hover:text-line"

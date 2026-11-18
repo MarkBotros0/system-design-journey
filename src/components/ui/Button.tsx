@@ -44,6 +44,25 @@ export function Button({
   )
 }
 
+/** An icon-only control. Always labelled; always at least 44×44. */
+export function IconButton({
+  label,
+  children,
+  className = '',
+  ...rest
+}: { label: string; children: ReactNode; className?: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink active:bg-surface-2 ${className}`}
+      {...rest}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function ButtonLink({
   to,
   variant = 'primary',

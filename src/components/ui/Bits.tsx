@@ -117,3 +117,8 @@ export function Empty({
     </div>
   )
 }
+
+/** A placeholder block while IndexedDB answers — never show zeros that are not real. */
+export function Skeleton({ className = '' }: { className?: string }) {
+  return <div aria-hidden="true" className={`animate-pulse rounded-2xl bg-surface-2 ${className}`} />
+}

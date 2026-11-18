@@ -16,11 +16,14 @@ import {
   saveProgress,
   saveTheme,
   clearProgress,
+  stopKey,
+  MAX_RECENT_SEARCHES,
   type ProblemAttempt,
   type ProgressState,
   type Theme,
 } from '../lib/storage'
-import { touchStreak } from '../lib/progress'
+import { bumpActivity, touchStreak } from '../lib/progress'
+import { getModule, getRoute } from '../content'
 import { newCard, review, type Grade } from '../lib/srs'
 
 interface ProgressContextValue {
@@ -33,6 +36,17 @@ interface ProgressContextValue {
   saveAttempt: (attempt: ProblemAttempt) => void
   replaceAll: (next: ProgressState) => void
   resetAll: () => Promise<void>
+  toggleBookmark: (moduleId: string) => void
+  /** Where you are reading. Not a study action — it moves no streak. Callers throttle it. */
+  setPlace: (moduleId: string, sectionId?: string) => void
+  /**
+   * Pick a route. `skipBasics` moves the start pointer past Foundations (true) or back to
+   * the beginning (false); omitted, the pointer is kept when the route is unchanged.
+   */
+  chooseRoute: (routeId: string, opts?: { skipBasics?: boolean }) => void
+  dismissOnboarding: () => void
+  pushRecentSearch: (q: string) => void
+  clearRecentSearches: () => void
   theme: Theme
   setTheme: (t: Theme) => void
 }
@@ -83,7 +97,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const study = useCallback((fn: (p: ProgressState) => ProgressState) => {
     setProgress((prev) => {
       const next = fn(prev)
-      return { ...next, streak: touchStreak(next.streak) }
+      if (next === prev) return prev
+      return { ...next, streak: touchStreak(next.streak), activity: bumpActivity(next.activity) }
     })
   }, [])
 
@@ -138,6 +153,55 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [study],
   )
 
+  const toggleBookmark = useCallback((moduleId: string) => {
+    setProgress((p) => ({
+      ...p,
+      bookmarks: p.bookmarks.includes(moduleId)
+        ? p.bookmarks.filter((id) => id !== moduleId)
+        : [moduleId, ...p.bookmarks],
+    }))
+  }, [])
+
+  const setPlace = useCallback((moduleId: string, sectionId?: string) => {
+    setProgress((p) =>
+      p.lastPlace?.moduleId === moduleId && p.lastPlace.sectionId === sectionId
+        ? p
+        : { ...p, lastPlace: { moduleId, sectionId, at: Date.now() } },
+    )
+  }, [])
+
+  const chooseRoute = useCallback((routeId: string, opts?: { skipBasics?: boolean }) => {
+    setProgress((p) => {
+      const route = getRoute(routeId)
+      let startStop = p.routeId === route.id ? p.startStop : null
+      if (opts?.skipBasics !== undefined) {
+        const first = opts.skipBasics
+          ? route.stops.find((s) => !('module' in s) || getModule(s.module)?.trackId !== 'foundations')
+          : undefined
+        startStop = first ? stopKey(first) : null
+      }
+      return { ...p, routeId: route.id, startStop, onboarded: true }
+    })
+  }, [])
+
+  const dismissOnboarding = useCallback(() => {
+    setProgress((p) => (p.onboarded ? p : { ...p, onboarded: true }))
+  }, [])
+
+  const pushRecentSearch = useCallback((q: string) => {
+    const query = q.trim()
+    if (query.length < 2) return
+    setProgress((p) => {
+      if (p.recentSearches[0]?.toLowerCase() === query.toLowerCase()) return p
+      const rest = p.recentSearches.filter((s) => s.toLowerCase() !== query.toLowerCase())
+      return { ...p, recentSearches: [query, ...rest].slice(0, MAX_RECENT_SEARCHES) }
+    })
+  }, [])
+
+  const clearRecentSearches = useCallback(() => {
+    setProgress((p) => ({ ...p, recentSearches: [] }))
+  }, [])
+
   const replaceAll = useCallback((next: ProgressState) => {
     hydrated.current = true
     setProgress(next)
@@ -159,10 +223,22 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       saveAttempt,
       replaceAll,
       resetAll,
+      toggleBookmark,
+      setPlace,
+      chooseRoute,
+      dismissOnboarding,
+      pushRecentSearch,
+      clearRecentSearches,
       theme,
       setTheme,
     }),
     [
+      toggleBookmark,
+      setPlace,
+      chooseRoute,
+      dismissOnboarding,
+      pushRecentSearch,
+      clearRecentSearches,
       progress,
       ready,
       markLessonRead,

@@ -30,6 +30,13 @@
   --alert: #b0342f;
   --alert-soft: #f7dedc;
 
+  /* Code — muted, distinct hues so syntax reads without borrowing an earned state. */
+  --code-kw: #6b2fb3;
+  --code-str: #0b6e66;
+  --code-com: #5c6670;
+  --code-type: #1d5f99;
+  --code-num: #9a4a14;
+
   --shadow-sheet: 0 -8px 32px rgb(22 25 31 / 0.12);
   --shadow-card: 0 1px 2px rgb(22 25 31 / 0.06);
 }
@@ -57,6 +64,12 @@
   --alert: #f08c86;
   --alert-soft: #3a1a18;
 
+  --code-kw: #c39bff;
+  --code-str: #6fd3c5;
+  --code-com: #8a96a3;
+  --code-type: #7fb8ff;
+  --code-num: #f0a46a;
+
   --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.5);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
 }
@@ -81,6 +94,12 @@
   --color-mastered-soft: var(--mastered-soft);
   --color-alert: var(--alert);
   --color-alert-soft: var(--alert-soft);
+
+  --color-code-kw: var(--code-kw);
+  --color-code-str: var(--code-str);
+  --color-code-com: var(--code-com);
+  --color-code-type: var(--code-type);
+  --color-code-num: var(--code-num);
 
   --font-display: 'Familjen Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
