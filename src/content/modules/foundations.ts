@@ -200,7 +200,7 @@ export const foundationsModules: Module[] = [
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Reaching for WebSocket the moment you hear "real time". Most live features only need the server to push, which is exactly what SSE does over ordinary HTTP — no connection upgrade, no sticky-session problem, and nothing pushing you down to [[L4]] balancing.',
+        text: 'Reaching for WebSocket the moment you hear "real time". Most live features only need the server to push, which is exactly what SSE does over ordinary HTTP — no connection upgrade, no sticky-session problem, and it passes through any HTTP load balancer or proxy unchanged.',
       },
       { kind: 'heading', text: 'Load balancers, and what a "layer" is' },
       {
@@ -271,7 +271,7 @@ export const foundationsModules: Module[] = [
             'Pays for it in parsing and buffering on every single request',
           ],
         },
-        verdict: '[[L7]] by default — you almost always want path routing and connection reuse. Drop to [[L4]] for [[WebSocket|WebSockets]], where neither of those is available to you anyway.',
+        verdict: '[[L7]] by default — you almost always want path routing and connection reuse. [[L4]] is a common choice for [[WebSocket|WebSockets]]: once a connection is upgraded, path routing and connection reuse have nothing left to do.',
       },
       { kind: 'heading', text: 'Why WebSockets push you down to Layer 4' },
       {
@@ -402,7 +402,7 @@ export const foundationsModules: Module[] = [
         ],
         correct: 1,
         explain:
-          '[[SSE]] is exactly this shape: the client opens one HTTP request, the server pushes. WebSocket buys bidirectionality you are not using, at the cost of [[L4]] balancing and connection management. gRPC is not natively available in browsers.',
+          '[[SSE]] is exactly this shape: the client opens one HTTP request, the server pushes. WebSocket buys bidirectionality you are not using, at the cost of a connection upgrade and connection management. gRPC is not natively available in browsers.',
       },
       {
         id: 'q-f-network-2',
@@ -438,7 +438,7 @@ export const foundationsModules: Module[] = [
         id: 'c-f-network-1',
         moduleId: 'f-network',
         front: '[[SSE]] versus [[WebSocket]] — when does each win?',
-        back: 'SSE: server pushes, client only listens. Plain [[HTTP]], simpler, covers most "live" features. WebSocket: both sides send freely — chat, collaborative editing. Costs you connection state and pushes you toward [[L4]] balancing.',
+        back: 'SSE: server pushes, client only listens. Plain [[HTTP]], simpler, covers most "live" features. WebSocket: both sides send freely — chat, collaborative editing. Costs you connection state and long-lived connections to balance.',
         tag: 'Networking',
       },
       {
@@ -561,7 +561,7 @@ GET  /v1/feed?cursor=&limit=      -> { items: Tweet[], nextCursor }`,
         kind: 'list',
         items: [
           'Plural resource names — `/tweets`, not `/tweet`.',
-          '[[JWT]] for user sessions; API keys for service-to-service.',
+          'A session cookie for your own web app\'s users (a [[JWT]] when there is no shared session store); API keys for service-to-service.',
           'Rate limiting anywhere abuse is plausible.',
           'Real-time push is layered on **after** the core API, not instead of it — design `GET /feed` first, then say where the [[WebSocket]] attaches.',
         ],

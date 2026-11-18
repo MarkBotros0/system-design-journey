@@ -301,10 +301,10 @@ export const questions: Question[] = [
     kind: 'truefalse',
     moduleId: 'c-cap',
     section: 'When you must pick consistency',
-    prompt: 'Strong consistency is the safer default for a new system, relaxed only where latency forces you to.',
+    prompt: 'A social feed should be strongly consistent, relaxed only where latency forces you to.',
     answer: false,
     explain:
-      'The default is availability with eventual consistency: users tolerate slight staleness far better than refusals. Strong consistency is for money, inventory and booking limited resources.',
+      'A feed tolerates seconds of staleness, so its default is availability with eventual consistency. Strong consistency is for paths where a stale read does damage: money, inventory, booking a limited resource.',
   },
   {
     id: 'c-cap-tf2',

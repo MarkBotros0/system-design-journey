@@ -256,10 +256,10 @@ export const questions: Question[] = [
     kind: 'truefalse',
     moduleId: 'db-engines',
     section: 'B-trees: pages, updated in place',
-    prompt: 'A B-tree point lookup in a table of billions of rows usually costs about one disk read.',
+    prompt: 'Walking a B-tree index to one key in a table of billions of rows usually costs about one disk read.',
     answer: true,
     explain:
-      'With a few hundred keys per page, four levels cover billions of rows, and the upper levels are small enough to stay cached. Usually only the leaf page comes from disk.',
+      'With a few hundred keys per page, four levels cover billions of rows, and the upper levels stay cached, so usually only the leaf page comes from disk. Fetching the row itself can cost one more, unless the index covers the query.',
   },
   {
     id: 'db-engines-multi',

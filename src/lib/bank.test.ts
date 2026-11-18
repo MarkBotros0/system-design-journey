@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { Question } from '../content/types'
 import { getTrack } from '../content'
-import { advanceSet, buildSet, bankStats, isCorrect, isFinished, recordDay, scheduleAnswer, seededOrder, todayCount, isWeak, setLabel, setRequest } from './bank'
+import { bank } from '../content/bank'
+import { advanceSet, buildSet, bankStats, isCorrect, isFinished, recordDay, scheduleAnswer, seededOrder, todayCount, isWeak, partnerOrder, setLabel, setRequest } from './bank'
 import { emptyProgress, type ProgressState } from './storage'
 import { dayKey } from './progress'
 
@@ -201,5 +202,34 @@ describe('setRequest', () => {
     const r = setRequest(new URLSearchParams('scope=weak&tracks=databases,nope&kinds=match,essay&size=7'), emptyProgress())
     expect(r).toMatchObject({ daily: false, scope: 'weak', trackIds: ['databases'], kinds: ['match'], size: 10 })
     expect(setLabel(r)).toBe(`Questions · ${getTrack('databases')!.title} · weak spots`)
+  })
+})
+
+describe('partnerOrder', () => {
+  it('never lines every partner up straight across from its item', () => {
+    for (const q of bank) {
+      if (q.kind !== 'match') continue
+      const order = partnerOrder(q.id, q.pairs.length)
+      expect([...order].sort(), q.id).toEqual(order.map((_, i) => i))
+      expect(order.every((j, i) => j === i), q.id).toBe(false)
+    }
+  })
+})
+
+describe('buildSet per-lesson cap', () => {
+  it('a set never front-loads one lesson, even the only one read', () => {
+    const many: Question[] = [
+      ...Array.from({ length: 7 }, (_, i) => tf(`cap-${i}`, 'c-cap')),
+      ...['db-acid', 'f-cache', 'p-oop', 'd-time', 'c-queues', 'db-er', 'f-db', 'p-dip', 'd-consensus', 'c-search'].map((m, i) => tf(`oth-${i}`, m)),
+    ]
+    const p = withState({ lessonsRead: { 'c-cap': 1 } })
+    const ids = buildSet(p, { size: 10, scope: 'all', now: NOW, rand, pool: many })
+    expect(ids).toHaveLength(10)
+    expect(ids.filter((id) => id.startsWith('cap-')).length).toBeLessThanOrEqual(3)
+    expect(ids[0].startsWith('cap-')).toBe(true)
+  })
+  it('still fills the set from one lesson when nothing else matches', () => {
+    const only = Array.from({ length: 7 }, (_, i) => tf(`cap-${i}`, 'c-cap'))
+    expect(buildSet(emptyProgress(), { size: 5, scope: 'all', now: NOW, rand, pool: only })).toHaveLength(5)
   })
 })

@@ -45,7 +45,7 @@ export const whatsapp: Problem = {
     { kind: 'heading', text: '[[API]]' },
     {
       kind: 'prose',
-      text: 'Both sides send constantly, so this is one of the genuine [[WebSocket]] cases rather than an [[SSE]] one. That decision brings its costs with it: [[L4]] load balancing, connection state, and reconnection logic you write yourself.',
+      text: 'Both sides send constantly, so this is one of the genuine [[WebSocket]] cases rather than an [[SSE]] one. That decision brings its costs with it: long-lived connections the load balancer must hold (an [[L4]] balancer is the usual choice), connection state, and reconnection logic you write yourself.',
     },
     {
       kind: 'code',

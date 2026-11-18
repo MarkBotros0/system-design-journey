@@ -6,20 +6,38 @@ import { headingSlugs } from '../../lib/slug'
 import { plainText } from '../../lib/text'
 import { authoredQuestions } from './authored'
 import { generatedQuestions } from './generated'
+import { unwrappedTerms } from '../validate'
 
-/** Each lesson's quiz items, offered in the bank as single-choice questions. */
+/** Wraps the first plain mention of `term` (outside code and existing [[…]]), or returns null. */
+export function wrapFirst(text: string, term: string): string | null {
+  const parts = text.split(/(`[^`]*`|\[\[[^\]]+\]\])/)
+  const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(s?)\\b`)
+  for (let i = 0; i < parts.length; i += 2) {
+    const m = re.exec(parts[i])
+    if (!m) continue
+    const wrapped = m[1] ? `[[${term}|${term}${m[1]}]]` : `[[${term}]]`
+    parts[i] = parts[i].slice(0, m.index) + wrapped + parts[i].slice(m.index + m[0].length)
+    return parts.join('')
+  }
+  return null
+}
+
+/**
+ * Each lesson's quiz items, offered in the bank as single-choice questions. In the lesson,
+ * an abbreviation is explained once per lesson; here each question is read alone, so any
+ * term it shows is wrapped at its first mention in the prompt or explanation.
+ */
 const fromQuizzes: Question[] = modules.flatMap((m) =>
-  m.quiz.map(
-    (item): Question => ({
-      id: `quiz:${item.id}`,
-      kind: 'single',
-      moduleId: m.id,
-      prompt: item.stem,
-      options: item.options,
-      correct: item.correct,
-      explain: item.explain,
-    }),
-  ),
+  m.quiz.map((item): Question => {
+    let prompt = item.stem
+    let explain = item.explain
+    for (const term of unwrappedTerms([prompt, explain], item.options)) {
+      const p = wrapFirst(prompt, term)
+      if (p) prompt = p
+      else explain = wrapFirst(explain, term) ?? explain
+    }
+    return { id: `quiz:${item.id}`, kind: 'single', moduleId: m.id, prompt, options: item.options, correct: item.correct, explain }
+  }),
 )
 
 export const bank: Question[] = [...authoredQuestions, ...fromQuizzes, ...generatedQuestions(glossary, patterns)]

@@ -436,15 +436,15 @@ export const questions: Question[] = [
     kind: 'match',
     moduleId: 'dp-command-template-chain',
     section: 'Middleware: chain or decorator?',
-    prompt: 'Match each real system to the pattern it is built on.',
+    prompt: 'Match each to the pattern it is built on.',
     pairs: [
       { left: 'A Sidekiq job stored in Redis as JSON', right: 'Command' },
       { left: 'JUnit 3 running `setUp` and `tearDown` around tests', right: 'Template method' },
-      { left: 'A servlet filter calling `chain.doFilter()`', right: 'Chain of responsibility' },
-      { left: 'Koa middleware timing `await next()`', right: 'Decorator' },
+      { left: 'An auth filter that may reject the request or pass it on', right: 'Chain of responsibility' },
+      { left: 'Middleware that always forwards, timing both sides', right: 'Decorator' },
     ],
     explain:
-      "A serialised job is a request held as a value, and JUnit's `runBare` owns the flow and calls your hooks. A filter may stop the request or pass it on; timing middleware always forwards and works on both sides of the call, so it is a decorator.",
+      "A serialised job is a request held as a value, and JUnit's `runBare` owns the flow and calls your hooks. Middleware is told apart by behaviour: a handler that may stop the request is a chain link; one that always forwards and works on both sides of the call is a decorator.",
   },
 
   /* dp-anti ----------------------------------------------------------- */

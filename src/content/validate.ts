@@ -264,6 +264,17 @@ function findAbbreviations(plain: string): Set<string> {
   return normalised
 }
 
+/**
+ * Glossary abbreviations a unit shows but never wraps where wrapping renders. `renderable`
+ * goes through Inline (a [[X]] there is a tappable term); `buttons` render as plain text, so
+ * a [[X]] in them does not count — a term mentioned only there has no explanation in reach.
+ */
+export function unwrappedTerms(renderable: string[], buttons: string[]): string[] {
+  const { wrapped } = scan(renderable)
+  const { plain } = scan([...renderable, ...buttons])
+  return [...findAbbreviations(plain)].filter((a) => !ALLOWED.has(a) && !wrapped.has(a) && glossaryIds.includes(a))
+}
+
 function checkUnit(
   where: string,
   texts: string[],

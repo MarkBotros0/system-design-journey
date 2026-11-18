@@ -160,13 +160,13 @@ export const questions: Question[] = [
     section: 'The rest of the checklist',
     prompt: 'Match each case to what you would specify for it in the [[API]].',
     pairs: [
-      { left: "A user's session after login", right: 'JWT' },
+      { left: 'A signed-in user of your own web app', right: 'Session cookie' },
       { left: 'One internal service calling another', right: 'API key' },
       { left: 'A feed with new posts arriving constantly', right: 'Cursor pagination' },
       { left: 'A static list that users jump around by page', right: 'Offset pagination' },
     ],
     explain:
-      'A [[JWT]] carries a user session; API keys suit services. Cursors stay stable while rows are inserted, and offsets suit lists nobody is writing to, where jumping straight to page 47 is useful.',
+      'A session cookie is the simple default for your own web app; API keys suit services. Cursors stay stable while rows are inserted, and offsets suit lists nobody is writing to, where jumping straight to page 47 is useful.',
   },
 
   /* ---------------------------------------------------------------- */

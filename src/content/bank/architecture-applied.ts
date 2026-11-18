@@ -294,12 +294,12 @@ export const questions: Question[] = [
     prompt: 'Which workloads justify pinning each room to one server with a consistent-hash ring, rather than plain pub/sub?',
     options: [
       'Broadcasting a score update to every viewer',
-      'Tracking who is present in each room',
+      'Showing typing indicators in a chat room',
       'Pushing new comments to a live feed',
       'Applying operational transforms to a shared document',
       'Holding live game state for each match',
     ],
-    correct: [1, 3, 4],
+    correct: [3, 4],
     explain: 'The ring is worth its rebalancing pain only when one server must hold real per-room state. Plain broadcasts are the job of pub/sub, where servers stay stateless and interchangeable.',
   },
   {

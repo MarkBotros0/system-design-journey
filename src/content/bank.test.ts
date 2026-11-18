@@ -3,7 +3,7 @@ import { modules } from './index'
 import { bank, getQuestion, questionTopic } from './bank'
 import { generatedQuestions } from './bank/generated'
 import { glossary } from './glossary'
-import { validateQuestions } from './validate'
+import { unwrappedTerms, validateQuestions } from './validate'
 import type { Question } from './types'
 import { headingSlugs } from '../lib/slug'
 
@@ -85,5 +85,14 @@ describe('validateQuestions', () => {
 
   it('rejects a true/false phrased as a question', () => {
     expect(issues({ ...base, id: 'f', kind: 'truefalse', answer: true, prompt: 'Is this right?' }).length).toBeGreaterThan(0)
+  })
+})
+
+describe('quiz-derived questions', () => {
+  it('wrap each abbreviation they show in the prompt or explanation, where it can be tapped', () => {
+    const misses = bank
+      .filter((q) => q.id.startsWith('quiz:'))
+      .flatMap((q) => unwrappedTerms([q.prompt, q.explain], []).map((t) => `${q.id}: ${t}`))
+    expect(misses).toEqual([])
   })
 })

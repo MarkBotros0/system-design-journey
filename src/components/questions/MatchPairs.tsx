@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ArrowRight, Check, X } from 'lucide-react'
 import type { Question } from '../../content/types'
-import { seededOrder } from '../../lib/bank'
+import { partnerOrder } from '../../lib/bank'
 import { plainText } from '../../lib/text'
 
 type Match = Extract<Question, { kind: 'match' }>
@@ -26,7 +26,7 @@ export function MatchPairs({
   onChange: (next: Record<number, number>) => void
   given?: Record<number, number>
 }) {
-  const rightOrder = useMemo(() => seededOrder(`${q.id}:right`, q.pairs.length), [q.id, q.pairs.length])
+  const rightOrder = useMemo(() => partnerOrder(q.id, q.pairs.length), [q.id, q.pairs.length])
   const [selected, setSelected] = useState<{ side: Side; i: number } | null>(null)
 
   if (given) return <MatchResult q={q} given={given} />

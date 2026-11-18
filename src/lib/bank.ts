@@ -107,7 +107,21 @@ export function buildSet(p: ProgressState, opts: SetOptions): string[] {
       ? [...interleave(fresh.filter(studied), rand), ...interleave(fresh.filter((q) => !studied(q)), rand)]
       : interleave(fresh, rand)
 
-  const ordered = scope === 'weak' ? [...due, ...later] : [...due, ...freshOrdered, ...later]
+  // New questions from one lesson are capped per set, so a learner who has read a single
+  // lesson does not get seven questions on it in a row; the overflow waits for next time
+  // (or fills the set when nothing else matches).
+  const cap = Math.max(2, Math.ceil(size / 4))
+  const perLesson = new Map<string, number>()
+  const spread: Question[] = []
+  const overflow: Question[] = []
+  for (const q of freshOrdered) {
+    const key = q.moduleId ?? q.id
+    const n = perLesson.get(key) ?? 0
+    perLesson.set(key, n + 1)
+    ;(n < cap ? spread : overflow).push(q)
+  }
+
+  const ordered = scope === 'weak' ? [...due, ...later] : [...due, ...spread, ...later, ...overflow]
   return ordered.slice(0, size).map((q) => q.id)
 }
 
@@ -253,6 +267,15 @@ export function seededOrder(seed: string, n: number): number[] {
     Array.from({ length: n }, (_, i) => i),
     rand,
   )
+}
+
+/**
+ * The on-screen order of a match question's partners: stable per question, and never the
+ * same order as the items — otherwise the answer is simply "straight across".
+ */
+export function partnerOrder(id: string, n: number): number[] {
+  const order = seededOrder(`${id}:right`, n)
+  return n > 1 && order.every((j, i) => j === i) ? [...order.slice(1), order[0]] : order
 }
 
 /** Where a set came from, as a stable string: the same filters always name the same set. */

@@ -12,7 +12,9 @@ export function Feedback({ correct, explain, topic }: { correct: boolean; explai
   const ref = useRef<HTMLElement>(null)
   useEffect(() => {
     ref.current?.focus({ preventScroll: true })
-    ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    // An explicit 'smooth' would override the global reduced-motion reset, so ask first.
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ref.current?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' })
   }, [])
 
   return (

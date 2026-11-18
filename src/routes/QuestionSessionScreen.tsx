@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Check, X } from 'lucide-react'
 import { getQuestion, questionTopic } from '../content/bank'
@@ -121,6 +121,21 @@ function Session({ source, params }: { source: string; params: URLSearchParams }
   )
 }
 
+/**
+ * A new question (or the summary) starts at the top with focus on its heading: the last
+ * answer's feedback may have scrolled the page, and a screen reader should hear the
+ * question change. Not when coming back to a question already answered — its feedback
+ * takes focus instead.
+ */
+function useStartAtTop(ref: RefObject<HTMLHeadingElement | null>, skip = false) {
+  const [skipped] = useState(skip)
+  useEffect(() => {
+    if (skipped) return
+    window.scrollTo(0, 0)
+    ref.current?.focus({ preventScroll: true })
+  }, [ref, skipped])
+}
+
 function QuestionCard({
   q,
   topicLine,
@@ -139,6 +154,8 @@ function QuestionCard({
   const [picked, setPicked] = useState<number[]>([])
   const [pairs, setPairs] = useState<Record<number, number>>({})
   const answered = !!pending
+  const heading = useRef<HTMLHeadingElement>(null)
+  useStartAtTop(heading, answered)
   const canCheck = q.kind === 'multi' ? picked.length > 0 : q.kind === 'match' ? Object.keys(pairs).length === q.pairs.length : false
   const toggle = useCallback((i: number) => setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i])), [])
   const check = () => onSubmit(q.kind === 'multi' ? picked : pairs)
@@ -166,7 +183,7 @@ function QuestionCard({
   return (
     <>
       <p className="font-mono text-[0.6875rem] tracking-[0.1em] text-ink-3 uppercase">{topicLine}</p>
-      <h1 className="mt-2 text-[1.25rem] leading-snug font-semibold">
+      <h1 ref={heading} tabIndex={-1} className="mt-2 text-[1.25rem] leading-snug font-semibold outline-none">
         <Inline text={q.prompt} />
       </h1>
       <p className="mt-2 mb-4 text-[0.8125rem] font-medium text-line">{KIND_HINT[q.kind]}</p>
@@ -206,11 +223,13 @@ function Summary({ set, req, onAnother }: { set: QuestionSet; req: SetRequest; o
   const right = [...first.values()].filter(Boolean).length
   const today = todayCount(progress)
   const goalMet = today.answered >= progress.dailyGoal
+  const heading = useRef<HTMLHeadingElement>(null)
+  useStartAtTop(heading)
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-screen pb-[calc(env(safe-area-inset-bottom)+2rem)]">
       <p className="font-mono text-[0.6875rem] tracking-[0.12em] text-ink-3 uppercase">{setLabel(req)}</p>
-      <h1 className="mt-2 text-[2rem] leading-tight font-semibold">
+      <h1 ref={heading} tabIndex={-1} className="mt-2 text-[2rem] leading-tight font-semibold outline-none">
         {right} of {first.size} right
       </h1>
       <p className="mt-1 text-[0.9375rem] text-ink-2">
@@ -238,7 +257,7 @@ function Summary({ set, req, onAnother }: { set: QuestionSet; req: SetRequest; o
               )}
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-2 text-[0.875rem] leading-snug">{plainText(q.prompt)}</p>
-                <Link to={topic.href} className="-mx-1 inline-flex min-h-9 items-center rounded px-1 text-[0.8125rem] text-line hover:bg-line-soft">
+                <Link to={topic.href} className="-mx-1 inline-flex min-h-11 items-center rounded px-1 text-[0.8125rem] text-line hover:bg-line-soft">
                   {ok ? topic.title : `Read: ${topic.title}`}
                 </Link>
               </div>
