@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 /**
@@ -9,6 +10,10 @@ import { X } from 'lucide-react'
  *
  * `detent` sets how tall it may grow: `medium` keeps the screen behind it in view (answer
  * feedback), `large` is for lists and long content. Content scrolls inside either.
+ *
+ * Rendered into <body>, not where it is used: a screen's own stacking context (its page-in
+ * animation's fill makes one) would otherwise trap the sheet under the tab bar and the
+ * Resume dock, and a tap on its docked buttons would land on a tab.
  */
 export function Sheet({
   open,
@@ -27,6 +32,13 @@ export function Sheet({
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState(0)
+  // The portal leaves the screen's subtree, and with it the --track its trackStyle set; an
+  // anchor left in place reads it so the sheet keeps the colour of where it was opened.
+  const anchorRef = useRef<HTMLSpanElement>(null)
+  const [track, setTrack] = useState('')
+  useLayoutEffect(() => {
+    if (open && anchorRef.current) setTrack(getComputedStyle(anchorRef.current).getPropertyValue('--track').trim())
+  }, [open])
   const dragStart = useRef<{ y: number; t: number } | null>(null)
 
   function onGrab(e: PointerEvent<HTMLDivElement>) {
@@ -95,47 +107,54 @@ export function Sheet({
   if (!open) return null
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={labelledBy}
-    >
-      <button
-        type="button"
-        aria-label="Close"
-        tabIndex={-1}
-        onClick={onClose}
-        className="animate-fade-in absolute inset-0 bg-black/50"
-      />
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        className={`animate-sheet-in relative flex w-full flex-col overflow-y-auto overscroll-contain rounded-t-[28px] bg-surface pb-safe outline-none sm:rounded-[28px] ${
-          detent === 'medium' ? 'max-h-[66dvh]' : 'max-h-[92dvh]'
-        } ${wide ? 'sm:max-w-xl' : 'sm:max-w-md'} ${drag ? '' : 'transition-transform duration-200'}`}
-        style={{ boxShadow: 'var(--shadow-sheet)', transform: drag ? `translateY(${drag}px)` : undefined }}
-      >
-        {/* Grab handle: drag it down to dismiss. Taps away and Escape work too. */}
+    <>
+      <span ref={anchorRef} hidden />
+      {createPortal(
         <div
-          onPointerDown={onGrab}
-          onPointerMove={onDrag}
-          onPointerUp={onRelease}
-          onPointerCancel={onRelease}
-          className="sticky top-0 z-10 flex h-7 shrink-0 cursor-grab touch-none items-center justify-center bg-surface sm:hidden"
+          style={track ? ({ '--track': track } as CSSProperties) : undefined}
+          className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={labelledBy}
         >
-          <span aria-hidden="true" className="h-[5px] w-10 rounded-full bg-ink-3/45" />
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-3 right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors duration-150 hover:bg-surface-3 hover:text-ink"
-        >
-          <X size={18} strokeWidth={2} />
-        </button>
-        {children}
-      </div>
-    </div>
+          <button
+            type="button"
+            aria-label="Close"
+            tabIndex={-1}
+            onClick={onClose}
+            className="animate-fade-in absolute inset-0 bg-black/50"
+          />
+          <div
+            ref={panelRef}
+            tabIndex={-1}
+            className={`animate-sheet-in relative flex w-full flex-col overflow-y-auto overscroll-contain rounded-t-[28px] bg-surface pb-safe outline-none sm:rounded-[28px] ${
+              detent === 'medium' ? 'max-h-[66dvh]' : 'max-h-[92dvh]'
+            } ${wide ? 'sm:max-w-xl' : 'sm:max-w-md'} ${drag ? '' : 'transition-transform duration-200'}`}
+            style={{ boxShadow: 'var(--shadow-sheet)', transform: drag ? `translateY(${drag}px)` : undefined }}
+          >
+            {/* Grab handle: drag it down to dismiss. Taps away and Escape work too. */}
+            <div
+              onPointerDown={onGrab}
+              onPointerMove={onDrag}
+              onPointerUp={onRelease}
+              onPointerCancel={onRelease}
+              className="sticky top-0 z-10 flex h-7 shrink-0 cursor-grab touch-none items-center justify-center bg-surface sm:hidden"
+            >
+              <span aria-hidden="true" className="h-[5px] w-10 rounded-full bg-ink-3/45" />
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute top-3 right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors duration-150 hover:bg-surface-3 hover:text-ink"
+            >
+              <X size={18} strokeWidth={2} />
+            </button>
+            {children}
+          </div>
+        </div>,
+        document.body,
+      )}
+    </>
   )
 }

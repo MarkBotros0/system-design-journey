@@ -127,7 +127,7 @@ export function Shell() {
           id="main"
           key={pathname}
           style={{ '--dock-h': resume ? '4.5rem' : '0px' } as CSSProperties}
-          className={`animate-page-in mx-auto w-full px-4 lg:px-8 lg:pb-12 ${
+          className={`animate-page-in mx-auto w-full px-4 lg:px-8 lg:pb-[calc(var(--dock-h)+3rem)] ${
             immersive ? 'pb-[calc(env(safe-area-inset-bottom)+7rem)]' : 'pb-tabbar'
           } ${wide ? 'max-w-2xl lg:max-w-3xl xl:max-w-5xl' : 'max-w-2xl lg:max-w-3xl'}`}
         >
