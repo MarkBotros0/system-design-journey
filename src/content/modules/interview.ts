@@ -21,14 +21,14 @@ export const interviewModules: Module[] = [
     lesson: [
       {
         kind: 'prose',
-        text: 'Two engineers with identical knowledge routinely get different results. The difference is almost never a missing technology — it is who drove the session.',
+        text: 'Two engineers with identical knowledge routinely get different results. The difference is rarely a missing technology. Far more often it is who drove the session.',
       },
       { kind: 'heading', text: 'The levels' },
       {
         kind: 'table',
         head: ['', 'Mid · E4', 'Senior · E5', 'Staff+ · E6'],
         rows: [
-          ['**Split**', 'breadth only', '~60% breadth, 40% depth', '~40% breadth, 60% depth'],
+          ['**Split**', 'mostly breadth', '~60% breadth, 40% depth', '~40% breadth, 60% depth'],
           [
             '**Who drives**',
             'The interviewer points at what to improve',
@@ -60,7 +60,7 @@ export const interviewModules: Module[] = [
         figure: {
           kind: 'stack',
           layers: [
-            { label: 'Mid · breadth only', sub: 'interviewer points at what to improve', tone: 'neutral' },
+            { label: 'Mid · mostly breadth', sub: 'interviewer points at what to improve', tone: 'neutral' },
             { label: 'Senior · ~60% breadth, 40% depth', sub: 'you name the bottlenecks', tone: 'line' },
             { label: 'Staff+ · ~40% breadth, 60% depth', sub: 'you set the scope and the trade-offs', tone: 'mastered' },
           ],
@@ -177,7 +177,7 @@ export const interviewModules: Module[] = [
       {
         id: 'c-i-room-3',
         moduleId: 'i-room',
-        front: 'The most common senior failure mode.',
+        front: 'What is the classic senior failure mode?',
         back: 'Talking through the entire deep-dive slot. The interviewer\'s questions are how you score — leave silence.',
         tag: 'Level',
       },
@@ -250,7 +250,7 @@ export const interviewModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'Notice how few distinct patterns cover the whole catalogue. That is the leverage: you are not learning thirty systems, you are learning eight shapes and how they combine.',
+        text: 'Notice how few distinct patterns cover the whole catalogue. That is the leverage: you are not learning thirty systems, you are learning about ten shapes and how they combine.',
       },
       { kind: 'heading', text: 'When the prompt is genuinely unfamiliar' },
       {
@@ -297,7 +297,7 @@ export const interviewModules: Module[] = [
       {
         id: 'c-i-recognition-1',
         moduleId: 'i-recognition',
-        front: 'The six questions that decompose an unfamiliar prompt.',
+        front: 'Which six questions decompose an unfamiliar prompt?',
         back: 'Read or write heavy? Anything exclusive (contention)? Anything slower than a request (async)? Anything pushed (real-time)? Anything big (blobs)? Anything geographic or free-text (specialised index)?',
         tag: 'Interview',
       },

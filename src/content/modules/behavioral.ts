@@ -333,7 +333,7 @@ export const behavioralModules: Module[] = [
         id: 'c-i-star-1',
         moduleId: 'i-star',
         front: 'What goes in each beat of a [[STAR]] answer?',
-        back: 'Situation: the stakes, in two sentences. Task: what was yours. Action: most of the time, your decisions, said as "I". Result: a number, then one line of reflection.',
+        back: 'Situation: the stakes, in two sentences. Task: what was yours. Action: the bulk of the answer, your decisions, said as "I". Result: a number, then one line of reflection.',
         tag: 'Behavioural',
       },
       {
@@ -426,7 +426,7 @@ export const behavioralModules: Module[] = [
       { kind: 'heading', text: 'Disagree and commit' },
       {
         kind: 'prose',
-        text: 'Amazon lists it as a leadership principle, and most large engineering organisations run on some version of it. While the decision is open, you argue your position fully, with evidence. Once it is made, you execute it as if it were your own. Both halves are being tested, and candidates tend to remember only the first.',
+        text: 'The phrase is usually traced to Intel; Amazon made it a leadership principle, and many engineering organisations run on some version of it. While the decision is open, you argue your position fully, with evidence. Once it is made, you execute it as if it were your own. Both halves are being tested, and candidates tend to remember only the first.',
       },
       {
         kind: 'compare',
@@ -726,7 +726,7 @@ export const behavioralModules: Module[] = [
     lesson: [
       {
         kind: 'prose',
-        text: 'The failure question is the one candidates prepare least and fear most, and it is the one that best separates levels. Everyone has made mistakes. What the interviewer is measuring is what happened next: whether you see your own part clearly, whether you fixed the system and not just the symptom, and whether you behave differently now.',
+        text: 'The failure question is the one candidates prepare least and fear most, and it is one of the clearest at separating levels. Everyone has made mistakes. What the interviewer is measuring is what happened next: whether you see your own part clearly, whether you fixed the system and not just the symptom, and whether you behave differently now.',
       },
       {
         kind: 'prose',
@@ -744,7 +744,7 @@ export const behavioralModules: Module[] = [
             { label: 'What I changed', sub: 'a mechanism, not a promise', tone: 'mastered' },
             { label: 'Proof it held', sub: 'it caught the next one' },
           ],
-          note: 'Spend most of the time on the last two boxes. The incident is the set-up; the change is the answer.',
+          note: 'Spend about two thirds of the time on the last three boxes. The incident is the set-up; the change is the answer.',
         },
       },
       { kind: 'heading', text: 'Choosing the failure' },
@@ -760,7 +760,7 @@ export const behavioralModules: Module[] = [
             '**The humble-brag.** "I care too much about quality." The interviewer hears an evasion.',
             '**Someone else\'s failure.** The vendor, the other team, the unclear spec. You were only nearby.',
             '**The trivial one.** A typo caught in review. Nothing was at stake, so nothing was learned.',
-            '**The disqualifying one.** A security warning ignored for months. True, but it answers a different question.',
+            '**The disqualifying one.** A security warning ignored for months. True, but it makes the interviewer doubt your judgement for the role.',
           ],
         },
         right: {
@@ -812,7 +812,7 @@ export const behavioralModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'The most useful distinction to carry in is reversibility. Amazon\'s shareholder letters call them one-way and two-way doors: a decision that is cheap to undo should be made fast, by whoever is closest; one that cannot be undone deserves the slow, careful process. Saying which kind of door you faced, and that you sped up or slowed down because of it, is a senior answer in one sentence.',
+        text: 'The most useful distinction to carry in is reversibility. Jeff Bezos\'s letters to Amazon shareholders call them one-way and two-way doors: a decision that is cheap to undo should be made fast, by a person or small group close to the work; one that cannot be undone deserves the slow, careful process. Saying which kind of door you faced, and that you sped up or slowed down because of it, is a senior answer in one sentence.',
       },
       {
         kind: 'figure',
@@ -845,7 +845,7 @@ export const behavioralModules: Module[] = [
         kind: 'callout',
         tone: 'example',
         title: 'An illustrative story',
-        text: 'A hypothetical tech lead is two days from a launch tied to a partner\'s marketing campaign when load tests show the new search service falling over at twice the expected traffic. A proper fix is a week. She writes three options for her director: slip the launch, launch with the new search behind a flag and the old one as fallback, or launch as is. She recommends the flag, a two-way door, and accepts weaker results for a week. Launch traffic reaches three times the forecast; the flag flips to the old path for forty minutes, and users see slower search instead of errors. The fix ships six days later. Her lesson is not "load test earlier", which everyone says. It is that the forecast was the partner\'s number and nobody had tested it, so every launch plan she writes now carries a range instead of a single figure.',
+        text: 'A hypothetical tech lead is two days from a launch tied to a partner\'s marketing campaign when load tests show the new search service falling over at twice the expected traffic. A proper fix is a week. She writes three options for her director: slip the launch, launch with the new search behind a flag and the old one as fallback, or launch as is. She recommends the flag, a two-way door, and accepts that users may get the older, weaker search until the fix ships. Launch traffic reaches three times the forecast; the flag flips to the old path for forty minutes, and users see slower search instead of errors. The fix ships six days later. Her lesson is not "load test earlier", which everyone says. It is that the forecast was the partner\'s number and nobody had tested it, so every launch plan she writes now carries a range instead of a single figure.',
       },
       { kind: 'heading', text: 'Blameless postmortems' },
       {

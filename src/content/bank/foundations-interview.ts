@@ -13,7 +13,7 @@ export const questions: Question[] = [
     prompt: 'Communication is a tiebreaker in a design interview: it only counts once the design itself has been judged sound.',
     answer: false,
     explain:
-      'Communication is one of four competencies and is scored as heavily as the design. Talking through the whole slot loses points even with a good design, because it denies the interviewer the questions they need answered.',
+      'Communication is one of the four scored competencies, judged in its own right rather than after the design. Talking through the whole slot loses points even with a good design, because it denies the interviewer the questions they need answered.',
   },
   {
     id: 'f-what-tf2',
@@ -218,7 +218,7 @@ export const questions: Question[] = [
     pairs: [
       { left: 'Atomic', right: 'A debit is saved but its matching credit is not' },
       { left: 'Consistent', right: 'A row that breaks a constraint is saved anyway' },
-      { left: 'Isolated', right: 'Two concurrent buyers both get the last seat' },
+      { left: 'Isolated', right: "A query sees another transaction's half-done work" },
       { left: 'Durable', right: 'A committed order is gone after a crash' },
     ],
     explain:
