@@ -358,7 +358,7 @@ export const questions: Question[] = [
       'If a failed stock reservation must fail the order, reserving stock belongs in the main flow rather than in an observer.',
     answer: true,
     explain:
-      'Observer is for "and also"; required work is "and then". The publisher never sees a listener fail, so a step whose failure must be handled belongs where the order code can see it fail.',
+      'Observer is for "and also"; required work is "and then". A safe emit catches and logs each listener\'s error, so the order code never sees it; a step whose failure must fail the order belongs in the main flow.',
   },
   {
     id: 'dp-observer-multi',

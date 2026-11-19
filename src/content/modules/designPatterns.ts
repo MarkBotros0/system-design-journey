@@ -132,7 +132,7 @@ export const designPatternsModules: Module[] = [
         kind: 'callout',
         tone: 'example',
         title: 'Smalltalk MVC',
-        text: 'Views register with the model and redraw when it changes: Observer. A view can contain other views and be treated as one: Composite. A view hands its input handling to a controller object, so you can disable a view just by giving it a controller that ignores input: Strategy. The same split still runs through Rails and Apple\'s UIKit.',
+        text: 'Views register with the model and redraw when it changes: Observer. A view can contain other views and be treated as one: Composite. A view hands its input handling to a controller object, so you can disable a view just by giving it a controller that ignores input: Strategy. Descendants of the split, with the controller moved in between model and view, still run through Rails and Apple\'s UIKit.',
       },
       { kind: 'heading', text: 'When patterns hurt' },
       {
@@ -193,7 +193,7 @@ await payments.charge(order)`,
       },
       {
         kind: 'prose',
-        text: 'The language matters too. In 1996 Peter Norvig showed that 16 of the 23 patterns become simpler or invisible in dynamic languages such as Lisp and Dylan. TypeScript has the feature that does most of that work, first-class functions: a Strategy is often a function argument and a Command a closure. The problem the pattern names is still there. The class ceremony is not.',
+        text: 'The language matters too. In 1996 Peter Norvig showed that 16 of the 23 patterns become simpler or invisible in dynamic languages such as Lisp and Dylan. TypeScript has one of the features that does much of that work, first-class functions: a Strategy is often a function argument and a Command a closure. The problem the pattern names is still there. The class ceremony is not.',
       },
       {
         kind: 'figure',
@@ -788,7 +788,7 @@ function settingsScreen(ui: ThemeFactory) {
       },
       {
         kind: 'prose',
-        text: 'A builder collects the parts through named methods, checks the rules once in `build()`, and returns an immutable object. An [[HTTP]] client is the textbook case. Immutability is the point: a built request can be retried, logged and shared between workers without anyone changing it underneath you.',
+        text: 'A builder collects the parts through named methods, checks the rules once in `build()`, and returns an immutable object. An [[HTTP]] request is the textbook case. Immutability is the point: a built request can be retried, logged and shared between workers without anyone changing it underneath you.',
       },
       {
         kind: 'figure',
@@ -970,7 +970,7 @@ function settingsScreen(ui: ThemeFactory) {
             { from: 2, to: 0, label: 'pool 1', dashed: true },
             { from: 2, to: 1, label: 'pool 2 overwrites pool 1', dashed: true, tone: 'alert' },
           ],
-          note: 'Pool 1 is never closed; its connections stay open until the database times them out.',
+          note: 'Pool 1 is never closed, so its connections linger until an idle timeout reaps them.',
         },
       },
       {
@@ -1017,6 +1017,7 @@ export function getClient(): Promise<Pool> {
   static get(): Database {
     return (this.instance ??= new Database(createPool()))
   }
+  query(sql: string, args: unknown[]) { /* … */ }
 }
 
 class BillingService {
@@ -1196,7 +1197,7 @@ const sut = new BillingService(new FakeDatabase())`,
     objectives: [
       'Wrap a third-party [[SDK]] in an adapter so vendor types never reach your domain',
       'Put one simple entry point over a subsystem without growing a god object',
-      'Name the four kinds of proxy, and the cost each one hides',
+      'Name four common kinds of proxy, and the cost each one hides',
       'Tell the three apart by intent and by the interface they expose',
     ],
     keywords: [
@@ -1411,7 +1412,7 @@ const result = await placement.place(cart, req.body.card)`,
       { kind: 'heading', text: 'Proxy: same interface, controlled access' },
       {
         kind: 'prose',
-        text: 'A proxy implements exactly the interface of the object it stands in for, so the client cannot tell the two apart. What it adds is control over when, where or whether the real call happens.',
+        text: 'A proxy implements exactly the interface of the object it stands in for, so the client cannot tell the two apart. What it adds is control over when, where or whether the real call happens. The [[GoF]] book lists virtual, remote and protection proxies plus a "smart reference" (reference counting, locking); in practice the fourth kind you will build is a cache.',
       },
       {
         kind: 'table',
@@ -1622,7 +1623,7 @@ new ProfileService(new CachingUserRepo(pgRepo, redis))`,
       {
         id: 'c-dp-adapter-facade-proxy-2',
         moduleId: 'dp-adapter-facade-proxy',
-        front: 'What are the four kinds of proxy?',
+        front: 'What are four common kinds of proxy?',
         back: 'Virtual: create on first use. Remote: stand in for another process. Protection: check permission. Caching: skip repeated calls. Same interface every time.',
         tag: 'Proxy',
       },

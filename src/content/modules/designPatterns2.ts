@@ -41,7 +41,7 @@ export const designPatterns2Modules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'In an interview they arrive as features, never as pattern names. "Add logging, caching and retries to this client, but not on every call" is a decorator. "Model a file system", "price an order that contains bundles" or "render a page made of components" is a composite. In both cases the interviewer is watching whether you reach for inheritance first, because in both cases inheritance is the wrong tool.',
+        text: 'In an interview they arrive as features, never as pattern names. "Add logging, caching and retries to this client, but not on every call" is a decorator. "Model a file system", "price an order that contains bundles" or "render a page made of components" is a composite. In both cases the interviewer is watching for the naive version first: a subclass for every combination of features, or every caller walking the tree itself.',
       },
       {
         kind: 'figure',
@@ -320,7 +320,7 @@ root.size() // 200, and the caller never asked which`,
       {
         kind: 'list',
         items: [
-          '**Leaves and groups share almost nothing.** Forcing one interface creates methods that cannot be honoured, like `file.add(child)` that throws. That is the transparency-versus-safety trade-off, and safety wins: put `add` on the container only. The code that builds a tree knows the types; the code that walks it stays uniform.',
+          '**Leaves and groups share almost nothing.** Forcing one interface creates methods that cannot be honoured, like `file.add(child)` that throws. That is the transparency-versus-safety trade-off. The [[GoF]] book leaned towards transparency; in typed code safety usually wins, so put `add` on the container only. The code that builds a tree knows the types; the code that walks it stays uniform.',
           '**Operations grow faster than node types.** With a class per node type, every new operation edits every class. In TypeScript a discriminated union plus one recursive function per operation inverts that cost. Pick by which axis changes more often.',
           '**It is not actually a tree.** A component reused in two places, or a hard link in a file system, is a shared child, and naive recursion counts it twice. Composite assumes a tree. If it is a [[DAG]], say so and track what you have visited.',
           '**Depth and cost.** Recomputing `size()` walks the whole subtree on every call. On a large tree, cache the total on each folder and invalidate up the parent chain when a child changes.',
@@ -336,7 +336,7 @@ root.size() // 200, and the caller never asked which`,
         items: [
           {
             q: 'How is a decorator different from a proxy? The code looks the same.',
-            a: 'Structurally they are identical: same interface, holds the real object, forwards calls. The difference is intent. A decorator adds behaviour the client chose and is stacked by the client. A proxy controls access to the subject — lazy creation, a remote call, a permission check — and the client usually does not know it is there.',
+            a: 'Structurally they are identical: same interface, holds the real object, forwards calls. The difference is intent. A decorator adds behaviour chosen by the code that wires it up, and decorators stack in any order. A proxy controls access to the subject — lazy creation, a remote call, a permission check — and the client usually does not know it is there.',
           },
           {
             q: 'Your stack has caching, retries and logging. In what order, and why?',
@@ -397,7 +397,7 @@ root.size() // 200, and the caller never asked which`,
         id: 'c-dp-decorator-composite-1',
         moduleId: 'dp-decorator-composite',
         front: 'What problem does the decorator pattern solve?',
-        back: 'Optional behaviours that combine. One wrapper per concern, each implementing the same interface and holding the next, stacked at runtime: three classes instead of eight subclasses.',
+        back: 'Optional behaviours that combine. One wrapper per concern, each implementing the same interface and holding the next, stacked at runtime: three classes instead of up to eight.',
         tag: 'Decorator',
       },
       {
@@ -446,7 +446,7 @@ root.size() // 200, and the caller never asked which`,
     lesson: [
       {
         kind: 'prose',
-        text: 'Strategy and state are the two patterns most likely to come up in a low-level design round, because almost every prompt contains either a rule that varies (pricing, routing, matching, scoring) or a thing with a lifecycle (an order, a vending machine, an elevator, a parking ticket). Spot which one you have in the first five minutes and half the class diagram draws itself.',
+        text: 'Strategy and state are probably the two patterns most likely to come up in a low-level design round, because almost every prompt contains either a rule that varies (pricing, routing, matching, scoring) or a thing with a lifecycle (an order, a vending machine, an elevator, a parking ticket). Spot which one you have in the first five minutes and half the class diagram draws itself.',
       },
       {
         kind: 'prose',
@@ -553,7 +553,7 @@ class Checkout {
 // The caller decides, from config or contract:
 new Checkout(new PercentOff(20)).total(cart)`,
         },
-        note: 'In TypeScript a strategy is often just a function, as `regular` shows. Reach for a class when the rule has its own configuration or more than one method.',
+        note: '`regular` needs no class: in TypeScript a strategy is often an object literal, or just a function. Reach for a class when the rule has its own configuration or more than one method.',
       },
       {
         kind: 'prose',
@@ -573,7 +573,7 @@ new Checkout(new PercentOff(20)).total(cart)`,
       },
       {
         kind: 'prose',
-        text: 'The move: make each state **a class that implements one interface**, with a method per event. The context, `Order`, holds its current state and forwards every event to it. The state handles the event and **chooses the next state itself**, by calling back into the context. Everything about "paid" now lives in one class.',
+        text: 'The move: make each state **a class that implements one interface**, with a method per event. The context, `Order`, holds its current state and forwards every event to it. The state handles the event and **chooses the next state itself**, by calling back into the context. (The context may own the transitions instead; either way, nothing outside the order picks its state.) Everything about "paid" now lives in one class.',
       },
       {
         kind: 'figure',
@@ -619,8 +619,8 @@ class Order {
     if (this.status !== 'paid') throw new Error('unpaid')
     this.status = 'shipped'
   }
-  // pay() and deliver() repeat the switch, and
-  // every guard is a chance to forget a status.
+  // pay() repeats the switch, and every
+  // guard is a chance to forget a status.
 }`,
         },
         after: {
@@ -646,7 +646,7 @@ class Order {
   cancel() { this.state.cancel(this) }
 }`,
         },
-        note: 'A returned state is one new class, plus edits to exactly the states that can lead to it — which are the transitions you are adding anyway.',
+        note: 'A new `Returned` state is one new class, plus edits to exactly the states that can lead to it — which are the transitions you are adding anyway.',
       },
       {
         kind: 'prose',
@@ -666,7 +666,7 @@ class Order {
         kind: 'callout',
         tone: 'example',
         title: 'Stripe PaymentIntents',
-        text: 'Stripe\'s [[API]] models every payment as a state machine. A PaymentIntent moves through `requires_payment_method`, `requires_confirmation`, `requires_action` (for 3-D Secure), `processing` and, with manual capture, `requires_capture`, and ends in `succeeded` or `canceled`. Capture is only legal from `requires_capture`; try it from anywhere else and you get a `payment_intent_unexpected_state` error rather than a surprise. That is the guarantee the State pattern gives you in-process: an event that is wrong for the current state is refused in one obvious place.',
+        text: 'Stripe\'s [[API]] models every payment as a state machine. A PaymentIntent moves through `requires_payment_method`, `requires_confirmation`, `requires_action` (3-D Secure, for example), `processing` and, with manual capture, `requires_capture`, and ends in `succeeded` or `canceled`. Capture is only legal from `requires_capture`; try it from anywhere else and you get a `payment_intent_unexpected_state` error rather than a surprise. That is the guarantee the State pattern gives you in-process: an event that is wrong for the current state is refused in one obvious place.',
       },
 
       { kind: 'heading', text: 'Same code, different question: who chooses?' },
@@ -785,7 +785,7 @@ function apply(s: Status, a: Action): Status {
         ],
         correct: 3,
         explain:
-          'Strategy isolates each rule and stops pricing changes touching Checkout. Moving the switch only relocates it; an enum improves exhaustiveness but still edits one file per rule; subclassing Checkout welds pricing to everything else Checkout does.',
+          'Strategy isolates each rule and stops pricing changes touching Checkout. Moving the switch only relocates it; an enum improves exhaustiveness, but every new rule still edits the same switch; subclassing Checkout welds pricing to everything else Checkout does.',
       },
       {
         id: 'q-dp-strategy-state-3',
@@ -973,7 +973,7 @@ placed.subscribe((o) => stock.reserve(o.items))
       {
         kind: 'list',
         items: [
-          '**Leaks from forgotten unsubscribes.** The subject holds a strong reference to every listener, and a listener closure holds whatever it captured: a component, a request, a screen\'s worth of data. Forget to unsubscribe and none of it can be garbage collected. This is the lapsed listener problem, the most common leak in long-running UI and server code.',
+          '**Leaks from forgotten unsubscribes.** The subject holds a strong reference to every listener, and a listener closure holds whatever it captured: a component, a request, a screen\'s worth of data. Forget to unsubscribe and none of it can be garbage collected. This is the lapsed listener problem, one of the most common leaks in long-running UI and server code.',
           '**Ordering you never promised.** Listeners run in subscription order, which is an accident of start-up code. The moment one depends on another having run — stock reserved before the receipt says "in stock" — you have hidden coupling that reordering two imports will break. If order matters, it is a pipeline, not an observer. Make it explicit.',
           '**Slow synchronous listeners.** `emit` calls each listener on the caller\'s thread and waits. One listener making a 300 ms [[HTTP]] call makes every order 300 ms slower, and one that throws stops the loop, so the listeners after it never hear about the order at all.',
           '**Re-entrancy, the bonus fourth.** A listener that emits on the same topic, or unsubscribes while the loop is running, can recurse forever or skip a neighbour. Iterate over a copy, and queue nested events until the current dispatch finishes.',
@@ -1021,7 +1021,7 @@ placed.subscribe((o) => stock.reserve(o.items))
       { kind: 'heading', text: 'Pub/sub: the same idea through a broker' },
       {
         kind: 'prose',
-        text: 'Observer decouples the subject from its listeners in every way but one: they share a process. The subject holds the list, calls each listener directly, and if the process dies halfway through the loop, half the listeners never hear. **Pub/sub** puts a broker in the middle. Publishers send to a topic, subscribers read from it, neither knows the other exists, and neither needs to be running at the same moment.',
+        text: 'Observer decouples the subject from its listeners in every way but one: they share a process. The subject holds the list, calls each listener directly, and if the process dies halfway through the loop, half the listeners never hear. **Pub/sub** puts a broker in the middle. Publishers send to a topic, subscribers read from it, and neither knows the other exists. With a durable broker, neither needs to be running at the same moment.',
       },
       {
         kind: 'figure',
@@ -1074,7 +1074,7 @@ placed.subscribe((o) => stock.reserve(o.items))
       },
       {
         kind: 'prose',
-        text: 'The broker trades observer\'s failures for distributed ones. Delivery is at least once, so consumers must be idempotent. There is no global order, only per partition. And the publisher can no longer know when everyone has reacted, so anything that must finish before you reply to the user cannot be a subscriber. Name those costs when you make the move.',
+        text: 'The broker trades observer\'s failures for distributed ones. Delivery is normally at least once, so consumers must be idempotent. There is no global order, only per partition. And the publisher can no longer know when everyone has reacted, so anything that must finish before you reply to the user cannot be a subscriber. Name those costs when you make the move.',
       },
 
       { kind: 'heading', text: 'Choosing, and when not to' },
@@ -1194,7 +1194,7 @@ placed.subscribe((o) => stock.reserve(o.items))
         id: 'c-dp-observer-2',
         moduleId: 'dp-observer',
         front: 'Observer or pub/sub: what is the difference?',
-        back: 'Observer: the subject calls its listeners directly, in-process and synchronously. Pub/sub: a broker sits between, so neither side knows the other or must be running.',
+        back: 'Observer: the subject calls its listeners directly, in-process and synchronously. Pub/sub: a broker sits between, so neither knows the other, and a durable one holds events for offline subscribers.',
         tag: 'Observer',
       },
       {
@@ -1320,7 +1320,7 @@ class History {
   }
 }`,
         },
-        note: 'Running a new command clears the redo stack. That one assignment is the whole definition of redo in most editors.',
+        note: 'Running a new command clears the redo stack: type after an undo and the undone edits are gone. That one assignment is how most editors define redo.',
       },
       {
         kind: 'prose',
@@ -1337,7 +1337,7 @@ class History {
         items: [
           '**Not for effects in the world.** You cannot un-send an email or un-charge a card. The undo is a new command, a refund, with its own failure modes. Model the compensation explicitly instead of pretending to reverse.',
           '**Not for its own sake.** If nothing queues, logs, retries or undoes it, a command object is a function call with extra steps.',
-          '**Not when inverses are expensive.** If reversing an action is costly to compute, such as a filter over a large image, keep a snapshot from before it. That is the memento pattern, and real editors mix the two.',
+          '**Not when inverses are expensive.** If an action is costly or impossible to reverse, such as a blur over a large image, keep a snapshot from before it. That is the memento pattern, and real editors mix the two.',
         ],
       },
 
@@ -1388,6 +1388,7 @@ class History {
   }
 }
 class SheetImport {
+  constructor(private file: string) {}
   async run() {
     const raw = await readSheet(this.file)
     const rows = parseCsv(raw)
@@ -1424,7 +1425,7 @@ class SheetImport extends Importer<string> {
         kind: 'callout',
         tone: 'example',
         title: 'JUnit, AbstractList and React classes',
-        text: 'JUnit 3\'s `TestCase` was template method in its purest form: you overrode `setUp` and `tearDown`, and `runBare` called them around each test. Java\'s `AbstractList` asks you for just `get` and `size`, and builds iteration, `indexOf`, `contains` and `equals` on top of them. React class components worked the same way: `componentDidMount`, `render` and `componentWillUnmount` are hooks that a lifecycle you do not control calls at the right moment.',
+        text: 'JUnit 3\'s `TestCase` was template method in its purest form: you overrode `setUp` and `tearDown`, and `runBare` called them around each test. Java\'s `AbstractList` asks you for just `get` and `size`, and builds iteration, `indexOf`, `contains` and `equals` on top of them. React class components worked the same way: `componentDidMount`, `render` and `componentWillUnmount` are steps you override, and a lifecycle you do not control calls them at the right moment.',
       },
       {
         kind: 'compare',
@@ -1527,7 +1528,7 @@ const chain = new ManagerApproval(
       {
         kind: 'list',
         items: [
-          '**One handler always answers and the rule is a lookup.** A map from category to approver is clearer than a chain you have to walk in your head.',
+          '**The rule is a lookup.** If exactly one handler fits each request and a key picks it, a map from category to approver is clearer than a chain you have to walk in your head.',
           '**Nobody handles it.** A chain without a terminal handler silently drops requests. Always end with one that answers: a rejection with a reason, or a route to a human.',
           '**Long chains.** Each request walks the links in order, and after ten of them nobody knows which one answered. Log the handler that took each request, and past a few dozen rules use a rules table instead.',
         ],
@@ -1652,7 +1653,7 @@ const chain = new ManagerApproval(
         id: 'c-dp-command-template-chain-2',
         moduleId: 'dp-command-template-chain',
         front: 'What is template method, in one breath?',
-        back: 'A base-class method fixes the order of steps and calls overridable hooks for the parts that vary. The framework calls you.',
+        back: 'A base-class method fixes the order of steps and calls overridable hooks for the parts that vary. The base class calls you, not the other way round.',
         tag: 'Template method',
       },
       {
@@ -1797,7 +1798,7 @@ const chain = new ManagerApproval(
       },
       {
         kind: 'prose',
-        text: 'The name comes from Abraham Maslow\'s 1966 line: "it is tempting, if the only tool you have is a hammer, to treat everything as if it were a nail." In design rounds it looks like Kafka, Redis and microservices in the first five minutes, because the candidate thinks they are expected. A senior answer starts boring and earns each component.',
+        text: 'The name echoes Abraham Maslow\'s 1966 line: "it is tempting, if the only tool you have is a hammer, to treat everything as if it were a nail." In design rounds it looks like Kafka, Redis and microservices in the first five minutes, because the candidate thinks they are expected. A senior answer starts boring and earns each component.',
       },
       {
         kind: 'prose',
@@ -2043,7 +2044,7 @@ class ShippingService {
         ],
         correct: 1,
         explain:
-          'The singleton is shared across tests and hidden from the constructor, so one test\'s data leaks into the next and no fake can be passed in. Keep one instance, but inject it. Parallelism and speed are symptoms, not the cause.',
+          'The singleton is shared across tests and hidden from the constructor, so one test\'s data leaks into the next and no fake can be passed in. Keep one instance, but inject it. Parallel runs and a slow database can expose the leak; they do not cause it.',
       },
       {
         id: 'q-dp-anti-2',
