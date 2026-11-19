@@ -1,12 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { Check, X } from 'lucide-react'
-import { getModule } from '../content'
+import { getModule, getTrack } from '../content'
+import type { Module, QuizItem } from '../content/types'
 import { useProgress } from '../state/ProgressProvider'
 import { QUIZ_PASS } from '../lib/progress'
+import { plainText } from '../lib/text'
 import { Inline } from '../components/content/Inline'
-import { Button, ButtonLink } from '../components/ui/Button'
-import { Meter } from '../components/ui/Bits'
+import { ButtonLink } from '../components/ui/Button'
+import { TrackChip } from '../components/ui/TrackIcon'
+import { trackStyle } from '../components/ui/trackStyle'
+import { AnswerOption, type Mark } from '../components/questions/AnswerOption'
+import { Feedback } from '../components/questions/Feedback'
+import { QuestionMeta, SessionHeader } from '../components/questions/SessionChrome'
+import { ScoreRing } from '../components/questions/ScoreRing'
+import { useEnterKey, useStartAtTop } from '../components/questions/useStartAtTop'
 
 /** Deterministic per mount, so options do not reshuffle under the user mid-question. */
 function shuffled<T>(items: T[]): T[] {
@@ -18,6 +25,7 @@ function shuffled<T>(items: T[]): T[] {
   return out
 }
 
+/** A lesson's own quiz: the same frame as a question set, scored against the pass bar. */
 export function QuizScreen() {
   const { moduleId } = useParams()
   const module = getModule(moduleId)
@@ -26,7 +34,8 @@ export function QuizScreen() {
 
   const [index, setIndex] = useState(0)
   const [picked, setPicked] = useState<number | null>(null)
-  const [correctCount, setCorrectCount] = useState(0)
+  /** Right or wrong per question answered, in order. */
+  const [results, setResults] = useState<boolean[]>([])
   const [finished, setFinished] = useState(false)
 
   const questions = useMemo(() => (module ? module.quiz : []), [module])
@@ -39,20 +48,18 @@ export function QuizScreen() {
   if (!module) return <Navigate to="/" replace />
   if (!questions.length) return <Navigate to={`/m/${module.id}`} replace />
 
-  const question = questions[index]
-  const answered = picked !== null
+  const correctCount = results.filter(Boolean).length
   const isLast = index === questions.length - 1
 
   function choose(i: number) {
-    if (answered) return
+    if (picked !== null) return
     setPicked(i)
-    if (options[i].isCorrect) setCorrectCount((n) => n + 1)
+    setResults((r) => [...r, options[i].isCorrect])
   }
 
   function advance() {
     if (isLast) {
-      const score = correctCount / questions.length
-      recordQuiz(module!.id, score)
+      recordQuiz(module!.id, correctCount / questions.length)
       setFinished(true)
     } else {
       setIndex((i) => i + 1)
@@ -60,102 +67,138 @@ export function QuizScreen() {
     }
   }
 
-  if (finished) {
-    const score = correctCount / questions.length
-    const passed = score >= QUIZ_PASS
-    return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4 pt-screen pb-10">
-        <p className="font-mono text-[0.6875rem] tracking-[0.14em] uppercase text-ink-3">
-          {module.title}
-        </p>
-        <h1 className="mt-2 text-[2rem] leading-tight font-semibold">
-          {correctCount} of {questions.length}
-        </h1>
-        <p className={`mt-2 text-[0.9375rem] ${passed ? 'text-correct' : 'text-ink-2'}`}>
-          {passed
-            ? 'Passed. The next station is open.'
-            : `${Math.round(QUIZ_PASS * 100)}% passes — worth another read before you retry.`}
-        </p>
-        <div className="mt-4">
-          <Meter value={score} tone={passed ? 'correct' : 'line'} label="Quiz score" />
-        </div>
-
-        <div className="mt-8 flex flex-col gap-2.5">
-          <ButtonLink to="/" size="lg">
-            Back to the line
-          </ButtonLink>
-          <ButtonLink to={`/m/${module.id}`} variant="secondary" size="lg">
-            Reread the station
-          </ButtonLink>
-        </div>
-      </div>
-    )
-  }
+  if (finished) return <QuizResult module={module} correct={correctCount} total={questions.length} />
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-screen pb-8">
-      <header className="mb-6">
-        <div className="mb-3 flex items-center justify-between gap-4">
-          <span className="font-mono text-[0.6875rem] text-ink-3 tabular">
-            {index + 1} / {questions.length}
-          </span>
-          <button
-            onClick={() => navigate(`/m/${module.id}`)}
-            className="-mr-2 flex min-h-11 min-w-11 items-center justify-center text-ink-3 hover:text-ink"
-            aria-label="Leave the quiz"
-          >
-            <X size={20} strokeWidth={2} />
-          </button>
-        </div>
-        <Meter value={index / questions.length} label="Quiz progress" />
-      </header>
+    <div style={trackStyle(module.trackId)} className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-safe">
+      <SessionHeader
+        onClose={() => navigate(`/m/${module.id}`)}
+        closeLabel="Leave the quiz"
+        progress={{ at: index, total: questions.length, states: results.map((ok) => (ok ? 'correct' : 'wrong')) }}
+      />
+      <QuizQuestion
+        key={index}
+        item={questions[index]}
+        trackId={module.trackId}
+        options={options}
+        picked={picked}
+        onPick={choose}
+        onNext={advance}
+        isLast={isLast}
+      />
+    </div>
+  )
+}
 
-      <h1 className="mb-6 text-[1.25rem] leading-snug font-semibold">
-        <Inline text={question.stem} />
+function QuizQuestion({
+  item,
+  trackId,
+  options,
+  picked,
+  onPick,
+  onNext,
+  isLast,
+}: {
+  item: QuizItem
+  trackId: string
+  options: { text: string; isCorrect: boolean }[]
+  picked: number | null
+  onPick: (i: number) => void
+  onNext: () => void
+  isLast: boolean
+}) {
+  const answered = picked !== null
+  const heading = useRef<HTMLHeadingElement>(null)
+  const answers = useRef<HTMLDivElement>(null)
+  useStartAtTop(heading)
+  useEnterKey(answered, onNext, null)
+
+  // Keys 1–4 pick by on-screen position, as in a question set.
+  useEffect(() => {
+    if (answered) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const pos = Number(e.key) - 1
+      if (Number.isInteger(pos) && pos >= 0 && pos < options.length) {
+        e.preventDefault()
+        onPick(pos)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [answered, options.length, onPick])
+
+  return (
+    <>
+      <div className="mt-3">
+        <QuestionMeta kind="single" trackId={trackId} topic={getTrack(trackId)?.title ?? 'Lesson quiz'} />
+      </div>
+      <h1 ref={heading} tabIndex={-1} data-target-exempt className="mt-4 text-[1.3125rem] leading-[1.3] font-bold tracking-[-0.015em] outline-none">
+        <Inline text={item.stem} />
       </h1>
 
-      <div className="flex flex-col gap-2.5" role="group" aria-label="Answers">
+      <div ref={answers} role="group" aria-label="Answers" className="mt-5 flex flex-col gap-3.5">
         {options.map((opt, i) => {
-          const chosen = picked === i
-          let cls = 'border-hairline bg-surface hover:border-line'
-          if (answered) {
-            if (opt.isCorrect) cls = 'border-correct bg-correct-soft'
-            else if (chosen) cls = 'border-alert bg-alert-soft'
-            else cls = 'border-hairline bg-surface opacity-55'
-          }
+          const mark: Mark = !answered ? 'idle' : opt.isCorrect ? (picked === i ? 'hit' : 'key') : picked === i ? 'wrong' : 'dim'
           return (
-            <button
-              key={i}
-              onClick={() => choose(i)}
-              disabled={answered}
-              className={`flex min-h-13 items-start gap-3 rounded-xl border px-4 py-3 text-left text-[0.9375rem] leading-relaxed transition-colors duration-150 disabled:cursor-default ${cls}`}
-            >
-              <span className="flex-1">
-                <Inline text={opt.text} />
-              </span>
-              {answered && opt.isCorrect && (
-                <Check size={17} strokeWidth={2.5} className="mt-0.5 shrink-0 text-correct" />
-              )}
-              {answered && chosen && !opt.isCorrect && (
-                <X size={17} strokeWidth={2.5} className="mt-0.5 shrink-0 text-alert" />
-              )}
-            </button>
+            <AnswerOption key={i} n={i + 1} mark={mark} disabled={answered} onClick={() => onPick(i)}>
+              {plainText(opt.text)}
+            </AnswerOption>
           )
         })}
       </div>
 
-      {answered && (
-        <div className="mt-5 rounded-xl border-l-2 border-line bg-line-soft py-3 pr-4 pl-4">
-          <p className="text-[0.875rem] leading-relaxed text-ink">
-            <Inline text={question.explain} />
-          </p>
-        </div>
+      <div aria-hidden="true" className="h-6 shrink-0" />
+      {answered ? (
+        <Feedback
+          verdict={options[picked].isCorrect ? 'correct' : 'wrong'}
+          explain={item.explain}
+          onContinue={onNext}
+          continueLabel={isLast ? 'See your score' : 'Continue'}
+          reveal={answers}
+        />
+      ) : (
+        <div aria-hidden="true" className="h-[calc(env(safe-area-inset-bottom)+1rem)] shrink-0" />
       )}
+    </>
+  )
+}
 
-      <div className="mt-auto pt-6">
-        <Button size="lg" disabled={!answered} onClick={advance}>
-          {isLast ? 'See your score' : 'Next question'}
-        </Button>
+function QuizResult({ module, correct, total }: { module: Module; correct: number; total: number }) {
+  const navigate = useNavigate()
+  const score = correct / total
+  const passed = score >= QUIZ_PASS
+  const heading = useRef<HTMLHeadingElement>(null)
+  useStartAtTop(heading)
+  const lesson = `/m/${module.id}`
+
+  return (
+    <div style={trackStyle(module.trackId)} className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-safe pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+      <SessionHeader onClose={() => navigate(lesson)} closeLabel="Back to the lesson" />
+
+      <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+        <TrackChip trackId={module.trackId} label={plainText(module.title)} />
+        <h1 ref={heading} tabIndex={-1} className="mt-4 text-[2rem] leading-[1.1] font-extrabold tracking-[-0.03em] outline-none tabular">
+          {correct} of {total} right
+        </h1>
+        <div className="mt-7">
+          <ScoreRing value={score} pass={QUIZ_PASS} label="Quiz score" />
+        </div>
+        <p className="mt-7 max-w-[32ch] text-base text-balance text-ink-2">
+          {passed
+            ? 'Passed. This lesson now counts as done on your route.'
+            : `${Math.round(QUIZ_PASS * 100)}% passes — worth another read before you retry.`}
+        </p>
+      </div>
+
+      {/* The next step leads: on a pass, onwards; short of it, back to the lesson. */}
+      <div className="flex flex-col gap-2.5">
+        <ButtonLink to={passed ? '/' : lesson} size="lg">
+          {passed ? 'Back to Home' : 'Reread the lesson'}
+        </ButtonLink>
+        <ButtonLink to={passed ? lesson : '/'} variant="secondary" size="lg">
+          {passed ? 'Reread the lesson' : 'Back to Home'}
+        </ButtonLink>
       </div>
     </div>
   )

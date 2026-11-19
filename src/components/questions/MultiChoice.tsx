@@ -1,8 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, type Ref } from 'react'
 import type { Question } from '../../content/types'
 import { seededOrder } from '../../lib/bank'
 import { plainText } from '../../lib/text'
-import { OptionButton, type Mark } from './OptionButton'
+import { AnswerOption, type Mark } from './AnswerOption'
 
 type Multi = Extract<Question, { kind: 'multi' }>
 
@@ -15,12 +15,14 @@ export function MultiChoice({
   picked,
   onToggle,
   given,
+  groupRef,
 }: {
   q: Multi
   picked: number[]
   onToggle: (i: number) => void
   /** The submitted picks, once checked. */
   given?: number[]
+  groupRef?: Ref<HTMLDivElement>
 }) {
   const order = useMemo(() => seededOrder(q.id, q.options.length), [q.id, q.options.length])
   const answered = given !== undefined
@@ -42,24 +44,23 @@ export function MultiChoice({
   }, [answered, order, onToggle])
 
   return (
-    <div role="group" aria-label="Select all that apply" className="flex flex-col gap-2.5">
+    <div ref={groupRef} role="group" aria-label="Select all that apply" className="flex flex-col gap-3.5">
       {order.map((i, pos) => {
         const on = chosen.has(i)
-        const mark: Mark = !answered
-          ? on
-            ? 'selected'
-            : 'idle'
-          : right.has(i)
-            ? on
-              ? 'correct'
-              : 'missed'
-            : on
-              ? 'wrong'
-              : 'dim'
+        const mark: Mark = !answered ? (on ? 'selected' : 'idle') : right.has(i) ? (on ? 'hit' : 'missed') : on ? 'extra' : 'dim'
         return (
-          <OptionButton key={i} n={pos + 1} mark={mark} disabled={answered} onClick={() => onToggle(i)} role="checkbox" checked={on}>
+          <AnswerOption
+            key={i}
+            n={pos + 1}
+            mark={mark}
+            shape="square"
+            disabled={answered}
+            onClick={() => onToggle(i)}
+            role="checkbox"
+            checked={on}
+          >
             {plainText(q.options[i])}
-          </OptionButton>
+          </AnswerOption>
         )
       })}
     </div>

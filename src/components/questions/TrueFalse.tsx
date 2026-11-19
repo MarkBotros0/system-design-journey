@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type Ref } from 'react'
 import { Check, X } from 'lucide-react'
 import type { Question } from '../../content/types'
 import type { Answer } from '../../lib/bank'
@@ -6,7 +6,17 @@ import type { Answer } from '../../lib/bank'
 type TF = Extract<Question, { kind: 'truefalse' }>
 
 /** Two big targets side by side — the quickest answer there is. Keys T and F. */
-export function TrueFalse({ q, given, onAnswer }: { q: TF; given?: Answer; onAnswer: (a: boolean) => void }) {
+export function TrueFalse({
+  q,
+  given,
+  onAnswer,
+  groupRef,
+}: {
+  q: TF
+  given?: Answer
+  onAnswer: (a: boolean) => void
+  groupRef?: Ref<HTMLDivElement>
+}) {
   const answered = given !== undefined
 
   useEffect(() => {
@@ -24,31 +34,41 @@ export function TrueFalse({ q, given, onAnswer }: { q: TF; given?: Answer; onAns
   }, [answered, onAnswer])
 
   return (
-    <div role="group" aria-label="True or false" className="grid grid-cols-2 gap-2.5">
+    <div ref={groupRef} role="group" aria-label="True or false" className="grid grid-cols-2 gap-3">
       {[true, false].map((v) => {
-        const cls = !answered
-          ? 'border-hairline bg-surface hover:border-line'
-          : v === q.answer
-            ? 'border-correct bg-correct-soft'
-            : given === v
-              ? 'border-alert bg-alert-soft'
-              : 'border-hairline bg-surface opacity-55'
+        const right = answered && v === q.answer
+        const wrong = answered && given === v && v !== q.answer
+        const cls = right ? 'bg-correct-soft' : wrong ? 'bg-alert-soft' : answered ? 'bg-surface text-ink-3' : 'bg-surface hover:bg-surface-2'
         const label = v ? 'True' : 'False'
         return (
           <button
             key={label}
             type="button"
             disabled={answered}
+            data-mark={right ? (given === v ? 'hit' : 'key') : wrong ? 'wrong' : answered ? 'dim' : 'idle'}
             onClick={() => onAnswer(v)}
-            className={`flex min-h-16 items-center justify-center gap-2 rounded-2xl border text-[1.0625rem] font-semibold transition-colors duration-150 disabled:cursor-default ${cls}`}
+            className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-[22px] px-3 text-[1.25rem] font-bold tracking-[-0.01em] transition-[background-color,transform] duration-150 enabled:active:scale-[0.97] disabled:cursor-default motion-reduce:enabled:active:scale-100 ${cls}`}
+            style={{ boxShadow: 'var(--shadow-card)' }}
           >
-            {answered && v === q.answer && <Check size={18} strokeWidth={2.5} aria-hidden="true" className="text-correct" />}
-            {answered && given === v && v !== q.answer && <X size={18} strokeWidth={2.5} aria-hidden="true" className="text-alert" />}
+            {right ? (
+              <span aria-hidden="true" className="flex h-7 w-7 items-center justify-center rounded-full bg-correct text-paper">
+                <Check size={17} strokeWidth={3} />
+              </span>
+            ) : wrong ? (
+              <span aria-hidden="true" className="flex h-7 w-7 items-center justify-center rounded-full bg-alert text-paper">
+                <X size={17} strokeWidth={3} />
+              </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className={`flex h-7 min-w-7 items-center justify-center rounded-lg bg-surface-3 text-[0.875rem] font-bold text-ink-2 ${answered ? 'opacity-60' : ''}`}
+              >
+                {label[0]}
+              </span>
+            )}
             {label}
-            {answered && v === q.answer && <span className="sr-only"> — correct</span>}
-            <kbd aria-hidden="true" className="hidden font-mono text-[0.6875rem] font-normal text-ink-3 sm:inline">
-              {label[0]}
-            </kbd>
+            {right && <span className="sr-only"> — the right answer{given === v ? ', and yours' : ''}</span>}
+            {wrong && <span className="sr-only"> — your answer, wrong</span>}
           </button>
         )
       })}

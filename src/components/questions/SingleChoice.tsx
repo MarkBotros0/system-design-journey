@@ -1,13 +1,23 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, type Ref } from 'react'
 import type { Question } from '../../content/types'
 import { seededOrder, type Answer } from '../../lib/bank'
 import { plainText } from '../../lib/text'
-import { OptionButton, type Mark } from './OptionButton'
+import { AnswerOption, type Mark } from './AnswerOption'
 
 type Single = Extract<Question, { kind: 'single' }>
 
 /** One right answer; a tap answers. Keys 1–4 pick by on-screen position. */
-export function SingleChoice({ q, given, onAnswer }: { q: Single; given?: Answer; onAnswer: (a: number) => void }) {
+export function SingleChoice({
+  q,
+  given,
+  onAnswer,
+  groupRef,
+}: {
+  q: Single
+  given?: Answer
+  onAnswer: (a: number) => void
+  groupRef?: Ref<HTMLDivElement>
+}) {
   const order = useMemo(() => seededOrder(q.id, q.options.length), [q.id, q.options.length])
   const answered = given !== undefined
 
@@ -26,13 +36,13 @@ export function SingleChoice({ q, given, onAnswer }: { q: Single; given?: Answer
   }, [answered, order, onAnswer])
 
   return (
-    <div role="group" aria-label="Answers" className="flex flex-col gap-2.5">
+    <div ref={groupRef} role="group" aria-label="Answers" className="flex flex-col gap-3.5">
       {order.map((i, pos) => {
-        const mark: Mark = !answered ? 'idle' : i === q.correct ? 'correct' : given === i ? 'wrong' : 'dim'
+        const mark: Mark = !answered ? 'idle' : i === q.correct ? (given === i ? 'hit' : 'key') : given === i ? 'wrong' : 'dim'
         return (
-          <OptionButton key={i} n={pos + 1} mark={mark} disabled={answered} onClick={() => onAnswer(i)}>
+          <AnswerOption key={i} n={pos + 1} mark={mark} disabled={answered} onClick={() => onAnswer(i)}>
             {plainText(q.options[i])}
-          </OptionButton>
+          </AnswerOption>
         )
       })}
     </div>

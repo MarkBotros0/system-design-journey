@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type Ref } from 'react'
 import { ArrowRight, Check, X } from 'lucide-react'
 import type { Question } from '../../content/types'
 import { partnerOrder } from '../../lib/bank'
@@ -13,23 +13,26 @@ type Side = 'left' | 'right'
  * every item here is an ordinary button, so a keyboard pairs with Tab and Enter.
  *
  * `pairs` maps a left index to a right index, both as authored; the right column is shown
- * in a stable shuffled order. Once checked, the columns become a list of the right pairs.
+ * in a stable shuffled order. A pair shows the same number badge on both sides. Once
+ * checked, the columns become a list of the right pairs.
  */
 export function MatchPairs({
   q,
   pairs,
   onChange,
   given,
+  groupRef,
 }: {
   q: Match
   pairs: Record<number, number>
   onChange: (next: Record<number, number>) => void
   given?: Record<number, number>
+  groupRef?: Ref<HTMLDivElement>
 }) {
   const rightOrder = useMemo(() => partnerOrder(q.id, q.pairs.length), [q.id, q.pairs.length])
   const [selected, setSelected] = useState<{ side: Side; i: number } | null>(null)
 
-  if (given) return <MatchResult q={q} given={given} />
+  if (given) return <MatchResult q={q} given={given} groupRef={groupRef} />
 
   const leftOf = (j: number) => {
     const hit = Object.entries(pairs).find(([, r]) => r === j)
@@ -63,11 +66,9 @@ export function MatchPairs({
 
   const item = (side: Side, i: number, text: string, pairedLeft: number | undefined, partner: string | undefined) => {
     const isSel = selected?.side === side && selected.i === i
-    const cls = isSel
-      ? 'border-line bg-surface ring-2 ring-line/40'
-      : pairedLeft !== undefined
-        ? 'border-line bg-line-soft'
-        : 'border-hairline bg-surface hover:border-line'
+    // Waiting for a partner = inverted ink, the strongest neutral there is; paired = a step
+    // deeper than an open item, with its pair number.
+    const cls = isSel ? 'bg-line text-line-ink' : pairedLeft !== undefined ? 'bg-surface-3' : 'bg-surface hover:bg-surface-2'
     return (
       <button
         key={`${side}${i}`}
@@ -75,36 +76,38 @@ export function MatchPairs({
         aria-pressed={isSel}
         aria-label={`${plainText(text)}${partner ? `, paired with ${plainText(partner)}` : ''}`}
         onClick={() => tap(side, i)}
-        className={`flex min-h-13 w-full items-start gap-2 rounded-xl border px-3 py-2.5 text-left text-[0.875rem] leading-snug transition-colors duration-150 ${cls}`}
+        className={`relative flex min-h-14 w-full items-start rounded-[18px] px-3.5 py-3 text-left text-base leading-[1.35] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.97] motion-reduce:active:scale-100 ${cls}`}
+        style={{ boxShadow: 'var(--shadow-card)' }}
       >
+        <span className="min-w-0 flex-1 hyphens-auto [overflow-wrap:break-word]">{plainText(text)}</span>
+        {/* On the corner, not in the line: pairing never reflows the text under your finger. */}
         {pairedLeft !== undefined && (
           <span
             aria-hidden="true"
-            className="mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-line font-mono text-[0.6875rem] font-semibold text-line-ink"
+            className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-line text-[0.8125rem] font-bold text-line-ink ring-[3px] ring-paper tabular"
           >
             {pairNo(pairedLeft)}
           </span>
         )}
-        <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{plainText(text)}</span>
       </button>
     )
   }
 
   const done = Object.keys(pairs).length
   return (
-    <div>
-      <div className="grid grid-cols-2 gap-2">
-        <div role="group" aria-label="Items" className="flex flex-col gap-2">
+    <div ref={groupRef}>
+      <div className="grid grid-cols-2 gap-2.5">
+        <div role="group" aria-label="Items" className="flex flex-col gap-2.5">
           {q.pairs.map((p, i) => item('left', i, p.left, pairs[i] !== undefined ? i : undefined, pairs[i] !== undefined ? q.pairs[pairs[i]].right : undefined))}
         </div>
-        <div role="group" aria-label="Partners" className="flex flex-col gap-2">
+        <div role="group" aria-label="Partners" className="flex flex-col gap-2.5">
           {rightOrder.map((j) => {
             const l = leftOf(j)
             return item('right', j, q.pairs[j].right, l, l !== undefined ? q.pairs[l].left : undefined)
           })}
         </div>
       </div>
-      <p className="mt-3 font-mono text-[0.75rem] text-ink-3 tabular" aria-live="polite">
+      <p className="mt-3.5 text-[0.875rem] font-medium text-ink-2 tabular" aria-live="polite">
         {done} of {q.pairs.length} paired
         {selected ? ` · now tap its partner` : ''}
       </p>
@@ -112,38 +115,40 @@ export function MatchPairs({
   )
 }
 
-function MatchResult({ q, given }: { q: Match; given: Record<number, number> }) {
+function MatchResult({ q, given, groupRef }: { q: Match; given: Record<number, number>; groupRef?: Ref<HTMLDivElement> }) {
   return (
-    <ul className="flex flex-col gap-2" aria-label="The pairs">
-      {q.pairs.map((p, i) => {
-        const ok = given[i] === i
-        const yours = given[i] !== undefined && !ok ? q.pairs[given[i]].right : undefined
-        return (
-          <li
-            key={i}
-            className={`rounded-xl border px-3.5 py-2.5 text-[0.875rem] leading-snug ${ok ? 'border-correct bg-correct-soft' : 'border-alert bg-alert-soft'}`}
-          >
-            <div className="flex items-start gap-2">
-              {ok ? (
-                <Check size={16} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-correct" />
-              ) : (
-                <X size={16} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-alert" />
-              )}
+    <div ref={groupRef}>
+      <ul className="flex flex-col gap-2.5" aria-label="The pairs">
+        {q.pairs.map((p, i) => {
+          const ok = given[i] === i
+          const yours = given[i] !== undefined && !ok ? q.pairs[given[i]].right : undefined
+          return (
+            <li
+              key={i}
+              data-mark={ok ? 'hit' : 'wrong'}
+              className={`flex items-start gap-3.5 rounded-[18px] px-4 py-3.5 text-base leading-[1.4] ${ok ? 'bg-correct-soft' : 'bg-alert-soft'}`}
+            >
+              <span
+                aria-hidden="true"
+                className={`-mt-px flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-paper ${ok ? 'bg-correct' : 'bg-alert'}`}
+              >
+                {ok ? <Check size={15} strokeWidth={3} /> : <X size={15} strokeWidth={3} />}
+              </span>
               <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-                <span className="font-medium">{plainText(p.left)}</span>
-                <ArrowRight size={13} strokeWidth={2} aria-label="matches" className="mx-1.5 inline align-[-2px] text-ink-3" />
+                <span className="font-semibold">{plainText(p.left)}</span>
+                <ArrowRight size={15} strokeWidth={2.2} aria-label="matches" className="mx-1.5 inline align-[-2px] text-ink-2" />
                 {plainText(p.right)}
                 <span className="sr-only">{ok ? ' — you had this right' : ''}</span>
+                {!ok && (
+                  <span className="mt-1 block text-[0.875rem] text-ink-2">
+                    {yours ? `You paired it with: ${plainText(yours)}` : 'You left it unpaired.'}
+                  </span>
+                )}
               </span>
-            </div>
-            {!ok && (
-              <p className="mt-1 pl-6 text-[0.8125rem] text-ink-2">
-                {yours ? `You paired it with: ${plainText(yours)}` : 'You left it unpaired.'}
-              </p>
-            )}
-          </li>
-        )
-      })}
-    </ul>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }
