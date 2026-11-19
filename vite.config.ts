@@ -14,8 +14,14 @@ const base = process.env.BASE_PATH ?? '/'
 
 export default defineConfig({
   base,
-  // .claude/worktrees holds parallel content-authoring checkouts; never watch or test them.
-  server: { port: 5180, strictPort: true, watch: { ignored: ['**/.claude/**'] } },
+  // .claude/worktrees holds parallel checkouts; the main checkout never watches them. A dev
+  // server started inside one of those checkouts must watch its own files, so the rule only
+  // applies outside them.
+  server: {
+    port: 5180,
+    strictPort: true,
+    watch: { ignored: process.cwd().includes('/.claude/') ? [] : ['**/.claude/**'] },
+  },
   preview: { port: 5180, strictPort: true },
   test: { environment: 'node', include: ['src/**/*.test.ts'] },
   build: {
