@@ -61,13 +61,16 @@ src/
 ├── components/
 │   ├── content/          Blocks, Inline, Figure (+ FigureSequence/Classes/Decision),
 │   │                     CodeView (highlighting), Followups, GlossarySheet
-│   ├── lesson/           LessonToc, Takeaways, RelatedRow, useLessonScroll
+│   ├── lesson/           LessonToc, Takeaways, RelatedRow, useLessonScroll, ReadingDock
 │   ├── line/             LineMap (StationList) + groupStops — the route map
 │   ├── onboarding/       OnboardingSheet — pick a route (also "Change route")
 │   ├── questions/        the four answer kinds, Feedback, DailyCard
-│   ├── nav/              Shell.tsx — five bottom tabs (mobile) / rail (≥1024px)
-│   └── ui/               TopBar/PageTitle, Sheet, Segmented, Chip, ProgressRing,
-│                         TrackIcon, SearchPill, Button, Bits
+│   ├── nav/              Shell.tsx — floating five-tab bar (mobile) / rail (≥1024px),
+│   │                     ResumeDock (lib/resume.ts decides what it offers)
+│   └── ui/               TopBar/PageTitle, Sheet (detents), Segmented, Chip, ProgressRing,
+│                         TrackIcon (TrackGlyph, TrackChip) + trackStyle, List (Group,
+│                         Cell), StatTile, SegmentedProgress, RouteRibbon, SearchPill,
+│                         Button, Bits — all shown on /__fixtures/ui
 ├── lib/                  pure functions + IO wrappers, no React:
 │                         storage · progress · readiness · review · srs · search ·
 │                         walkthrough · slug · text · highlight · export ·
@@ -242,39 +245,58 @@ enforces it, and the walkthrough screen steps through it one heading at a time:
 
 ## Design tokens — the rules
 
-Defined once in `src/index.css` as CSS custom properties, exposed to Tailwind via
-`@theme inline`. Use the utility (`bg-surface`, `text-ink-2`, `border-hairline`), never a
-raw hex or a Tailwind palette colour like `slate-800`.
+The look is **Momentum × Native-grade** (`docs/superpowers/specs/2026-11-19-redesign-design.md`):
+filled soft surfaces, ink pills for actions, a colour per track, iOS structure (large titles,
+grouped lists, bottom sheets, a floating tab bar). Every primitive is on `/__fixtures/ui`.
+
+Tokens are defined once in `src/index.css` as CSS custom properties, exposed to Tailwind via
+`@theme inline`. Use the utility (`bg-surface`, `text-ink-2`), never a raw hex or a Tailwind
+palette colour like `slate-800`. `src/lib/contrast.test.ts` holds every text colour to WCAG AA
+on every surface in both themes — a token change that breaks contrast fails `npm test`.
 
 | Token | Role |
 |---|---|
 | `ink` / `ink-2` / `ink-3` | text, secondary, tertiary |
-| `paper` / `surface` / `surface-2` | ground, cards, insets |
-| `hairline` | borders |
-| `line` | **the one accent** — cobalt. Route line, active nav, primary action |
-| `streak` | in-progress / streak **only** |
-| `mastered` | mastered / correct **only** |
-| `alert` | wrong answer, destructive **only** |
+| `paper` / `surface` / `surface-2` / `surface-3` | ground, cards, insets, deepest inset |
+| `hairline` | separators inside grouped lists — not box outlines |
+| `line` / `line-ink` | the primary action: a solid **ink** pill (white on dark, near-black on light). There is no brand hue |
+| `track` / `track-soft` | the current track's colour and tint, set for a subtree with `trackStyle(trackId)` (`components/ui/trackStyle.ts`); `--t-<trackId>` holds each of the 11 |
+| `correct` | a right answer, a pass, done **only** — always with a check |
+| `alert` | a wrong answer, destructive **only** — always with an x |
+| `streak` | in-progress / streak **only** — flame or partial ring |
+| `mastered` | mastered **only** (gold) — always with the `BadgeCheck` seal |
 
-`streak`, `mastered` and `alert` are *earned* states. Using them decoratively destroys the
-thing that makes progress readable at a glance. If something just needs emphasis, it gets
-`line` or weight, not green.
+`correct`, `alert`, `streak` and `mastered` are *earned* states: never decorative, never colour
+alone (a couple of track hues sit near state hues, so the icon is what tells them apart). Track
+colour is identity only — glyphs, chips, eyebrows, ribbons, tints — and never marks an answer.
 
-**Type:** Familjen Grotesk (display and UI) · Source Serif 4 (`.prose-lesson`, lesson body
-only) · IBM Plex Mono (numbers, timers, code, eyebrow labels).
+**No outlines as decoration.** Depth is a tone step (`surface` on `paper`, `surface-2/3` insets)
+plus `--shadow-card`. A border appears only where it carries meaning (a missed answer's dashed
+outline, the focus ring). **No uppercase monospace eyebrows**: eyebrows are 14px bold sentence
+case (`Eyebrow`, in the track colour).
+
+**Type:** Plus Jakarta Sans (UI and titles; `tabular` for numbers) · Newsreader (`.prose-lesson`,
+lesson body only, 19px) · JetBrains Mono (code and timers only).
+
+**Bars:** `bar-glass` is the frosted surface of the tab bar, docks and the scrolled top bar,
+with a solid fallback where `backdrop-filter` is unsupported.
 
 **Theme:** `data-theme` is stamped on `<html>` by an inline script in `index.html` before first
 paint. `system` is resolved to light/dark there, so the CSS only ever has two states. Add new
-colours to **both** `:root` and `[data-theme='dark']`.
+colours to **both** `:root` and `[data-theme='dark']` (the `dark:` variant follows `data-theme`).
 
 ## Mobile-first constraints
 
 Non-negotiable, because this is used on a phone:
 
 - 375px is the floor. Test there first, then 768 / 1024 / 1440.
-- Every interactive element is **≥44px** tall (`min-h-11` on buttons, `min-h-13` for large).
+- Every interactive element is **≥44px** tall (`min-h-11` on buttons, `min-h-14` for large).
 - Fixed edge elements use `pt-safe` / `pb-safe`; scroll containers use `pb-tabbar` so content
-  never hides behind the bottom bar.
+  never hides behind the floating tab bar and the Resume dock above it (`--dock-h`, set by the
+  Shell). Lessons and walkthroughs hide the tab bar and show their own dock.
+- `scripts/ui-audit.cjs` checks a list of screens at 375×667 in both themes for sideways
+  scroll, wobbling chip rows, targets under 44px, page errors and animations under reduced
+  motion (`PLAYWRIGHT=<a playwright install> node scripts/ui-audit.cjs [paths]`, dev server up).
 - Body text ≥16px — below that iOS auto-zooms on focus.
 - `min-h-dvh`, never `100vh`.
 - Wide content (tables, code) scrolls inside its own container; the page body never scrolls
@@ -417,7 +439,7 @@ use that as evidence the push should have worked.
   explicit close control. Walkthroughs are study, not attempts, so they live inside the shell.
 - Every shell screen owns a sticky `TopBar` (it carries the safe-area inset) and a `PageTitle`
   h1; `App.tsx` moves focus to the h1 (or the `#hash` target) on navigation.
-- `/__fixtures/blocks` (every block and figure kind) and `/__fixtures/seed?to=<path>` (a
+- `/__fixtures/ui` (every design-system primitive), `/__fixtures/blocks` (every block and figure kind) and `/__fixtures/seed?to=<path>` (a
   mid-journey learner; `&fresh=1` for a new one) are DEV-only routes for checking screens.
   `/__fixtures/crash` throws while rendering, to check `ErrorBoundary` (in `main.tsx`), which
   replaces a blank page with reload / export / reset.
