@@ -10,8 +10,9 @@ const tokenClass: Record<Exclude<TokenKind, 'plain'>, string> = {
 }
 
 /**
- * Highlighted code that scrolls sideways inside itself. Focusable so a keyboard user can
- * scroll a long line too.
+ * Highlighted code on a filled inset that scrolls sideways inside itself. Focusable so a
+ * keyboard user can scroll a long line too. A before/after pair gets a tinted header —
+ * the ✗ / ✓ icon in it is what carries the verdict, the tint only groups it.
  */
 export function CodeView({
   code,
@@ -24,18 +25,16 @@ export function CodeView({
   accent?: 'alert' | 'correct'
 }) {
   const tokens = useMemo(() => highlight(code), [code])
-  const top = accent === 'alert' ? 'border-t-2 border-t-alert' : accent === 'correct' ? 'border-t-2 border-t-correct' : ''
+  const head = accent === 'alert' ? 'bg-alert-soft' : accent === 'correct' ? 'bg-correct-soft' : 'bg-surface-3'
   return (
-    <div className={`min-w-0 overflow-hidden rounded-xl border border-hairline bg-surface-2 ${top}`}>
+    <div className="min-w-0 overflow-hidden rounded-[18px] bg-surface-2">
       {label && (
-        <div className="flex items-center gap-1.5 border-b border-hairline px-3.5 py-2 font-mono text-[0.6875rem] tracking-[0.1em] text-ink-2 uppercase">
-          {label}
-        </div>
+        <div className={`flex items-center gap-2 px-4 py-2.5 text-[0.875rem] leading-snug font-bold text-ink ${head}`}>{label}</div>
       )}
       <pre
         tabIndex={0}
         aria-label={typeof label === 'string' ? label : 'Code'}
-        className="overflow-x-auto p-3.5 font-mono text-[0.8125rem] leading-relaxed text-ink"
+        className="overflow-x-auto overflow-y-hidden p-4 font-mono text-[0.8125rem] leading-relaxed text-ink focus-visible:outline-offset-[-2px]"
       >
         <code>
           {tokens.map((t, i) =>

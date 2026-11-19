@@ -46,7 +46,7 @@ export function Inline({ text }: { text: string }) {
           return (
             <code
               key={i}
-              className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[0.85em] text-ink [overflow-wrap:anywhere]"
+              className="rounded-md bg-surface-3 px-1.5 py-0.5 font-mono text-[0.85em] text-ink [overflow-wrap:anywhere]"
             >
               {part.slice(1, -1)}
             </code>

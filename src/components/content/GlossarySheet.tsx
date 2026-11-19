@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { getGlossary } from '../../content/glossary'
 import { useGlossary } from '../../state/GlossaryProvider'
+import { Chip } from '../ui/Chip'
 import { Sheet } from '../ui/Sheet'
 import { FigureView } from './Figure'
 import { Inline } from './Inline'
@@ -16,51 +18,46 @@ export function GlossarySheet() {
   return (
     <Sheet open={!!openId && !!entry} onClose={close} labelledBy="glossary-title">
       {entry && (
-        <>
-          <div className="px-5 pt-3 pr-14 sm:pt-6">
-            <p className="font-mono text-[1.375rem] leading-none font-semibold text-line">{entry.id}</p>
-            <h2 id="glossary-title" className="mt-1.5 text-[1.0625rem] font-semibold">
+        <div className="px-5 pt-1 pb-6 sm:pt-6">
+          <div className="pr-12">
+            <p className="text-[1.75rem] leading-none font-extrabold tracking-[-0.02em]">{entry.id}</p>
+            <h2 id="glossary-title" className="mt-2 text-[1.0625rem] leading-snug font-semibold text-ink-2">
               {entry.full}
             </h2>
           </div>
 
-          <p className="px-5 pt-2.5 text-[0.9375rem] leading-relaxed text-ink-2">
+          <p className="mt-3 text-base leading-relaxed text-ink">
             <Inline text={entry.gist} />
           </p>
 
-          <div className="px-5 pt-4">
+          {/* Already on a surface, so the figure steps down to an inset rather than a card. */}
+          <figure className="fig-inset mt-5">
             <FigureView figure={entry.figure} />
-            <p className="mt-2 text-[0.8125rem] leading-relaxed text-ink-3">{entry.caption}</p>
-          </div>
+            <figcaption className="mt-2.5 px-1 text-[0.875rem] leading-snug text-ink-2">{entry.caption}</figcaption>
+          </figure>
 
           {entry.seeAlso && entry.seeAlso.length > 0 && (
-            <div className="px-5 pt-4">
-              <p className="mb-1.5 font-mono text-[0.625rem] tracking-[0.12em] uppercase text-ink-3">See also</p>
-              <div className="flex flex-wrap gap-1.5">
+            <div className="mt-5">
+              <p className="mb-2 text-[0.875rem] font-bold text-ink-2">See also</p>
+              <div className="flex flex-wrap gap-2">
                 {entry.seeAlso.map((id) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => open(id)}
-                    className="min-h-11 rounded-lg border border-hairline bg-surface-2 px-3 font-mono text-[0.75rem] text-ink-2 hover:border-line hover:text-line"
-                  >
+                  <Chip key={id} onClick={() => open(id)}>
                     {id}
-                  </button>
+                  </Chip>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="px-5 pt-4 pb-5 sm:pb-6">
-            <Link
-              to={`/glossary#${encodeURIComponent(entry.id)}`}
-              onClick={close}
-              className="inline-flex min-h-11 items-center text-[0.875rem] text-line hover:underline"
-            >
-              All terms
-            </Link>
-          </div>
-        </>
+          <Link
+            to={`/glossary#${encodeURIComponent(entry.id)}`}
+            onClick={close}
+            className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-3 px-5 text-[0.9375rem] font-semibold text-ink transition-[background-color,transform] duration-150 hover:bg-hairline active:scale-[0.97] motion-reduce:active:scale-100"
+          >
+            All terms
+            <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" />
+          </Link>
+        </div>
       )}
     </Sheet>
   )

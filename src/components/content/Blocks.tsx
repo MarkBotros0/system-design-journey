@@ -1,5 +1,5 @@
 import { Fragment, useMemo } from 'react'
-import { Check, Lightbulb, X } from 'lucide-react'
+import { ArrowRight, Check, Info, Lightbulb, MessageSquareQuote, Scale, TriangleAlert, X, type LucideIcon } from 'lucide-react'
 import type { Block } from '../../content/types'
 import { headingSlugs } from '../../lib/slug'
 import { Inline } from './Inline'
@@ -7,28 +7,43 @@ import { FigureView } from './Figure'
 import { CodeView } from './CodeView'
 import { Followups } from './Followups'
 
+/* Structured blocks sit on filled surfaces — a card (`surface` + the card shadow) or a
+   tint — never in an outlined box. Track colour (via the lesson's trackStyle) marks
+   emphasis; the state colours keep their meaning and always come with their icon.
+
+   Track-coloured *text* only ever sits on `paper` or `surface`: on a track tint or on
+   `surface-2` several light-theme track colours fall under 4.5:1, so labels on those
+   grounds are ink and only the icon carries the colour. */
+
+const card = 'rounded-[20px] bg-surface shadow-[var(--shadow-card)]'
+
 /* ------------------------------------------------------------------ */
 /* Callouts                                                            */
 /* ------------------------------------------------------------------ */
 
-const calloutStyle = {
-  say: { wrap: 'border-line bg-line-soft', label: 'text-line', fallback: 'Say this' },
-  trap: { wrap: 'border-alert bg-alert-soft', label: 'text-alert', fallback: 'Trap' },
-  note: { wrap: 'border-hairline bg-surface-2', label: 'text-ink-3', fallback: 'Note' },
-  example: { wrap: 'border-line bg-surface', label: 'text-line', fallback: 'In the real world' },
-} as const
+const calloutStyle: Record<
+  Extract<Block, { kind: 'callout' }>['tone'],
+  { wrap: string; icon: LucideIcon; iconCls: string; label: string; labelCls: string }
+> = {
+  say: { wrap: 'bg-track-soft', icon: MessageSquareQuote, iconCls: 'text-track', label: 'Say it', labelCls: 'text-ink' },
+  trap: { wrap: 'bg-alert-soft', icon: TriangleAlert, iconCls: 'text-alert', label: 'Trap', labelCls: 'text-alert' },
+  note: { wrap: 'bg-surface-2', icon: Info, iconCls: 'text-ink-2', label: 'Note', labelCls: 'text-ink-2' },
+  example: { wrap: card, icon: Lightbulb, iconCls: 'text-track', label: 'Example', labelCls: 'text-track' },
+}
 
 function Callout({ tone, title, text }: Extract<Block, { kind: 'callout' }>) {
   const s = calloutStyle[tone]
+  const Icon = s.icon
   return (
-    <div className={`rounded-r-xl border-l-2 py-3 pr-4 pl-4 ${s.wrap} ${tone === 'example' ? 'border-y border-r border-y-hairline border-r-hairline' : ''}`}>
-      <p className={`mb-1 flex items-center gap-1.5 font-mono text-[0.6875rem] tracking-[0.12em] uppercase ${s.label}`}>
-        {tone === 'example' && <Lightbulb size={13} strokeWidth={2.2} aria-hidden="true" />}
-        {title ?? s.fallback}
-      </p>
-      <p className="text-[0.9375rem] leading-relaxed text-ink">
-        <Inline text={text} />
-      </p>
+    <div className={`flex gap-3 rounded-[20px] px-4 py-3.5 ${s.wrap}`}>
+      <Icon size={18} strokeWidth={2.2} aria-hidden="true" className={`mt-px shrink-0 ${s.iconCls}`} />
+      <div className="min-w-0 flex-1">
+        <p className={`text-[0.875rem] leading-snug font-bold ${s.labelCls}`}>{s.label}</p>
+        {title && <p className="mt-1 text-base leading-snug font-bold text-ink">{title}</p>}
+        <p className="mt-1 text-base leading-relaxed text-ink">
+          <Inline text={text} />
+        </p>
+      </div>
     </div>
   )
 }
@@ -39,22 +54,18 @@ function Callout({ tone, title, text }: Extract<Block, { kind: 'callout' }>) {
 
 function Flow({ nodes, note }: Extract<Block, { kind: 'flow' }>) {
   return (
-    <figure className="rounded-2xl border border-hairline bg-surface-2/60 p-4">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2.5">
+    <figure className={`${card} p-4`}>
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
         {nodes.map((n, i) => (
           <Fragment key={i}>
-            <span className="rounded-lg border border-line/35 bg-surface px-2.5 py-1.5 font-mono text-[0.75rem] text-ink">
+            <span className="rounded-xl bg-track-soft px-3 py-2 text-[0.875rem] leading-tight font-semibold text-ink">
               <Inline text={n} />
             </span>
-            {i < nodes.length - 1 && (
-              <span aria-hidden="true" className="text-line">
-                &rarr;
-              </span>
-            )}
+            {i < nodes.length - 1 && <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" className="shrink-0 text-track" />}
           </Fragment>
         ))}
       </div>
-      {note && <figcaption className="mt-3 text-[0.8125rem] text-ink-3">{note}</figcaption>}
+      {note && <figcaption className="mt-3 text-[0.875rem] leading-snug text-ink-2">{note}</figcaption>}
     </figure>
   )
 }
@@ -65,22 +76,17 @@ function Flow({ nodes, note }: Extract<Block, { kind: 'flow' }>) {
 
 function Compare({ left, right, verdict }: Extract<Block, { kind: 'compare' }>) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-hairline">
-      <div className="grid sm:grid-cols-2">
+    <div className="flex flex-col gap-2.5">
+      <div className="grid gap-2.5 sm:grid-cols-2">
         {[left, right].map((col, i) => (
-          <div
-            key={i}
-            className={`bg-surface p-4 ${
-              i === 0 ? 'border-b border-hairline sm:border-r sm:border-b-0' : ''
-            }`}
-          >
-            <h4 className="mb-2 text-[0.9375rem] font-semibold">
+          <div key={i} className={`${card} p-4`}>
+            <h4 className="mb-2.5 text-base leading-snug font-bold">
               <Inline text={col.title} />
             </h4>
-            <ul className="space-y-1.5">
+            <ul className="flex flex-col gap-2">
               {col.points.map((p, j) => (
-                <li key={j} className="flex gap-2 text-[0.875rem] text-ink-2">
-                  <span aria-hidden="true" className="mt-2 h-1 w-1 shrink-0 rounded-full bg-ink-3" />
+                <li key={j} className="flex gap-2.5 text-[0.9375rem] leading-snug text-ink-2">
+                  <span aria-hidden="true" className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full bg-track" />
                   <span>
                     <Inline text={p} />
                   </span>
@@ -91,8 +97,11 @@ function Compare({ left, right, verdict }: Extract<Block, { kind: 'compare' }>) 
         ))}
       </div>
       {verdict && (
-        <p className="border-t border-hairline bg-line-soft px-4 py-3 text-[0.875rem] text-ink">
-          <Inline text={verdict} />
+        <p className="flex gap-2.5 rounded-[20px] bg-track-soft px-4 py-3 text-[0.9375rem] leading-snug text-ink">
+          <Scale size={17} strokeWidth={2.1} aria-hidden="true" className="mt-px shrink-0 text-track" />
+          <span>
+            <Inline text={verdict} />
+          </span>
         </p>
       )}
     </div>
@@ -103,36 +112,48 @@ function Compare({ left, right, verdict }: Extract<Block, { kind: 'compare' }>) 
 /* Ladder — bad → good → great                                         */
 /* ------------------------------------------------------------------ */
 
-const gradeLabel = {
-  bad: { text: 'Bad', cls: 'text-alert' },
-  good: { text: 'Good', cls: 'text-ink-3' },
-  great: { text: 'Great', cls: 'text-ink-2' },
-  best: { text: 'Pick this', cls: 'text-correct font-semibold' },
+const grades = {
+  bad: { text: 'Bad', icon: X, cls: 'text-alert', strength: 1 },
+  good: { text: 'Good', icon: null, cls: 'text-ink-2', strength: 2 },
+  great: { text: 'Great', icon: null, cls: 'text-ink-2', strength: 3 },
+  best: { text: 'Pick this', icon: Check, cls: 'text-correct', strength: 4 },
 } as const
+
+/** Four rising bars: how strong the rung is, at a glance. The grade label says it in words. */
+function Strength({ n }: { n: number }) {
+  return (
+    <span aria-hidden="true" className="mt-0.5 flex h-4 shrink-0 items-end gap-[3px]">
+      {[6, 9, 12, 16].map((h, i) => (
+        <span key={i} className={`w-[3px] rounded-full ${i < n ? 'bg-track' : 'bg-surface-3'}`} style={{ height: h }} />
+      ))}
+    </span>
+  )
+}
 
 function Ladder({ rungs }: Extract<Block, { kind: 'ladder' }>) {
   return (
-    <ol className="overflow-hidden rounded-2xl border border-hairline">
-      {rungs.map((r, i) => (
-        <li
-          key={i}
-          className={`border-b border-hairline p-4 last:border-b-0 ${
-            r.grade === 'best' ? 'bg-correct-soft' : 'bg-surface'
-          }`}
-        >
-          <p
-            className={`mb-1 font-mono text-[0.6875rem] tracking-[0.12em] uppercase ${gradeLabel[r.grade].cls}`}
-          >
-            {gradeLabel[r.grade].text}
-          </p>
-          <h4 className="text-[0.9375rem] font-semibold">
-            <Inline text={r.title} />
-          </h4>
-          <p className="mt-1 text-[0.875rem] leading-relaxed text-ink-2">
-            <Inline text={r.text} />
-          </p>
-        </li>
-      ))}
+    <ol className="flex flex-col gap-2">
+      {rungs.map((r, i) => {
+        const g = grades[r.grade]
+        const Icon = g.icon
+        return (
+          <li key={i} className={`flex gap-3.5 rounded-[20px] p-4 ${r.grade === 'best' ? 'bg-correct-soft' : card}`}>
+            <Strength n={g.strength} />
+            <div className="min-w-0 flex-1">
+              <p className={`flex items-center gap-1 text-[0.8125rem] leading-none font-bold ${g.cls}`}>
+                {Icon && <Icon size={14} strokeWidth={2.6} aria-hidden="true" />}
+                {g.text}
+              </p>
+              <h4 className="mt-1.5 text-base leading-snug font-bold">
+                <Inline text={r.title} />
+              </h4>
+              <p className="mt-1 text-[0.9375rem] leading-relaxed text-ink-2">
+                <Inline text={r.text} />
+              </p>
+            </div>
+          </li>
+        )
+      })}
     </ol>
   )
 }
@@ -143,35 +164,36 @@ function Ladder({ rungs }: Extract<Block, { kind: 'ladder' }>) {
 
 function Table({ head, rows }: Extract<Block, { kind: 'table' }>) {
   return (
-    <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-      <table className="w-full min-w-[34rem] border-collapse overflow-hidden rounded-xl text-left">
-        <thead>
-          <tr>
-            {head.map((h, i) => (
-              <th
-                key={i}
-                className="border-b border-hairline bg-surface-2 px-3 py-2.5 font-mono text-[0.6875rem] tracking-[0.1em] whitespace-nowrap text-ink-3 uppercase"
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i}>
-              {row.map((cell, j) => (
-                <td
-                  key={j}
-                  className="border-b border-hairline bg-surface px-3 py-2.5 align-top text-[0.875rem] text-ink-2"
-                >
-                  <Inline text={cell} />
-                </td>
+    // Wide tables scroll inside the card, never the page. The row rules stay: in a
+    // table they are how the eye keeps its row.
+    <div className={`${card} overflow-hidden`}>
+      <div className="overflow-x-auto overflow-y-hidden">
+        <table className="w-full min-w-[34rem] border-collapse text-left">
+          <thead>
+            <tr>
+              {head.map((h, i) => (
+                <th key={i} className="bg-surface-2 px-3.5 py-3 text-[0.8125rem] leading-snug font-bold whitespace-nowrap text-ink-2">
+                  {h}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i} className="border-t border-hairline first:border-t-0">
+                {row.map((cell, j) => (
+                  <td
+                    key={j}
+                    className={`px-3.5 py-3 align-top text-[0.875rem] leading-snug ${j === 0 ? 'font-semibold text-ink' : 'text-ink-2'}`}
+                  >
+                    <Inline text={cell} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -189,7 +211,7 @@ function CodeCompare({ before, after, note }: Extract<Block, { kind: 'codeCompar
           accent="alert"
           label={
             <>
-              <X size={13} strokeWidth={2.5} aria-hidden="true" className="text-alert" />
+              <X size={15} strokeWidth={2.6} aria-hidden="true" className="shrink-0 text-alert" />
               <Inline text={before.title} />
             </>
           }
@@ -199,14 +221,14 @@ function CodeCompare({ before, after, note }: Extract<Block, { kind: 'codeCompar
           accent="correct"
           label={
             <>
-              <Check size={13} strokeWidth={2.5} aria-hidden="true" className="text-correct" />
+              <Check size={15} strokeWidth={2.6} aria-hidden="true" className="shrink-0 text-correct" />
               <Inline text={after.title} />
             </>
           }
         />
       </div>
       {note && (
-        <figcaption className="mt-2 text-[0.8125rem] leading-relaxed text-ink-3">
+        <figcaption className="mt-2.5 px-1 text-[0.875rem] leading-snug text-ink-2">
           <Inline text={note} />
         </figcaption>
       )}
@@ -226,7 +248,7 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
         switch (b.kind) {
           case 'heading':
             return (
-              <h2 key={i} id={slugs.get(i)} className="mt-4 text-[1.1875rem] font-semibold first:mt-0">
+              <h2 key={i} id={slugs.get(i)} className="mt-5 text-[1.375rem] leading-tight font-bold tracking-[-0.02em] first:mt-0">
                 <Inline text={b.text} />
               </h2>
             )
@@ -239,14 +261,17 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
           case 'list': {
             const List = b.ordered ? 'ol' : 'ul'
             return (
-              <List key={i} className="prose-lesson flex list-none flex-col gap-2 pl-0">
+              <List key={i} className="prose-lesson flex list-none flex-col gap-2.5 pl-0">
                 {b.items.map((item, j) => (
-                  <li key={j} className="flex gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-line"
-                    />
-                    <span>
+                  <li key={j} className={`flex gap-3 ${b.ordered ? 'items-baseline' : ''}`}>
+                    {b.ordered ? (
+                      <span aria-hidden="true" className="w-5 shrink-0 text-right font-display text-[1rem] font-bold text-track tabular">
+                        {j + 1}
+                      </span>
+                    ) : (
+                      <span aria-hidden="true" className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-track" />
+                    )}
+                    <span className="min-w-0">
                       <Inline text={item} />
                     </span>
                   </li>
@@ -255,10 +280,11 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
             )
           }
           case 'figure':
+            // One card holds the drawing and its caption; the figure's own frame goes flat inside it.
             return (
-              <figure key={i}>
+              <figure key={i} className="fig-card rounded-[22px] bg-surface shadow-[var(--shadow-card)]">
                 <FigureView figure={b.figure} />
-                <figcaption className="mt-2 text-[0.8125rem] leading-relaxed text-ink-3">
+                <figcaption className="-mt-1 px-4 pb-4 text-[0.875rem] leading-snug text-ink-2">
                   <Inline text={b.caption} />
                 </figcaption>
               </figure>
@@ -277,9 +303,7 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
             return (
               <figure key={i}>
                 <CodeView code={b.code} />
-                {b.caption && (
-                  <figcaption className="mt-2 text-[0.8125rem] text-ink-3">{b.caption}</figcaption>
-                )}
+                {b.caption && <figcaption className="mt-2.5 px-1 text-[0.875rem] leading-snug text-ink-2">{b.caption}</figcaption>}
               </figure>
             )
           case 'codeCompare':
