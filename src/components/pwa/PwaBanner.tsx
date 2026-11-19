@@ -66,7 +66,7 @@ export function PwaBanner() {
           </>
         ) : (
           <>
-            <Download size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-mastered" />
+            <Download size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-ink-2" />
             <p className="flex-1 text-[0.875rem] leading-relaxed">
               <span className="font-semibold">Ready to work offline.</span> Every station,
               quiz and problem is on your device now.

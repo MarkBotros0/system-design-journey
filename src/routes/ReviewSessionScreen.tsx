@@ -14,7 +14,7 @@ const GRADES: { grade: Grade; key: string; label: string; hint: string; cls: str
   { grade: 'again', key: '1', label: 'Again', hint: 'no idea', cls: 'border-alert/40 text-alert hover:bg-alert-soft' },
   { grade: 'hard', key: '2', label: 'Hard', hint: 'slowly', cls: 'border-hairline text-ink-2 hover:bg-surface-2' },
   { grade: 'good', key: '3', label: 'Good', hint: 'got it', cls: 'border-hairline text-ink-2 hover:bg-surface-2' },
-  { grade: 'easy', key: '4', label: 'Easy', hint: 'instant', cls: 'border-mastered/40 text-mastered hover:bg-mastered-soft' },
+  { grade: 'easy', key: '4', label: 'Easy', hint: 'instant', cls: 'border-correct/40 text-correct hover:bg-correct-soft' },
 ]
 
 /**
@@ -99,7 +99,7 @@ function Session({ track }: { track: Track | undefined }) {
             </>
           ) : (
             <>
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-mastered-soft text-mastered">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-correct-soft text-costered">
                 <Check size={24} strokeWidth={2.6} aria-hidden="true" />
               </span>
               <h1 className="mt-4 text-[1.75rem] font-semibold">Session done</h1>

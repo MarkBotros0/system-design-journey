@@ -17,7 +17,7 @@ import { Button } from '../components/ui/Button'
 import { Sheet } from '../components/ui/Sheet'
 import { useScrolledPast } from '../components/ui/useScrolledPast'
 
-const DIFF_TONE: Record<Difficulty, 'mastered' | 'streak' | 'alert'> = { easy: 'mastered', medium: 'streak', hard: 'alert' }
+const DIFF_TONE: Record<Difficulty, 'correct' | 'streak' | 'alert'> = { easy: 'correct', medium: 'streak', hard: 'alert' }
 const DIFFS: Difficulty[] = ['easy', 'medium', 'hard']
 type Status = 'all' | 'new' | 'attempted'
 
@@ -38,7 +38,7 @@ function ProblemCard({ p }: { p: Problem }) {
         <Badge tone={DIFF_TONE[p.difficulty]}>{p.difficulty}</Badge>
         {attempts > 0 && best !== undefined ? (
           <span className="flex items-center gap-1 font-mono text-[0.6875rem] text-ink-2 tabular">
-            <Check size={12} strokeWidth={2.6} aria-hidden="true" className="text-mastered" />
+            <Check size={12} strokeWidth={2.6} aria-hidden="true" className="text-correct" />
             best {Math.round(best * 100)}%
           </span>
         ) : (

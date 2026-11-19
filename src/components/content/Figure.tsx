@@ -117,7 +117,7 @@ function Timeline({ figure }: { figure: Extract<Figure, { kind: 'timeline' }> })
                           bar.tone === 'alert'
                             ? 'border-alert'
                             : bar.tone === 'mastered'
-                              ? 'border-mastered'
+                              ? 'border-correct'
                               : 'border-line'
                         }`}
                         style={{

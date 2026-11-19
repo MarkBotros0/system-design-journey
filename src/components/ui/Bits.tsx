@@ -28,10 +28,11 @@ export function Panel({
   )
 }
 
-type Tone = 'line' | 'mastered' | 'streak' | 'alert' | 'neutral'
+type Tone = 'line' | 'correct' | 'mastered' | 'streak' | 'alert' | 'neutral'
 
 const toneClasses: Record<Tone, string> = {
   line: 'bg-line-soft text-line',
+  correct: 'bg-correct-soft text-correct',
   mastered: 'bg-mastered-soft text-mastered',
   streak: 'bg-streak-soft text-streak',
   alert: 'bg-alert-soft text-alert',
@@ -62,7 +63,7 @@ export function Meter({
 }) {
   const pct = Math.round(Math.max(0, Math.min(1, value)) * 100)
   const fill =
-    tone === 'mastered' ? 'bg-mastered' : tone === 'streak' ? 'bg-streak' : 'bg-line'
+    tone === 'correct' ? 'bg-correct' : tone === 'mastered' ? 'bg-mastered' : tone === 'streak' ? 'bg-streak' : 'bg-line'
   return (
     <div
       className={`h-1.5 w-full overflow-hidden rounded-full bg-surface-2 ${className}`}

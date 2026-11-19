@@ -121,11 +121,11 @@ function MatchResult({ q, given }: { q: Match; given: Record<number, number> }) 
         return (
           <li
             key={i}
-            className={`rounded-xl border px-3.5 py-2.5 text-[0.875rem] leading-snug ${ok ? 'border-mastered bg-mastered-soft' : 'border-alert bg-alert-soft'}`}
+            className={`rounded-xl border px-3.5 py-2.5 text-[0.875rem] leading-snug ${ok ? 'border-correct bg-correct-soft' : 'border-alert bg-alert-soft'}`}
           >
             <div className="flex items-start gap-2">
               {ok ? (
-                <Check size={16} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-mastered" />
+                <Check size={16} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-correct" />
               ) : (
                 <X size={16} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-alert" />
               )}

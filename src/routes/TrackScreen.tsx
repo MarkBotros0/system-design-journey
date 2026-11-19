@@ -15,7 +15,7 @@ import { TrackTile } from '../components/ui/TrackIcon'
 import { useScrolledPast } from '../components/ui/useScrolledPast'
 import { StationList } from '../components/line/LineMap'
 
-const DIFF_TONE = { easy: 'mastered', medium: 'streak', hard: 'alert' } as const
+const DIFF_TONE = { easy: 'correct', medium: 'streak', hard: 'alert' } as const
 
 /** One track on its own: what it gives you, its stations, and where to practise it. */
 export function TrackScreen() {
@@ -115,7 +115,7 @@ export function TrackScreen() {
                     <span className="mt-1 flex flex-wrap items-center gap-1.5">
                       <Badge tone={DIFF_TONE[p.difficulty]}>{p.difficulty}</Badge>
                       <Badge>{getCategory(p.category)?.title}</Badge>
-                      {problemDone(progress, p.id) && <Badge tone="mastered">done</Badge>}
+                      {problemDone(progress, p.id) && <Badge tone="correct">done</Badge>}
                     </span>
                   </span>
                 </Link>

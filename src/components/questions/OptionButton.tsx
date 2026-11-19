@@ -2,7 +2,7 @@ import { Check, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 /**
- * How an option looks. `mastered` and `alert` appear only once the answer is in: they mean
+ * How an option looks. `correct` and `alert` appear only once the answer is in: they mean
  * right and wrong, nothing else. Before that, a pick is shown with the one accent, `line`.
  */
 export type Mark = 'idle' | 'selected' | 'correct' | 'wrong' | 'missed' | 'dim'
@@ -10,9 +10,9 @@ export type Mark = 'idle' | 'selected' | 'correct' | 'wrong' | 'missed' | 'dim'
 const MARK: Record<Mark, string> = {
   idle: 'border-hairline bg-surface hover:border-line',
   selected: 'border-line bg-line-soft',
-  correct: 'border-mastered bg-mastered-soft',
+  correct: 'border-correct bg-correct-soft',
   wrong: 'border-alert bg-alert-soft',
-  missed: 'border-dashed border-mastered bg-surface',
+  missed: 'border-dashed border-correct bg-surface',
   dim: 'border-hairline bg-surface opacity-55',
 }
 
@@ -63,7 +63,7 @@ export function OptionButton({
         {SR[mark] && <span className="sr-only">{SR[mark]}</span>}
       </span>
       {mark === 'correct' || mark === 'missed' ? (
-        <Check size={17} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-mastered" />
+        <Check size={17} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-correct" />
       ) : mark === 'wrong' ? (
         <X size={17} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-alert" />
       ) : n !== undefined ? (

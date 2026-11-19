@@ -5,7 +5,7 @@ import type { FigureTone } from '../../content/figures'
 
 export const boxTone: Record<FigureTone, string> = {
   line: 'border-line bg-line-soft text-ink',
-  mastered: 'border-mastered bg-mastered-soft text-ink',
+  mastered: 'border-correct bg-correct-soft text-ink',
   streak: 'border-streak bg-streak-soft text-ink',
   alert: 'border-alert bg-alert-soft text-ink',
   neutral: 'border-hairline bg-surface text-ink',
@@ -13,7 +13,7 @@ export const boxTone: Record<FigureTone, string> = {
 
 export const barTone: Record<FigureTone, string> = {
   line: 'bg-line',
-  mastered: 'bg-mastered',
+  mastered: 'bg-correct',
   streak: 'bg-streak',
   alert: 'bg-alert',
   neutral: 'bg-ink-3',
@@ -21,7 +21,7 @@ export const barTone: Record<FigureTone, string> = {
 
 export const softTone: Record<FigureTone, string> = {
   line: 'bg-line-soft',
-  mastered: 'bg-mastered-soft',
+  mastered: 'bg-correct-soft',
   streak: 'bg-streak-soft',
   alert: 'bg-alert-soft',
   neutral: 'bg-surface-2',
@@ -29,7 +29,7 @@ export const softTone: Record<FigureTone, string> = {
 
 export const textTone: Record<FigureTone, string> = {
   line: 'text-line',
-  mastered: 'text-mastered',
+  mastered: 'text-correct',
   streak: 'text-streak',
   alert: 'text-alert',
   neutral: 'text-ink-3',
@@ -38,7 +38,7 @@ export const textTone: Record<FigureTone, string> = {
 /** Line and arrowhead colour for connectors. */
 export const strokeTone: Record<FigureTone, string> = {
   line: 'border-line text-line',
-  mastered: 'border-mastered text-mastered',
+  mastered: 'border-correct text-correct',
   streak: 'border-streak text-streak',
   alert: 'border-alert text-alert',
   neutral: 'border-ink-3 text-ink-3',

@@ -18,7 +18,7 @@ import { Badge, Meter } from '../components/ui/Bits'
 
 type Stage = 'brief' | 'running' | 'grading' | 'done'
 
-const DIFF_TONE = { easy: 'mastered', medium: 'streak', hard: 'alert' } as const
+const DIFF_TONE = { easy: 'correct', medium: 'streak', hard: 'alert' } as const
 
 function mmss(seconds: number): string {
   const s = Math.max(0, Math.round(seconds))
@@ -114,7 +114,7 @@ function BriefStage({
               <li key={m!.id}>
                 <Link to={`/m/${m!.id}`} className="flex min-h-11 items-center gap-2.5 rounded-lg px-2 text-[0.875rem] hover:bg-surface-2">
                   {isPassed(progress, m!.id) ? (
-                    <Check size={15} strokeWidth={2.5} aria-hidden="true" className="text-mastered" />
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" className="text-correct" />
                   ) : (
                     <span aria-hidden="true" className="h-[15px] w-[15px] rounded-full border-2 border-ink-3" />
                   )}
@@ -532,7 +532,7 @@ function ProblemRun({ problemId }: { problemId?: string }) {
                       <p className="mt-0.5 text-[0.875rem] leading-relaxed whitespace-pre-wrap text-ink-2">{notes[`fu:${i}`]}</p>
                     </>
                   )}
-                  <p className="mt-3 font-mono text-[0.625rem] tracking-[0.12em] text-mastered uppercase">A strong answer</p>
+                  <p className="mt-3 font-mono text-[0.625rem] tracking-[0.12em] text-correct uppercase">A strong answer</p>
                   <p className="mt-0.5 text-[0.9375rem] leading-relaxed text-ink-2">
                     <Inline text={f.a} />
                   </p>
@@ -561,7 +561,7 @@ function ProblemRun({ problemId }: { problemId?: string }) {
                     <li key={row.id}>
                       <label
                         className={`flex min-h-13 cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-line ${
-                          on ? 'border-mastered bg-mastered-soft' : 'border-hairline bg-surface'
+                          on ? 'border-correct bg-correct-soft' : 'border-hairline bg-surface'
                         }`}
                       >
                         <input
@@ -573,7 +573,7 @@ function ProblemRun({ problemId }: { problemId?: string }) {
                         <span
                           aria-hidden="true"
                           className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                            on ? 'border-mastered bg-mastered text-paper' : 'border-hairline'
+                            on ? 'border-correct bg-correct text-paper' : 'border-hairline'
                           }`}
                         >
                           {on && <Check size={13} strokeWidth={3} />}
@@ -617,7 +617,7 @@ function ProblemRun({ problemId }: { problemId?: string }) {
             {mustHit}/{mustRows.length}
           </dd>
         </div>
-        <Meter value={mustRows.length ? mustHit / mustRows.length : 0} tone="mastered" label="Bar criteria met" />
+        <Meter value={mustRows.length ? mustHit / mustRows.length : 0} tone="correct" label="Bar criteria met" />
         <div className="mt-2 flex items-center justify-between gap-4">
           <dt className="text-[0.9375rem] text-ink-2">Senior</dt>
           <dd className="font-mono text-[0.9375rem] tabular">

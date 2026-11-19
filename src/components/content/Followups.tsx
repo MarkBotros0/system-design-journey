@@ -27,7 +27,7 @@ export function Followups({ items, title = 'Interviewer follow-ups' }: { items: 
             />
           </summary>
           <div className="px-4 pb-4">
-            <p className="mb-1 font-mono text-[0.625rem] tracking-[0.12em] text-mastered uppercase">A strong answer</p>
+            <p className="mb-1 font-mono text-[0.625rem] tracking-[0.12em] text-correct uppercase">A strong answer</p>
             <p className="text-[0.9375rem] leading-relaxed text-ink-2">
               <Inline text={f.a} />
             </p>

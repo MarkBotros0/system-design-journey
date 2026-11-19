@@ -107,7 +107,7 @@ const gradeLabel = {
   bad: { text: 'Bad', cls: 'text-alert' },
   good: { text: 'Good', cls: 'text-ink-3' },
   great: { text: 'Great', cls: 'text-ink-2' },
-  best: { text: 'Pick this', cls: 'text-mastered font-semibold' },
+  best: { text: 'Pick this', cls: 'text-correct font-semibold' },
 } as const
 
 function Ladder({ rungs }: Extract<Block, { kind: 'ladder' }>) {
@@ -117,7 +117,7 @@ function Ladder({ rungs }: Extract<Block, { kind: 'ladder' }>) {
         <li
           key={i}
           className={`border-b border-hairline p-4 last:border-b-0 ${
-            r.grade === 'best' ? 'bg-mastered-soft' : 'bg-surface'
+            r.grade === 'best' ? 'bg-correct-soft' : 'bg-surface'
           }`}
         >
           <p
@@ -196,10 +196,10 @@ function CodeCompare({ before, after, note }: Extract<Block, { kind: 'codeCompar
         />
         <CodeView
           code={after.code}
-          accent="mastered"
+          accent="correct"
           label={
             <>
-              <Check size={13} strokeWidth={2.5} aria-hidden="true" className="text-mastered" />
+              <Check size={13} strokeWidth={2.5} aria-hidden="true" className="text-correct" />
               <Inline text={after.title} />
             </>
           }

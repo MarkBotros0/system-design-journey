@@ -43,7 +43,7 @@ function greeting(now = new Date()): string {
   return h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-const DIFF_TONE = { easy: 'mastered', medium: 'streak', hard: 'alert' } as const
+const DIFF_TONE = { easy: 'correct', medium: 'streak', hard: 'alert' } as const
 const DAY = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
@@ -215,7 +215,7 @@ function Readiness() {
                 <span className="text-[0.9375rem] font-medium">{r.title}</span>
                 <span className="font-mono text-[0.8125rem] text-ink-2 tabular">{Math.round(r.score * 100)}%</span>
               </div>
-              <Meter value={r.score} tone={r.score >= 0.999 ? 'mastered' : 'line'} label={`${r.title} readiness`} />
+              <Meter value={r.score} tone={r.score >= 0.999 ? 'correct' : 'line'} label={`${r.title} readiness`} />
             </li>
           ))}
         </ul>

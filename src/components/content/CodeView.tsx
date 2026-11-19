@@ -21,10 +21,10 @@ export function CodeView({
   code: string
   label?: ReactNode
   /** A verdict on the code, for before/after pairs. */
-  accent?: 'alert' | 'mastered'
+  accent?: 'alert' | 'correct'
 }) {
   const tokens = useMemo(() => highlight(code), [code])
-  const top = accent === 'alert' ? 'border-t-2 border-t-alert' : accent === 'mastered' ? 'border-t-2 border-t-mastered' : ''
+  const top = accent === 'alert' ? 'border-t-2 border-t-alert' : accent === 'correct' ? 'border-t-2 border-t-correct' : ''
   return (
     <div className={`min-w-0 overflow-hidden rounded-xl border border-hairline bg-surface-2 ${top}`}>
       {label && (

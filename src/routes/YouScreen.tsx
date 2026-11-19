@@ -163,7 +163,7 @@ export function YouScreen() {
               </div>
               <Meter
                 value={r.score}
-                tone={r.score >= 0.999 ? "mastered" : "line"}
+                tone={r.score >= 0.999 ? "correct" : "line"}
                 label={`${r.title} readiness`}
               />
               <p className="mt-2 font-mono text-[0.6875rem] text-ink-3 tabular">
@@ -247,7 +247,7 @@ export function YouScreen() {
                     value={mods.length ? done / mods.length : 0}
                     size={28}
                     label={`${t.title} progress`}
-                    tone={done === mods.length ? "mastered" : "line"}
+                    tone={done === mods.length ? "correct" : "line"}
                   />
                   <span className="min-w-0 flex-1 truncate text-[0.9375rem]">
                     {t.title}
@@ -497,7 +497,7 @@ export function YouScreen() {
             role="status"
             className={`mt-3 rounded-xl px-3.5 py-2.5 text-[0.875rem] ${
               message.kind === "ok"
-                ? "bg-mastered-soft text-mastered"
+                ? "bg-correct-soft text-correct"
                 : "bg-alert-soft text-alert"
             }`}
           >

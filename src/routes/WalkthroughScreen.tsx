@@ -13,7 +13,7 @@ import { Badge, Empty } from '../components/ui/Bits'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { TopBar } from '../components/ui/TopBar'
 
-const DIFF_TONE = { easy: 'mastered', medium: 'streak', hard: 'alert' } as const
+const DIFF_TONE = { easy: 'correct', medium: 'streak', hard: 'alert' } as const
 const BARS: { bar: RubricRow['bar']; title: string }[] = [
   { bar: 'must', title: 'The bar' },
   { bar: 'senior', title: 'Senior' },

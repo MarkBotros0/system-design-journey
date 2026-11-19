@@ -13,7 +13,7 @@ export function ProgressRing({
   value: number
   size?: 28 | 40 | 56 | 72
   label: string
-  tone?: 'line' | 'mastered'
+  tone?: 'line' | 'correct' | 'mastered'
   showValue?: boolean
 }) {
   const v = Math.max(0, Math.min(1, value))
@@ -39,7 +39,7 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - v)}
-          className={`${tone === 'mastered' ? 'stroke-mastered' : 'stroke-line'} transition-[stroke-dashoffset] duration-500`}
+          className={`${tone === 'mastered' ? 'stroke-mastered' : tone === 'correct' ? 'stroke-correct' : 'stroke-line'} transition-[stroke-dashoffset] duration-500`}
           style={{ transitionTimingFunction: 'var(--ease-out)' }}
         />
       </svg>

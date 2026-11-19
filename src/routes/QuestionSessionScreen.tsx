@@ -236,11 +236,11 @@ function Summary({ set, req, onAnother }: { set: QuestionSet; req: SetRequest; o
         {right === first.size ? 'Every one, first time.' : 'Misses come back sooner; the ones you knew are spaced out.'}
       </p>
       <div className="mt-4">
-        <Meter value={first.size ? right / first.size : 0} tone={right === first.size ? 'mastered' : 'line'} label="Answered right first time" />
+        <Meter value={first.size ? right / first.size : 0} tone={right === first.size ? 'correct' : 'line'} label="Answered right first time" />
       </div>
       <p className="mt-3 font-mono text-[0.75rem] text-ink-3 tabular">
         Today: {today.answered} answered · goal {progress.dailyGoal}
-        {goalMet && <span className="text-mastered"> · met</span>}
+        {goalMet && <span className="text-correct"> · met</span>}
       </p>
 
       <ul className="mt-6 flex flex-col divide-y divide-hairline rounded-2xl border border-hairline bg-surface" aria-label="Your answers">
@@ -251,7 +251,7 @@ function Summary({ set, req, onAnother }: { set: QuestionSet; req: SetRequest; o
           return (
             <li key={id} className="flex items-start gap-3 px-4 py-3">
               {ok ? (
-                <Check size={16} strokeWidth={2.5} aria-label="Right" className="mt-0.5 shrink-0 text-mastered" />
+                <Check size={16} strokeWidth={2.5} aria-label="Right" className="mt-0.5 shrink-0 text-correct" />
               ) : (
                 <X size={16} strokeWidth={2.5} aria-label="Missed" className="mt-0.5 shrink-0 text-alert" />
               )}

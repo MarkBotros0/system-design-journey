@@ -23,9 +23,9 @@ export function Feedback({ correct, explain, topic }: { correct: boolean; explai
       tabIndex={-1}
       aria-label={correct ? 'Correct' : 'Not quite'}
       // Room for the sticky Next bar, so scrolling it into view never leaves "Learn more" underneath.
-      className={`mt-5 scroll-mb-32 rounded-2xl border p-4 outline-none ${correct ? 'border-mastered/50 bg-mastered-soft/50' : 'border-alert/50 bg-alert-soft/50'}`}
+      className={`mt-5 scroll-mb-32 rounded-2xl border p-4 outline-none ${correct ? 'border-correct/50 bg-correct-soft/50' : 'border-alert/50 bg-alert-soft/50'}`}
     >
-      <p className={`flex items-center gap-1.5 text-[0.9375rem] font-semibold ${correct ? 'text-mastered' : 'text-alert'}`}>
+      <p className={`flex items-center gap-1.5 text-[0.9375rem] font-semibold ${correct ? 'text-correct' : 'text-alert'}`}>
         {correct ? <Check size={17} strokeWidth={2.5} aria-hidden="true" /> : <X size={17} strokeWidth={2.5} aria-hidden="true" />}
         {correct ? 'Right' : 'Not quite'}
       </p>

@@ -78,7 +78,7 @@ function FinishRow({ m }: { m: Module }) {
       ) : (
         <>
           <p className="mt-1 flex items-start gap-2 text-[0.9375rem] text-ink-2">
-            <Check size={17} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-mastered" />
+            <Check size={17} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-correct" />
             <span>
               Read.{' '}
               {passed
@@ -248,7 +248,7 @@ function Lesson({ m }: { m: Module }) {
                       to={`/m/${p.id}`}
                       className="inline-flex min-h-9 items-center gap-1 rounded-full border border-hairline bg-surface px-3 text-[0.8125rem] text-ink-2 hover:border-line hover:text-ink"
                     >
-                      {done && <Check size={13} strokeWidth={2.6} aria-hidden="true" className="text-mastered" />}
+                      {done && <Check size={13} strokeWidth={2.6} aria-hidden="true" className="text-correct" />}
                       {plainText(p.title)}
                       {done && <span className="sr-only">(passed)</span>}
                     </Link>

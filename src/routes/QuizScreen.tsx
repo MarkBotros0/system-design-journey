@@ -71,13 +71,13 @@ export function QuizScreen() {
         <h1 className="mt-2 text-[2rem] leading-tight font-semibold">
           {correctCount} of {questions.length}
         </h1>
-        <p className={`mt-2 text-[0.9375rem] ${passed ? 'text-mastered' : 'text-ink-2'}`}>
+        <p className={`mt-2 text-[0.9375rem] ${passed ? 'text-correct' : 'text-ink-2'}`}>
           {passed
             ? 'Passed. The next station is open.'
             : `${Math.round(QUIZ_PASS * 100)}% passes — worth another read before you retry.`}
         </p>
         <div className="mt-4">
-          <Meter value={score} tone={passed ? 'mastered' : 'line'} label="Quiz score" />
+          <Meter value={score} tone={passed ? 'correct' : 'line'} label="Quiz score" />
         </div>
 
         <div className="mt-8 flex flex-col gap-2.5">
@@ -119,7 +119,7 @@ export function QuizScreen() {
           const chosen = picked === i
           let cls = 'border-hairline bg-surface hover:border-line'
           if (answered) {
-            if (opt.isCorrect) cls = 'border-mastered bg-mastered-soft'
+            if (opt.isCorrect) cls = 'border-correct bg-correct-soft'
             else if (chosen) cls = 'border-alert bg-alert-soft'
             else cls = 'border-hairline bg-surface opacity-55'
           }
@@ -134,7 +134,7 @@ export function QuizScreen() {
                 <Inline text={opt.text} />
               </span>
               {answered && opt.isCorrect && (
-                <Check size={17} strokeWidth={2.5} className="mt-0.5 shrink-0 text-mastered" />
+                <Check size={17} strokeWidth={2.5} className="mt-0.5 shrink-0 text-correct" />
               )}
               {answered && chosen && !opt.isCorrect && (
                 <X size={17} strokeWidth={2.5} className="mt-0.5 shrink-0 text-alert" />

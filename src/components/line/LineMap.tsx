@@ -20,7 +20,7 @@ import { TrackTile } from '../ui/TrackIcon'
  */
 
 const RAIL_LEFT = 'left-[17px]' // centre of the 36px node column, minus half the 2px rail
-const DIFF_TONE = { easy: 'mastered', medium: 'streak', hard: 'alert' } as const
+const DIFF_TONE = { easy: 'correct', medium: 'streak', hard: 'alert' } as const
 
 function Node({ status, problem, current }: { status: ModuleStatus | 'done' | 'todo'; problem?: boolean; current?: boolean }) {
   const ring = current ? 'ring-4 ring-line/25' : ''
@@ -29,7 +29,7 @@ function Node({ status, problem, current }: { status: ModuleStatus | 'done' | 't
     return (
       <span
         className={`flex h-[18px] w-[18px] rotate-45 items-center justify-center rounded-[3px] border-2 ${
-          done ? 'border-mastered bg-mastered text-paper' : current ? 'border-line bg-paper' : 'border-ink-3 bg-paper'
+          done ? 'border-correct bg-correct text-paper' : current ? 'border-line bg-paper' : 'border-ink-3 bg-paper'
         } ${ring}`}
       >
         {done && <Check size={10} strokeWidth={3.5} className="-rotate-45" />}
@@ -229,7 +229,7 @@ export function LineMap({
                 value={g.stops.length ? done / g.stops.length : 0}
                 size={28}
                 label={`${g.title} progress`}
-                tone={done === g.stops.length && done > 0 ? 'mastered' : 'line'}
+                tone={done === g.stops.length && done > 0 ? 'correct' : 'line'}
               />
               <ChevronDown
                 size={18}

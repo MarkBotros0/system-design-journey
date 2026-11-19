@@ -48,8 +48,8 @@ export default defineConfig({
         short_name: 'Throughput',
         description:
           'A system design training app: read a station, drill it, then run the real problem on the clock.',
-        theme_color: '#0D1014',
-        background_color: '#0D1014',
+        theme_color: '#0A0C11',
+        background_color: '#0A0C11',
         display: 'standalone',
         orientation: 'portrait',
         start_url: base,

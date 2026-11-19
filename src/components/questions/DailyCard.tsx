@@ -31,7 +31,7 @@ export function DailyCard() {
         <ProgressRing
           value={Math.min(1, today.answered / goal)}
           size={56}
-          tone={met ? 'mastered' : 'line'}
+          tone={met ? 'correct' : 'line'}
           label={`${today.answered} of ${goal} questions today`}
         />
         <div className="min-w-0 flex-1">

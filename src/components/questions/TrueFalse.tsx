@@ -29,7 +29,7 @@ export function TrueFalse({ q, given, onAnswer }: { q: TF; given?: Answer; onAns
         const cls = !answered
           ? 'border-hairline bg-surface hover:border-line'
           : v === q.answer
-            ? 'border-mastered bg-mastered-soft'
+            ? 'border-correct bg-correct-soft'
             : given === v
               ? 'border-alert bg-alert-soft'
               : 'border-hairline bg-surface opacity-55'
@@ -42,7 +42,7 @@ export function TrueFalse({ q, given, onAnswer }: { q: TF; given?: Answer; onAns
             onClick={() => onAnswer(v)}
             className={`flex min-h-16 items-center justify-center gap-2 rounded-2xl border text-[1.0625rem] font-semibold transition-colors duration-150 disabled:cursor-default ${cls}`}
           >
-            {answered && v === q.answer && <Check size={18} strokeWidth={2.5} aria-hidden="true" className="text-mastered" />}
+            {answered && v === q.answer && <Check size={18} strokeWidth={2.5} aria-hidden="true" className="text-correct" />}
             {answered && given === v && v !== q.answer && <X size={18} strokeWidth={2.5} aria-hidden="true" className="text-alert" />}
             {label}
             {answered && v === q.answer && <span className="sr-only"> — correct</span>}

@@ -8,27 +8,47 @@
 :root {
   color-scheme: light;
 
-  --ink: #16191f;
-  --ink-2: #4c555f;
-  --ink-3: #78828c;
+  --ink: #12141b;
+  --ink-2: #464c5f;
+  --ink-3: #5f6579;
 
-  --paper: #eff1f4;
+  /* Filled surfaces, deepest last. Depth comes from these steps and a soft shadow,
+     never from an outline. */
+  --paper: #f4f5f8;
   --surface: #ffffff;
-  --surface-2: #e4e8ed;
-  --hairline: #d3d9e0;
+  --surface-2: #eef0f4;
+  --surface-3: #e6e9f0;
+  --hairline: #dde1e8;
 
-  /* The one bold accent. Route line, active state, primary action. */
-  --line: #1f35c4;
-  --line-ink: #ffffff;
-  --line-soft: #dde3fa;
+  /* The primary action: a solid ink pill. There is no brand hue — colour belongs to the
+     tracks, and to the states below. */
+  --line: #12141b;
+  --line-ink: #f4f5f8;
+  --line-soft: #e6e9f0;
 
-  /* Earned states only — never decorative. */
-  --streak: #96680a;
-  --streak-soft: #f6ebd3;
-  --mastered: #2f7d5b;
-  --mastered-soft: #dcede4;
-  --alert: #b0342f;
-  --alert-soft: #f7dedc;
+  /* Earned states only — never decorative, always with their icon. */
+  --correct: #0b7a49;
+  --correct-soft: #e2efe9;
+  --alert: #c72c3a;
+  --alert-soft: #f8e6e7;
+  --streak: #a95000;
+  --streak-soft: #f5eae0;
+  --mastered: #886200;
+  --mastered-soft: #f1ece0;
+
+  /* Track identity — tiles, chips, eyebrows, ribbons. Never an answer state. */
+  --t-foundations: #1e6ccb;
+  --t-principles: #6247db;
+  --t-design-patterns: #8e2fd2;
+  --t-lld: #b42c96;
+  --t-core: #08778a;
+  --t-databases: #0a7a64;
+  --t-distributed: #3f55d6;
+  --t-architecture: #66750c;
+  --t-production: #c02a60;
+  --t-applied: #3c7b12;
+  --t-interview: #14161c;
+  --tint: 12%;
 
   /* Code — muted, distinct hues so syntax reads without borrowing an earned state. */
   --code-kw: #6b2fb3;
@@ -37,32 +57,51 @@
   --code-type: #1d5f99;
   --code-num: #9a4a14;
 
-  --shadow-sheet: 0 -8px 32px rgb(22 25 31 / 0.12);
-  --shadow-card: 0 1px 2px rgb(22 25 31 / 0.06);
+  --bar: rgb(255 255 255 / 0.78);
+  --bar-solid: #ffffff;
+  --shadow-card: 0 1px 2px rgb(18 20 27 / 0.05), 0 10px 28px -16px rgb(18 20 27 / 0.18);
+  --shadow-float: 0 10px 34px -10px rgb(18 20 27 / 0.28), 0 1px 3px rgb(18 20 27 / 0.08);
+  --shadow-sheet: 0 -10px 40px rgb(18 20 27 / 0.16);
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --ink: #e6eaef;
-  --ink-2: #a3aeb9;
-  --ink-3: #6f7a85;
+  --ink: #f3f4f8;
+  --ink-2: #bac0ce;
+  --ink-3: #8f96a9;
 
-  --paper: #0d1014;
-  --surface: #151a20;
-  --surface-2: #1e252d;
-  --hairline: #2a323b;
+  --paper: #0a0c11;
+  --surface: #141720;
+  --surface-2: #1b1f2a;
+  --surface-3: #272c39;
+  --hairline: #232733;
 
-  --line: #7c90ff;
-  --line-ink: #0d1014;
-  --line-soft: #1a2140;
+  --line: #f3f4f8;
+  --line-ink: #0a0c11;
+  --line-soft: #272c39;
 
-  --streak: #e4a709;
-  --streak-soft: #33280c;
-  --mastered: #5fb58b;
-  --mastered-soft: #14301f;
-  --alert: #f08c86;
-  --alert-soft: #3a1a18;
+  --correct: #3ddc8e;
+  --correct-soft: #1b3833;
+  --alert: #ff6672;
+  --alert-soft: #3c242e;
+  --streak: #ff9f45;
+  --streak-soft: #3c2e26;
+  --mastered: #ffcf5c;
+  --mastered-soft: #3c362a;
+
+  --t-foundations: #6cb4ff;
+  --t-principles: #a493ff;
+  --t-design-patterns: #d08cff;
+  --t-lld: #f58ae0;
+  --t-core: #3fd2e6;
+  --t-databases: #3ddbb8;
+  --t-distributed: #8c9eff;
+  --t-architecture: #c9e25b;
+  --t-production: #ff8fb0;
+  --t-applied: #a6e36b;
+  --t-interview: #e9ebf2;
+  --tint: 17%;
 
   --code-kw: #c39bff;
   --code-str: #6fd3c5;
@@ -70,8 +109,21 @@
   --code-type: #7fb8ff;
   --code-num: #f0a46a;
 
-  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.5);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --bar: rgb(27 31 42 / 0.72);
+  --bar-solid: #1b1f2a;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 30px -18px rgb(0 0 0 / 0.7);
+  --shadow-float: 0 12px 36px -8px rgb(0 0 0 / 0.65), 0 1px 3px rgb(0 0 0 / 0.4);
+  --shadow-sheet: 0 -12px 44px rgb(0 0 0 / 0.55);
+}
+
+/* A track's colour reaches its subtree through --track: set it with trackStyle(). */
+:root {
+  --track-soft: color-mix(in oklab, var(--track, var(--ink)) var(--tint), transparent);
+}
+@supports not (color: color-mix(in oklab, red, blue)) {
+  :root {
+    --track-soft: var(--surface-3);
+  }
 }
 
 @theme inline {
@@ -82,12 +134,15 @@
   --color-paper: var(--paper);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-hairline: var(--hairline);
 
   --color-line: var(--line);
   --color-line-ink: var(--line-ink);
   --color-line-soft: var(--line-soft);
 
+  --color-correct: var(--correct);
+  --color-correct-soft: var(--correct-soft);
   --color-streak: var(--streak);
   --color-streak-soft: var(--streak-soft);
   --color-mastered: var(--mastered);
@@ -95,17 +150,21 @@
   --color-alert: var(--alert);
   --color-alert-soft: var(--alert-soft);
 
+  --color-track: var(--track, var(--ink));
+  --color-track-soft: var(--track-soft);
+
   --color-code-kw: var(--code-kw);
   --color-code-str: var(--code-str);
   --color-code-com: var(--code-com);
   --color-code-type: var(--code-type);
   --color-code-num: var(--code-num);
 
-  --font-display: 'Familjen Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 @layer base {
@@ -133,8 +192,8 @@
   h2,
   h3,
   h4 {
-    font-weight: 600;
-    letter-spacing: -0.018em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     line-height: 1.15;
     text-wrap: balance;
     margin: 0;
@@ -146,7 +205,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--line);
+    outline: 2px solid var(--track, var(--ink));
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -179,7 +238,7 @@
 
 /* Scroll clearance so content never hides behind the fixed tab bar. */
 @utility pb-tabbar {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1.5rem);
+  padding-bottom: calc(var(--dock-h, 0px) + 5.25rem + env(safe-area-inset-bottom) + 1.25rem);
 }
 
 /* Top of a scrolling screen. `viewport-fit=cover` plus a translucent status bar means the
@@ -192,13 +251,14 @@
 @layer utilities {
   .prose-lesson {
     font-family: var(--font-serif);
-    font-size: 1.0625rem;
-    line-height: 1.68;
+    font-size: 1.1875rem;
+    line-height: 1.58;
     color: var(--ink-2);
+    font-optical-sizing: auto;
   }
   .prose-lesson strong {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: 500;
   }
 }
 
