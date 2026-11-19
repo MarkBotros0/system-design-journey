@@ -39,8 +39,8 @@ describe('resumeTarget', () => {
     const p = withState({
       lastPlace: { moduleId: 'db-isolation', at: 10 },
       lessonsRead: { 'db-isolation': 5 },
-      quiz: { 'db-isolation': { best: 1, last: 1, attempts: 1 } },
-    } as Partial<ProgressState>)
+      quiz: { 'db-isolation': { best: 1, attempts: 1, lastAt: 5 } },
+    })
     expect(resumeTarget(p)).toBeNull()
   })
 
