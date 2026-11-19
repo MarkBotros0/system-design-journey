@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearFinishedSet, isFinished, loadSet, todayCount } from '../../lib/bank'
+import { isFinished, todayCount } from '../../lib/bank'
+import { clearFinishedSet, loadSet } from '../../lib/setStore'
 import { useProgress } from '../../state/ProgressProvider'
 
 /**

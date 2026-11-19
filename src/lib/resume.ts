@@ -1,7 +1,7 @@
 import { getModule, getProblem } from '../content'
 import { isPassed } from './progress'
 import { headingSlugs } from './slug'
-import type { ProgressState } from './storage'
+import type { ProgressState } from './progressState'
 import { plainText } from './text'
 
 export type ResumeTarget =

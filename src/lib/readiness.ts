@@ -10,7 +10,7 @@
 import type { Problem, ProblemKind, RouteStop } from '../content/types'
 import { getProblem, getRoute, problems as allProblems } from '../content'
 import { ROUNDS } from '../content/routes'
-import type { ProblemAttempt, ProgressState } from './storage'
+import type { ProblemAttempt, ProgressState } from './progressState'
 import { isPassed } from './progress'
 
 const WEIGHT = { must: 3, senior: 2, staff: 1 } as const

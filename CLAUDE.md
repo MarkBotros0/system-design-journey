@@ -76,10 +76,13 @@ src/
 │                         Cell), StatTile, SegmentedProgress, RouteRibbon, SearchPill,
 │                         Button, Bits — all shown on /__fixtures/ui
 ├── lib/                  pure functions + IO wrappers, no React:
-│                         storage · progress · readiness · review · srs · search ·
-│                         walkthrough · slug · text · highlight · export ·
-│                         bank (answer checks, set building, the set in progress) ·
-│                         attempts (finished vs draft problem attempts)
+│                         progressState (the record's shape + migrate) · progress ·
+│                         readiness · review · srs · search · walkthrough · slug ·
+│                         text · highlight · export (envelope + parseImport) ·
+│                         bank (answer checks, set building) · attempts (finished vs
+│                         draft problem attempts) — all shared with the mobile app;
+│                         web-only IO: storage (IndexedDB, theme) · setStore (the set
+│                         in progress, sessionStorage) · download · installPrompt
 ├── state/                ProgressProvider.tsx — the single React state owner
 └── routes/               one screen per file; __fixtures/ are DEV-only
 ```
@@ -114,13 +117,13 @@ renders but is not added to `validate.ts` becomes a hole the abbreviation rule c
 track files, or the dev validation never runs.
 
 `checkCurriculum()` is the whole-curriculum check (ids, quiz shape, stations, prereqs,
-related, problem skeletons, glossary duplicates, routes, abbreviations). It logs in
-development and **fails `npm test`** — run the tests after any content change.
+related, problem skeletons, glossary duplicates, routes, abbreviations). `main.tsx` logs it in
+development and it **fails `npm test`** — run the tests after any content change.
 
 ## Authoring content — the thing you will do most
 
 Content is **typed TypeScript data, not MDX**. The compiler catches a broken prereq id or an
-out-of-range `correct` index, and `src/content/index.ts` runs a dev-only validation pass that
+out-of-range `correct` index, and `main.tsx` runs a dev-only validation pass that
 logs duplicate ids, mismatched `moduleId`s, and unknown prereqs to the console. Check the
 console after adding content.
 
@@ -334,6 +337,18 @@ build output instead — same outcome, correct for this bundler.
 
 Verify a PWA change with `npm run build && npm run preview`, then Chrome DevTools →
 Application → Service Workers, and the Network panel set to Offline.
+
+## Shared with the mobile app
+
+`system-design-journey-mobile` (Expo, a separate repo beside this one) is the native app. It
+copies `src/content/**`, the lib files listed in `shared.json` and the colour tokens of
+`src/index.css` **verbatim** (`npm run sync:shared` there) — this repo is the single source
+of truth, so content is only ever edited here.
+
+Those files must stay platform-neutral: no browser API, no React, no `import.meta`, imports
+only from each other or the packages in `shared.json`. `src/lib/shared.test.ts` fails the
+build otherwise. Browser IO goes in a web-only file beside them (`storage.ts`, `setStore.ts`,
+`download.ts`), never inside a shared one. A new lib file the app needs goes in `shared.json`.
 
 ## Storage
 

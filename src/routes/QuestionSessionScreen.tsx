@@ -8,8 +8,6 @@ import {
   buildSet,
   isCorrect,
   isFinished,
-  loadSet,
-  saveSet,
   setLabel,
   setRequest,
   setSource,
@@ -18,6 +16,7 @@ import {
   type QuestionSet,
   type SetRequest,
 } from '../lib/bank'
+import { loadSet, saveSet } from '../lib/setStore'
 import type { ProgressState } from '../lib/storage'
 import { plainText } from '../lib/text'
 import { useProgress } from '../state/ProgressProvider'

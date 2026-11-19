@@ -1,0 +1,22 @@
+{
+  "//": "What the mobile app (system-design-journey-mobile) copies from this repo, verbatim, with its scripts/sync-shared.mjs. Every file here must stay platform-neutral: no browser APIs, no React, and imports only from each other or the packages listed. src/lib/shared.test.ts enforces it.",
+  "dirs": ["src/content"],
+  "files": [
+    "src/lib/attempts.ts",
+    "src/lib/bank.ts",
+    "src/lib/export.ts",
+    "src/lib/highlight.ts",
+    "src/lib/progress.ts",
+    "src/lib/progressState.ts",
+    "src/lib/readiness.ts",
+    "src/lib/resume.ts",
+    "src/lib/review.ts",
+    "src/lib/search.ts",
+    "src/lib/slug.ts",
+    "src/lib/srs.ts",
+    "src/lib/text.ts",
+    "src/lib/walkthrough.ts"
+  ],
+  "packages": ["minisearch"],
+  "tokens": "src/index.css"
+}

@@ -1,7 +1,7 @@
 /**
  * The question bank's logic: checking an answer, scheduling the question, and choosing
- * what a set asks next. Pure functions plus the small sessionStorage wrapper that lets a
- * set survive a "Learn more" detour.
+ * what a set asks next. Pure functions only (the mobile app copies this file); where a set
+ * in progress is kept is the platform's business (setStore.ts on the web).
  */
 
 import { getModule, getTrack, tracks } from '../content'
@@ -9,7 +9,7 @@ import { bank, getQuestion } from '../content/bank'
 import type { Question, QuestionKind } from '../content/types'
 import { dayKey } from './progress'
 import { newCard, review, type CardState } from './srs'
-import type { ProgressState } from './storage'
+import type { ProgressState } from './progressState'
 
 /** single → option index · multi → option indexes · truefalse → boolean · match → left index → right index (as authored). */
 export type Answer = number | number[] | boolean | Record<number, number>
@@ -190,8 +190,6 @@ export function bankStats(p: ProgressState, now = Date.now(), pool: Question[] =
 /* The set in progress                                                 */
 /* ------------------------------------------------------------------ */
 
-const SET_KEY = 'tp:qset'
-
 export interface SetResult {
   id: string
   correct: boolean
@@ -210,10 +208,10 @@ export interface QuestionSet {
   startedAt: number
 }
 
-export function loadSet(): QuestionSet | null {
+/** A saved set read back, or null if it is malformed or names questions that no longer exist. */
+export function parseSet(raw: string | null): QuestionSet | null {
+  if (!raw) return null
   try {
-    const raw = sessionStorage.getItem(SET_KEY)
-    if (!raw) return null
     const s = JSON.parse(raw) as QuestionSet
     if (!Array.isArray(s.ids) || typeof s.at !== 'number' || !Array.isArray(s.results)) return null
     // A set from an older build may name questions that no longer exist.
@@ -222,15 +220,6 @@ export function loadSet(): QuestionSet | null {
     return s
   } catch {
     return null
-  }
-}
-
-export function saveSet(s: QuestionSet | null): void {
-  try {
-    if (s) sessionStorage.setItem(SET_KEY, JSON.stringify(s))
-    else sessionStorage.removeItem(SET_KEY)
-  } catch {
-    /* storage blocked — the set just will not survive a reload */
   }
 }
 
@@ -283,12 +272,6 @@ export function setSource(params: URLSearchParams): string {
   if (params.get('set') === 'daily') return 'daily'
   const keep = ['scope', 'tracks', 'kinds', 'size']
   return new URLSearchParams([...params].filter(([k]) => keep.includes(k)).sort(([a], [b]) => a.localeCompare(b))).toString()
-}
-
-/** Entry points call this before opening a set: a finished set is not resumed, it is replaced. */
-export function clearFinishedSet(): void {
-  const s = loadSet()
-  if (s && isFinished(s)) saveSet(null)
 }
 
 /* ------------------------------------------------------------------ */

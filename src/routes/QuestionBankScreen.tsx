@@ -8,12 +8,11 @@ import {
   bankStats,
   buildSet,
   isFinished,
-  loadSet,
-  saveSet,
   setLabel,
   setRequest,
   type BankScope,
 } from '../lib/bank'
+import { loadSet, saveSet } from '../lib/setStore'
 import { useProgress } from '../state/ProgressProvider'
 import { TopBar, PageTitle } from '../components/ui/TopBar'
 import { Segmented } from '../components/ui/Segmented'

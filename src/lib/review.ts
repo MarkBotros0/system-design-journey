@@ -2,7 +2,7 @@ import { modules } from '../content'
 import type { CardItem } from '../content/types'
 import { hasReadLesson } from './progress'
 import { isDue, sortForDrill, type Grade } from './srs'
-import type { ProgressState } from './storage'
+import type { ProgressState } from './progressState'
 
 /**
  * The deck: cards from lessons you have actually read, optionally one track's. Drilling

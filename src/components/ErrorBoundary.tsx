@@ -1,7 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Download, RotateCw, TriangleAlert, Trash2 } from 'lucide-react'
 import { clearProgress, loadProgress } from '../lib/storage'
-import { downloadProgress } from '../lib/export'
+import { downloadProgress } from '../lib/download'
 import { Button } from './ui/Button'
 
 /**

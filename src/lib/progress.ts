@@ -13,7 +13,7 @@
 import type { Module, Route, RouteStop, Track } from '../content/types'
 import { getModule } from '../content'
 import { isLearned } from './srs'
-import { stopKey, type ProgressState } from './storage'
+import { stopKey, type ProgressState } from './progressState'
 
 export const QUIZ_PASS = 0.8
 

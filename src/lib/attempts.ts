@@ -4,7 +4,7 @@
  * costs the learner forty minutes of notes. Only finished attempts count anywhere.
  */
 
-import type { ProblemAttempt, ProgressState } from './storage'
+import type { ProblemAttempt, ProgressState } from './progressState'
 
 export function finishedAttempts(p: ProgressState, problemId?: string): ProblemAttempt[] {
   return p.attempts.filter((a) => !!a.finishedAt && (!problemId || a.problemId === problemId))

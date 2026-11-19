@@ -2,10 +2,11 @@
  * Progress export / import.
  *
  * The only route off this device. Everything is local, so without this a cleared browser
- * or a new phone means starting over.
+ * or a new phone means starting over. Platform-neutral (the mobile app copies it); saving
+ * the file is download.ts on the web.
  */
 
-import { migrate, type ProgressState } from './storage'
+import { migrate, type ProgressState } from './progressState'
 
 const FORMAT = 'throughput.progress'
 
@@ -32,19 +33,6 @@ export function toJson(progress: ProgressState): string {
     progress,
   }
   return JSON.stringify(envelope, null, 2)
-}
-
-export function downloadProgress(progress: ProgressState): void {
-  const blob = new Blob([toJson(progress)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = exportFilename()
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  // Revoke on the next tick — Safari needs the URL to survive the click.
-  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 export type ParseResult =

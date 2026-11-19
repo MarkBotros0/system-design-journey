@@ -232,12 +232,3 @@ export function checkCurriculum(): string[] {
 
   return out
 }
-
-if (import.meta.env.DEV) {
-  const issues = checkCurriculum()
-  if (issues.length) {
-    console.error(
-      `[curriculum] ${issues.length} problem(s) found:\n` + issues.map((p) => `  • ${p}`).join('\n'),
-    )
-  }
-}
