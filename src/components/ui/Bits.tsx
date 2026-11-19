@@ -3,12 +3,9 @@ import type { ReactNode } from 'react'
 /* Small shared pieces. Kept together because each is a few lines and they are always
    imported as a set; anything that grows past ~30 lines moves to its own file. */
 
+/** A small label above a title: sentence case, bold, in the track's colour where one is set. */
 export function Eyebrow({ children }: { children: ReactNode }) {
-  return (
-    <span className="font-mono text-[0.6875rem] tracking-[0.14em] uppercase text-ink-3">
-      {children}
-    </span>
-  )
+  return <span className="text-[0.875rem] font-bold text-track">{children}</span>
 }
 
 export function Panel({
@@ -19,10 +16,7 @@ export function Panel({
   className?: string
 }) {
   return (
-    <div
-      className={`rounded-2xl border border-hairline bg-surface p-4 ${className}`}
-      style={{ boxShadow: 'var(--shadow-card)' }}
-    >
+    <div className={`rounded-3xl bg-surface p-5 ${className}`} style={{ boxShadow: 'var(--shadow-card)' }}>
       {children}
     </div>
   )
@@ -31,7 +25,7 @@ export function Panel({
 type Tone = 'line' | 'correct' | 'mastered' | 'streak' | 'alert' | 'neutral'
 
 const toneClasses: Record<Tone, string> = {
-  line: 'bg-line-soft text-line',
+  line: 'bg-surface-3 text-ink',
   correct: 'bg-correct-soft text-correct',
   mastered: 'bg-mastered-soft text-mastered',
   streak: 'bg-streak-soft text-streak',
@@ -42,7 +36,7 @@ const toneClasses: Record<Tone, string> = {
 export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[0.6875rem] tracking-wide ${toneClasses[tone]}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[0.8125rem] font-semibold ${toneClasses[tone]}`}
     >
       {children}
     </span>
@@ -66,7 +60,7 @@ export function Meter({
     tone === 'correct' ? 'bg-correct' : tone === 'mastered' ? 'bg-mastered' : tone === 'streak' ? 'bg-streak' : 'bg-line'
   return (
     <div
-      className={`h-1.5 w-full overflow-hidden rounded-full bg-surface-2 ${className}`}
+      className={`h-1.5 w-full overflow-hidden rounded-full bg-surface-3 ${className}`}
       role="progressbar"
       aria-valuenow={pct}
       aria-valuemin={0}
@@ -93,8 +87,8 @@ export function ScreenTitle({
   return (
     <header className="mb-5 flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-[1.75rem] leading-tight font-semibold">{title}</h1>
-        {sub && <p className="mt-1.5 text-[0.9375rem] text-ink-2">{sub}</p>}
+        <h1 className="text-[2rem] leading-[1.1] font-extrabold tracking-[-0.025em]">{title}</h1>
+        {sub && <p className="mt-2 text-base text-ink-2">{sub}</p>}
       </div>
       {right}
     </header>
@@ -111,9 +105,9 @@ export function Empty({
   action?: ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-hairline px-5 py-10 text-center">
-      <p className="font-semibold">{title}</p>
-      <p className="mx-auto mt-1.5 max-w-[32ch] text-[0.9375rem] text-ink-2">{body}</p>
+    <div className="rounded-3xl bg-surface-2 px-6 py-10 text-center">
+      <p className="text-[1.0625rem] font-bold">{title}</p>
+      <p className="mx-auto mt-1.5 max-w-[34ch] text-[0.9375rem] text-ink-2">{body}</p>
       {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   )

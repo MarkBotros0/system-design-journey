@@ -262,6 +262,20 @@
   }
 }
 
+/* Frosted bars and docks. The solid colour stays where blur is unsupported or costly. */
+@layer components {
+  .bar-glass {
+    background: var(--bar-solid);
+  }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .bar-glass {
+      background: var(--bar);
+      -webkit-backdrop-filter: saturate(1.6) blur(22px);
+      backdrop-filter: saturate(1.6) blur(22px);
+    }
+  }
+}
+
 /* A quiet arrival for each screen — confirms the navigation without moving anything. */
 @keyframes page-in {
   from {
@@ -273,6 +287,28 @@
 }
 @utility animate-page-in {
   animation: page-in 150ms var(--ease-out) both;
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@utility animate-sheet-in {
+  animation: sheet-in 260ms var(--ease-out) both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@utility animate-fade-in {
+  animation: fade-in 200ms var(--ease-out) both;
 }
 
 /* Anchored headings land below the sticky top bar, not under it. */

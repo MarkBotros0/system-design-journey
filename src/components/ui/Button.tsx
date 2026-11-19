@@ -4,23 +4,24 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type Size = 'md' | 'lg'
 
+// Pills with a physical press: a slight shrink that reduced motion switches off.
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-medium select-none ' +
-  'transition-[background-color,border-color,color,opacity] duration-150 ' +
-  'disabled:opacity-40 disabled:pointer-events-none active:scale-[0.985] ' +
+  'inline-flex items-center justify-center gap-2 rounded-full font-semibold select-none ' +
+  'transition-[background-color,color,opacity,transform] duration-150 ' +
+  'disabled:opacity-40 disabled:pointer-events-none active:scale-[0.97] ' +
   'motion-reduce:active:scale-100'
 
 const variants: Record<Variant, string> = {
   primary: 'bg-line text-line-ink hover:opacity-90',
-  secondary: 'bg-surface text-ink border border-hairline hover:border-line',
+  secondary: 'bg-surface-3 text-ink hover:bg-hairline',
   ghost: 'text-ink-2 hover:text-ink hover:bg-surface-2',
-  danger: 'bg-alert-soft text-alert border border-alert/30 hover:border-alert',
+  danger: 'bg-alert-soft text-alert hover:opacity-90',
 }
 
 // Minimum 44px tall throughout — the touch-target floor, not a style choice.
 const sizes: Record<Size, string> = {
-  md: 'min-h-11 px-4 text-[0.9375rem]',
-  lg: 'min-h-13 px-5 text-base w-full',
+  md: 'min-h-11 px-5 text-[0.9375rem]',
+  lg: 'min-h-14 px-6 text-base w-full',
 }
 
 interface CommonProps {
@@ -55,7 +56,7 @@ export function IconButton({
     <button
       type="button"
       aria-label={label}
-      className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink active:bg-surface-2 ${className}`}
+      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink transition-[background-color,transform] duration-150 hover:bg-surface-3 active:scale-95 motion-reduce:active:scale-100 ${className}`}
       {...rest}
     >
       {children}

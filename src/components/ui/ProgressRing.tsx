@@ -13,7 +13,8 @@ export function ProgressRing({
   value: number
   size?: 28 | 40 | 56 | 72
   label: string
-  tone?: 'line' | 'correct' | 'mastered'
+  /** `track` takes the colour of the nearest trackStyle(). */
+  tone?: 'line' | 'track' | 'correct' | 'mastered'
   showValue?: boolean
 }) {
   const v = Math.max(0, Math.min(1, value))
@@ -29,7 +30,7 @@ export function ProgressRing({
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden="true">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-surface-2" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-surface-3" />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -39,12 +40,12 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - v)}
-          className={`${tone === 'mastered' ? 'stroke-mastered' : tone === 'correct' ? 'stroke-correct' : 'stroke-line'} transition-[stroke-dashoffset] duration-500`}
+          className={`${tone === 'mastered' ? 'stroke-mastered' : tone === 'correct' ? 'stroke-correct' : tone === 'track' ? 'stroke-track' : 'stroke-line'} transition-[stroke-dashoffset] duration-500`}
           style={{ transitionTimingFunction: 'var(--ease-out)' }}
         />
       </svg>
       {showValue && (
-        <span className="absolute font-mono text-[0.75rem] font-medium text-ink tabular" aria-hidden="true">
+        <span className="absolute text-[0.8125rem] font-bold text-ink tabular" aria-hidden="true">
           {pct}%
         </span>
       )}

@@ -19,6 +19,7 @@ import { PwaBanner } from './components/pwa/PwaBanner'
 import { GlossarySheet } from './components/content/GlossarySheet'
 import { BlocksFixture } from './routes/__fixtures/BlocksFixture'
 import { SeedFixture } from './routes/__fixtures/SeedFixture'
+import { UiFixture } from './routes/__fixtures/UiFixture'
 import { HomeScreen } from './routes/HomeScreen'
 import { QuestionSessionScreen } from './routes/QuestionSessionScreen'
 import { QuestionBankScreen } from './routes/QuestionBankScreen'
@@ -141,6 +142,7 @@ export default function App() {
           <Route path="/search" element={<SearchScreen />} />
           {import.meta.env.DEV && <Route path="/__fixtures/blocks" element={<BlocksFixture />} />}
           {import.meta.env.DEV && <Route path="/__fixtures/seed" element={<SeedFixture />} />}
+          {import.meta.env.DEV && <Route path="/__fixtures/ui" element={<UiFixture />} />}
         </Route>
 
         {/* Focus modes — timed or scored, so the tab bar comes off and each has its own exit. */}

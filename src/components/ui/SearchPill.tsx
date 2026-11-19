@@ -12,14 +12,13 @@ export function SearchPill({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       to="/search"
-      className={`group flex w-full items-center gap-3 rounded-xl border border-hairline bg-surface px-3.5 text-ink-3 transition-colors duration-150 hover:border-line active:bg-surface-2 ${
-        compact ? 'min-h-11 text-[0.875rem]' : 'min-h-12 text-[0.9375rem]'
+      className={`group flex w-full items-center gap-2.5 rounded-[14px] bg-surface-3 px-3.5 text-ink-3 transition-colors duration-150 hover:text-ink-2 ${
+        compact ? 'min-h-11 text-[0.9375rem]' : 'min-h-12 text-base'
       }`}
-      style={{ boxShadow: 'var(--shadow-card)' }}
     >
       <Search size={18} strokeWidth={2} aria-hidden="true" className="shrink-0 text-ink-2" />
       <span className="min-w-0 flex-1 truncate">{compact ? 'Search' : 'Search topics, terms, problems'}</span>
-      <kbd className="hidden shrink-0 rounded-md border border-hairline bg-surface-2 px-1.5 py-0.5 font-mono text-[0.6875rem] text-ink-3 [@media(pointer:fine)]:inline">
+      <kbd className="hidden shrink-0 rounded-md bg-surface px-1.5 py-0.5 font-sans text-[0.75rem] font-semibold text-ink-3 [@media(pointer:fine)]:inline">
         {isMac ? '⌘K' : 'Ctrl K'}
       </kbd>
     </Link>

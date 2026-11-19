@@ -1,10 +1,14 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 
 /**
  * Bottom sheet on a phone (thumb reach), centred dialog from `sm` up. Dismissible by
- * backdrop, close button and Escape — a sheet interrupts, so getting out of it must
- * never require aim. Focus is trapped inside while open and handed back on close.
+ * backdrop, close button, Escape, and on a phone by dragging the handle down — a sheet
+ * interrupts, so getting out of it must never require aim. Focus is trapped inside while
+ * open and handed back on close.
+ *
+ * `detent` sets how tall it may grow: `medium` keeps the screen behind it in view (answer
+ * feedback), `large` is for lists and long content. Content scrolls inside either.
  */
 export function Sheet({
   open,
@@ -12,14 +16,36 @@ export function Sheet({
   labelledBy,
   children,
   wide = false,
+  detent = 'large',
 }: {
   open: boolean
   onClose: () => void
   labelledBy: string
   children: ReactNode
   wide?: boolean
+  detent?: 'medium' | 'large'
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const [drag, setDrag] = useState(0)
+  const dragStart = useRef<{ y: number; t: number } | null>(null)
+
+  function onGrab(e: PointerEvent<HTMLDivElement>) {
+    dragStart.current = { y: e.clientY, t: performance.now() }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  function onDrag(e: PointerEvent<HTMLDivElement>) {
+    if (dragStart.current) setDrag(Math.max(0, e.clientY - dragStart.current.y))
+  }
+  function onRelease(e: PointerEvent<HTMLDivElement>) {
+    const start = dragStart.current
+    dragStart.current = null
+    if (!start) return
+    const dy = e.clientY - start.y
+    const speed = dy / Math.max(1, performance.now() - start.t)
+    setDrag(0)
+    // A long drag, or a short flick, closes it; anything less springs back.
+    if (dy > 96 || (dy > 24 && speed > 0.6)) onCloseRef.current()
+  }
   // Callers pass a fresh onClose on every render; depending on it would re-run the effect
   // below — and pull focus back to the panel — on every choice made inside the sheet.
   const onCloseRef = useRef(onClose)
@@ -80,25 +106,31 @@ export function Sheet({
         aria-label="Close"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
+        className="animate-fade-in absolute inset-0 bg-black/50"
       />
       <div
         ref={panelRef}
         tabIndex={-1}
-        className={`relative flex outline-none max-h-[88dvh] w-full flex-col overflow-y-auto overscroll-contain rounded-t-3xl border border-hairline bg-surface pb-safe sm:rounded-3xl ${
-          wide ? 'sm:max-w-xl' : 'sm:max-w-md'
-        }`}
-        style={{ boxShadow: 'var(--shadow-sheet)' }}
+        className={`animate-sheet-in relative flex w-full flex-col overflow-y-auto overscroll-contain rounded-t-[28px] bg-surface pb-safe outline-none sm:rounded-[28px] ${
+          detent === 'medium' ? 'max-h-[66dvh]' : 'max-h-[92dvh]'
+        } ${wide ? 'sm:max-w-xl' : 'sm:max-w-md'} ${drag ? '' : 'transition-transform duration-200'}`}
+        style={{ boxShadow: 'var(--shadow-sheet)', transform: drag ? `translateY(${drag}px)` : undefined }}
       >
-        {/* Grab handle — signals "tap away to dismiss" on a phone. */}
-        <div className="sticky top-0 z-10 flex items-center justify-center bg-surface pt-2.5 pb-1 sm:hidden">
-          <span aria-hidden="true" className="h-1 w-10 rounded-full bg-hairline" />
+        {/* Grab handle: drag it down to dismiss. Taps away and Escape work too. */}
+        <div
+          onPointerDown={onGrab}
+          onPointerMove={onDrag}
+          onPointerUp={onRelease}
+          onPointerCancel={onRelease}
+          className="sticky top-0 z-10 flex h-7 shrink-0 cursor-grab touch-none items-center justify-center bg-surface sm:hidden"
+        >
+          <span aria-hidden="true" className="h-[5px] w-10 rounded-full bg-ink-3/45" />
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-2 right-2 z-20 flex h-11 w-11 items-center justify-center rounded-full text-ink-3 transition-colors duration-150 hover:bg-surface-2 hover:text-ink sm:top-3 sm:right-3"
+          className="absolute top-3 right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-ink-2 transition-colors duration-150 hover:bg-surface-3 hover:text-ink"
         >
           <X size={18} strokeWidth={2} />
         </button>

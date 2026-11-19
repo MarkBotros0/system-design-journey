@@ -24,7 +24,7 @@ export function Segmented<T extends string>({
   }
 
   return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-xl bg-surface-2 p-1">
+    <div role="radiogroup" aria-label={label} className="flex rounded-[14px] bg-surface-3 p-1 dark:bg-surface-2">
       {options.map((o, i) => {
         const on = o.value === value
         return (
@@ -39,8 +39,8 @@ export function Segmented<T extends string>({
             tabIndex={on ? 0 : -1}
             onClick={() => onChange(o.value)}
             onKeyDown={(e) => onKey(e, i)}
-            className={`min-h-11 flex-1 rounded-lg px-3 text-[0.9375rem] transition-colors duration-150 ${
-              on ? 'bg-surface font-semibold text-ink shadow-[var(--shadow-card)]' : 'text-ink-2 hover:text-ink'
+            className={`min-h-11 flex-1 rounded-[11px] px-3 text-[0.9375rem] font-semibold transition-colors duration-150 ${
+              on ? 'bg-surface text-ink shadow-[var(--shadow-card)] dark:bg-surface-3' : 'text-ink-2 hover:text-ink'
             }`}
           >
             {o.label}

@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
+// A full 44px pill: no stretched hit area, so a row of chips never overflows vertically.
 const base =
-  'relative inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[0.875rem] whitespace-nowrap transition-colors duration-150 ' +
-  // The visual chip is 40px; the hit area extends to 48px so it still clears the 44px floor.
-  "before:absolute before:inset-x-0 before:-inset-y-1 before:content-['']"
+  'inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-[0.9375rem] font-medium whitespace-nowrap ' +
+  'transition-[background-color,color,transform] duration-150 active:scale-[0.97] motion-reduce:active:scale-100'
 
 const tone = (active?: boolean) =>
   active
-    ? 'border-line bg-line-soft text-line font-medium'
-    : 'border-hairline bg-surface text-ink-2 hover:border-line hover:text-ink active:bg-surface-2'
+    ? 'bg-line text-line-ink'
+    : 'bg-surface-2 text-ink-2 hover:bg-surface-3 hover:text-ink'
 
 /** A filter, a jump target, or a quick link. `active` is the selected state. */
 export function Chip({
@@ -41,10 +41,9 @@ export function Chip({
 }
 
 /**
- * A row of chips that scrolls sideways inside itself, never the page. `py-1` is room for
- * each chip's hit area (4px past it); without it the row overflows vertically, and a
- * sideways-scrolling row then scrolls up and down too — on iOS the chips can be dragged.
- * `overflow-y-hidden` keeps that true for anything else put in the row.
+ * A row of chips that scrolls sideways inside itself, never the page. `overflow-y-hidden`
+ * matters: a sideways-scrolling row that overflows vertically by a pixel also scrolls up
+ * and down, and on iOS its chips can then be dragged inside it.
  */
 export function ChipRow({ children, label }: { children: ReactNode; label: string }) {
   return (
