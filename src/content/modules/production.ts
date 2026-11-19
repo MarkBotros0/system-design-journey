@@ -134,7 +134,7 @@ export const productionModules: Module[] = [
             'Describes why the service is slow',
           ],
         },
-        verdict: 'RED on the request path tells you users are hurting. USE on machines and pools tells you which resource ran out. Google\'s four golden signals (latency, traffic, errors, saturation) are the same idea under another name.',
+        verdict: 'RED on the request path tells you users are hurting. USE on machines and pools tells you which resource ran out. Google\'s four golden signals (latency, traffic, errors, saturation) are much the same idea: RED plus saturation.',
       },
       {
         kind: 'prose',
@@ -257,7 +257,7 @@ export const productionModules: Module[] = [
         items: [
           {
             q: 'A request goes through Kafka before the next service handles it. How does the trace survive?',
-            a: 'Propagation is automatic for HTTP clients and nothing else. The producer writes the `traceparent` into the message headers, and the consumer extracts it and starts its span as a child, or as a linked span, since one consumer batch can hold messages from many traces. Without that step the trace silently ends at the producer.',
+            a: 'Only if the context travels inside the message. The producer writes the `traceparent` into the message headers (OpenTelemetry\'s Kafka instrumentation does this for some clients; check yours), and the consumer extracts it and starts its span as a child, or as a linked span, since one consumer batch can hold messages from many traces. Without that step the trace silently ends at the producer.',
           },
           {
             q: 'Your metrics bill tripled last month. Where do you look?',
@@ -295,13 +295,13 @@ export const productionModules: Module[] = [
         stem: 'Users report checkout is slow, and metrics confirm p99 checkout latency has tripled. Which signal tells you which downstream call is responsible?',
         options: [
           'Structured logs from the checkout service',
-          'A [[USE]] dashboard for the checkout hosts',
+          'A USE dashboard for the checkout hosts',
           'A distributed trace of a slow checkout request',
           'The error-rate metric',
         ],
         correct: 2,
         explain:
-          'A trace puts every span of the request on one time axis, so the slow downstream call is the long bar. Logs from one service only see that service, and USE metrics describe resources, not which dependency was slow.',
+          'A trace puts every span of the request on one time axis, so the slow downstream call is the long bar. Logs from one service only see that service, and [[USE]] metrics describe resources, not which dependency was slow.',
       },
       {
         id: 'q-o-observability-3',
@@ -437,7 +437,7 @@ export const productionModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'Two consequences are worth saying out loud. First, availability multiplies along a chain: a service that needs three dependencies at 99.9% each to answer cannot beat about 99.7% itself, so a high target forces redundancy or fewer synchronous dependencies. Second, as Google\'s Site Reliability Engineering book puts it, a user on a 99%-reliable phone cannot tell 99.99% from 99.999%. Past a point, extra nines are invisible to users and very visible on the bill.',
+        text: 'Two consequences are worth saying out loud. First, availability multiplies along a chain: a service that needs three dependencies at 99.9% each to answer, failing independently, cannot beat about 99.7% itself, so a high target forces redundancy or fewer synchronous dependencies. Second, as Google\'s Site Reliability Engineering book puts it, a user on a 99%-reliable phone cannot tell 99.99% from 99.999%. Past a point, extra nines are invisible to users and very visible on the bill.',
       },
       { kind: 'heading', text: 'Error budgets' },
       {
@@ -565,14 +565,14 @@ export const productionModules: Module[] = [
         moduleId: 'o-slo',
         stem: 'Which of these should page the on-call engineer at 3 a.m.?',
         options: [
-          '[[CPU]] on one of twelve [[API]] hosts at 95% for ten minutes',
+          'CPU on one of twelve API hosts at 95% for ten minutes',
           'A database replica restarted and caught up',
           'Disk usage on the logging cluster reached 70%',
           'The checkout SLO is burning error budget at 14× its sustainable rate',
         ],
         correct: 3,
         explain:
-          'Page on symptoms that threaten the budget. A hot host, a recovered replica and a disk at 70% are causes the system absorbs; they belong on dashboards or in tickets. A 14× burn rate exhausts the month\'s budget in about two days.',
+          'Page on symptoms that threaten the budget. A hot [[CPU]] on one [[API]] host, a recovered replica and a disk at 70% are causes the system absorbs; they belong on dashboards or in tickets. A 14× burn rate exhausts the month\'s budget in about two days.',
       },
       {
         id: 'q-o-slo-3',
@@ -608,7 +608,7 @@ export const productionModules: Module[] = [
         id: 'c-o-slo-3',
         moduleId: 'o-slo',
         front: 'What is burn-rate alerting?',
-        back: 'Page when the error budget burns far faster than a steady pace, over a long and a short window. 14.4× for an hour spends 2% of a month.',
+        back: 'Page when the error budget burns far faster than a steady pace, over a long and a short window. 14.4× for an hour spends 2% of a 30-day budget.',
         tag: 'Alerting',
       },
     ],
@@ -989,7 +989,7 @@ export const productionModules: Module[] = [
       { kind: 'heading', text: 'Secrets and least privilege' },
       {
         kind: 'prose',
-        text: 'A secret is anything that grants access: database passwords, [[API]] keys, signing keys, cloud credentials. The rules are short. Never in source control, private repositories included. Never baked into images. Loaded at runtime from a secrets manager (HashiCorp Vault, AWS Secrets Manager, Google Secret Manager), which logs every read and can rotate a value without a deploy. Best of all is the secret that does not exist: a workload identity the platform trades for credentials that expire within the hour.',
+        text: 'A secret is anything that grants access: database passwords, [[API]] keys, signing keys, cloud credentials. The rules are short. Never in source control, private repositories included. Never baked into images. Loaded at runtime from a secrets manager (HashiCorp Vault, AWS Secrets Manager, Google Secret Manager), which logs every read and can rotate a value without a deploy. Best of all is the secret that does not exist: a workload identity the platform trades for credentials that expire within hours.',
       },
       {
         kind: 'callout',
@@ -1197,11 +1197,11 @@ export const productionModules: Module[] = [
           'TLS between the application and the database',
           'Least-privilege database users',
           'A `Content-Security-Policy` header',
-          'Encryption at rest, with keys held in a [[KMS]] the attacker cannot reach',
+          'Encryption at rest, with keys held in a KMS the attacker cannot reach',
         ],
         correct: 3,
         explain:
-          'The backup is data at rest, outside the application, so only encryption with keys kept elsewhere helps. TLS protects data in transit, and database users and page headers do nothing for a copied file.',
+          'The backup is data at rest, outside the application, so only encryption with keys kept elsewhere, in a [[KMS]], helps. TLS protects data in transit, and database users and page headers do nothing for a copied file.',
       },
     ],
     cards: [
@@ -1295,7 +1295,7 @@ export const productionModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'A **rolling** deploy is Kubernetes\'s default: replace a quarter of the pods, wait until they report healthy, repeat. It needs no spare fleet, but for its whole duration two versions serve traffic, so they must be compatible with each other and with the data. **Blue/green** runs the new version on an idle copy of the fleet and flips the load balancer. Rolling back is flipping back, the fastest rollback there is, provided the new version has not written data the old one cannot read.',
+        text: 'A **rolling** deploy is Kubernetes\'s default: replace up to a quarter of the pods, wait until they report healthy, repeat. It needs no spare fleet, but for its whole duration two versions serve traffic, so they must be compatible with each other and with the data. **Blue/green** runs the new version on an idle copy of the fleet and flips the load balancer. Rolling back is flipping back, the fastest rollback there is, provided the new version has not written data the old one cannot read.',
       },
       {
         kind: 'prose',

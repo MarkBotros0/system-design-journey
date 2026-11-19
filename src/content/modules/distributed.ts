@@ -92,7 +92,7 @@ export const distributedModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'Cases 3 and 4 are the dangerous ones: the work happened, or will. No timeout value resolves this, because the information is not available to the caller at all. It is the Two Generals problem, and it has no solution over a network that can lose messages. What you can do is make it not matter, by making retries safe — station 6.',
+        text: 'Cases 3 and 4 are the dangerous ones: the work happened, or will. No timeout value resolves this, because the information is not available to the caller at all. This is the Two Generals problem: over a network that can lose messages, no protocol lets two sides be certain they agree. What you can do is make it not matter, by making retries safe — station 6.',
       },
       {
         kind: 'callout',
@@ -420,7 +420,7 @@ export const distributedModules: Module[] = [
         head: ['N = 3', 'Gives you', 'Costs you'],
         rows: [
           ['W = 3, R = 1', 'Fast reads', 'One node down blocks every write'],
-          ['W = 2, R = 2', 'Overlap, and survives one node down', 'Each operation waits for the slower of two replicas'],
+          ['W = 2, R = 2', 'Overlap, and survives one node down', 'Each operation waits for the second-fastest of three replicas'],
           ['W = 1, R = 1', 'Lowest latency, always available', 'No overlap: a read can miss a recent write'],
         ],
       },
@@ -475,7 +475,7 @@ export const distributedModules: Module[] = [
           },
           {
             q: 'Why not make everything linearizable and be done with it?',
-            a: 'Then every operation needs coordination: latency includes a round trip to the leader or a majority, and in a partition the minority side refuses requests. Across regions that is tens of milliseconds per write. Pay it on the paths that decide against the latest value, not on the feed.',
+            a: 'Then every operation needs coordination: latency includes a round trip to the leader or a majority, and in a partition the minority side refuses requests. Across regions that is tens to hundreds of milliseconds per write. Pay it on the paths that decide against the latest value, not on the feed.',
           },
         ],
       },
@@ -689,7 +689,7 @@ export const distributedModules: Module[] = [
       { kind: 'heading', text: 'Paxos, in one paragraph' },
       {
         kind: 'prose',
-        text: 'Leslie Lamport\'s Paxos came first, and Google\'s Chubby lock service and Spanner are built on it. A proposer picks a ballot number and asks acceptors to **promise** to ignore lower ballots; with a majority of promises it asks them to **accept** a value, adopting any value one of them already accepted. A value accepted by a majority is chosen. Basic Paxos agrees on one value; real systems run **Multi-Paxos**, which keeps a stable leader to skip the first phase — and at that point it looks a great deal like Raft. Say "Raft or Multi-Paxos" in an interview and move on; nobody wants the proof.',
+        text: 'Leslie Lamport\'s Paxos came first, and Google\'s Chubby lock service and Spanner are built on it. A proposer picks a ballot number and asks acceptors to **promise** to ignore lower ballots; with a majority of promises it asks them to **accept** a value, adopting the one from the highest ballot any of them has already accepted. A value accepted by a majority is chosen. Basic Paxos agrees on one value; real systems run **Multi-Paxos**, which keeps a stable leader to skip the first phase — and at that point it looks a great deal like Raft. Say "Raft or Multi-Paxos" in an interview and move on; nobody wants the proof.',
       },
       { kind: 'heading', text: 'etcd and ZooKeeper in practice' },
       {
@@ -876,7 +876,7 @@ export const distributedModules: Module[] = [
             { label: 'NTP inside a datacentre', display: '< 1 ms', value: 0.5 },
             { label: 'Spanner TrueTime bound', display: '1–7 ms', value: 4, tone: 'line' },
             { label: 'NTP over the public internet', display: 'tens of ms', value: 30, tone: 'streak' },
-            { label: 'Unsynced quartz after a day', display: '~17 s', value: 17000, tone: 'alert' },
+            { label: 'Worst-case quartz, a day unsynced', display: '~17 s', value: 17000, tone: 'alert' },
           ],
           note: 'Even the best case is long enough for two writes on different machines to be stamped in the wrong order.',
         },
@@ -970,7 +970,7 @@ export const distributedModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'A **Lamport clock** is one counter per node. Increment it on every event, attach it to every message, and on receiving one set the counter to max(local, received) + 1. If a happened before b, then L(a) < L(b). Break ties by node id and you have a total order every node agrees on, which is all a replicated log needs. What it cannot tell you is the converse: L(a) < L(b) does not mean a caused b.',
+        text: 'A **Lamport clock** is one counter per node. Increment it on every event, attach it to every message, and on receiving one set the counter to max(local, received) + 1. If a happened before b, then L(a) < L(b). Break ties by node id and every node agrees on one total order consistent with causality, though only after the fact: a smaller timestamp may still be in flight. What it cannot tell you is the converse: L(a) < L(b) does not mean a caused b.',
       },
       {
         kind: 'figure',
@@ -1002,7 +1002,7 @@ export const distributedModules: Module[] = [
       { kind: 'heading', text: 'Hybrid logical clocks and TrueTime' },
       {
         kind: 'prose',
-        text: 'Logical clocks order events but drift away from real time, so you cannot ask one for "the state as of 10:00". A **hybrid logical clock** ([[HLC]]) fixes that. Each timestamp is a physical time plus a small counter: take the maximum of the local wall clock and any timestamp received, and bump the counter when physical time has not moved past it. It preserves happened-before like a Lamport clock, stays within the clock skew of real time, and fits in 64 bits. CockroachDB, YugabyteDB and MongoDB\'s cluster time all use one.',
+        text: 'Logical clocks order events but drift away from real time, so you cannot ask one for "the state as of 10:00". A **hybrid logical clock** ([[HLC]]) fixes that. Each timestamp is a physical time plus a small counter: take the maximum of the local wall clock and any timestamp received, and bump the counter when physical time has not moved past it. It preserves happened-before like a Lamport clock, stays within the clock skew of real time, and can be packed into 64 bits. CockroachDB, YugabyteDB and MongoDB\'s cluster time all use one.',
       },
       {
         kind: 'callout',
@@ -1076,14 +1076,14 @@ export const distributedModules: Module[] = [
         moduleId: 'd-time',
         stem: 'A rate limiter measures the gap between requests with `Date.now()`. What can go wrong?',
         options: [
-          'Nothing, as long as [[NTP]] is running on the host',
+          'Nothing, as long as NTP is running on the host',
           'The gap can come out negative or huge when the wall clock is stepped, so use a monotonic clock',
           'It is too slow to call on every request',
           'It loses precision for gaps shorter than a second',
         ],
         correct: 1,
         explain:
-          'NTP running is exactly what steps the wall clock. Durations need a clock that only moves forward — `performance.now()`, `System.nanoTime()` — which is meaningless across machines but correct on one.',
+          '[[NTP]] running is exactly what steps the wall clock. Durations need a clock that only moves forward — `performance.now()`, `System.nanoTime()` — which is meaningless across machines but correct on one.',
       },
       {
         id: 'q-d-time-2',
@@ -1211,7 +1211,7 @@ export const distributedModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'Between services that is a bad trade. Every participant\'s availability is tied to the coordinator\'s, locks are held across network round trips, and every participant must speak the protocol. [[XA]], the standard that lets one Java transaction span a database and a message broker, is exactly this — and Kafka, DynamoDB and most cloud queues do not implement it.',
+        text: 'Between services that is a bad trade. Every participant\'s availability is tied to the coordinator\'s, locks are held across network round trips, and every participant must speak the protocol. [[XA]], the X/Open standard that lets one transaction span, say, a database and a message broker, is exactly this — and Kafka, DynamoDB and most cloud queues do not implement it.',
       },
       {
         kind: 'prose',
@@ -1511,7 +1511,7 @@ export const distributedModules: Module[] = [
         head: ['Guarantee', 'How you get it', 'Use it for'],
         rows: [
           ['At-most-once', 'Acknowledge first, or never retry', 'Metrics samples, presence pings — losing one is cheaper than handling duplicates'],
-          ['At-least-once', 'Retry until acknowledged, acknowledge after the work', 'The default everywhere: [[SQS]], Kafka, every webhook provider'],
+          ['At-least-once', 'Retry until acknowledged, acknowledge after the work', 'The default almost everywhere: [[SQS]], Kafka, most webhook providers'],
           ['Effectively-once', 'At-least-once delivery plus idempotent processing', 'Anything with money, stock, or a count someone checks'],
         ],
       },
@@ -1546,7 +1546,7 @@ export const distributedModules: Module[] = [
         kind: 'callout',
         tone: 'example',
         title: 'Stripe\'s idempotency keys',
-        text: 'Any Stripe [[API]] request that creates something can carry an `Idempotency-Key` header. Stripe saves the status code and body of the first request with that key — server errors included — and returns them for every retry. A retry whose parameters differ from the original is rejected, and keys may be pruned once they are 24 hours old.',
+        text: 'Any `POST` to Stripe\'s [[API]] can carry an `Idempotency-Key` header. Stripe saves the status code and body of the first request with that key — server errors included — and returns them for every retry. A retry whose parameters differ from the original is rejected, and keys may be pruned once they are 24 hours old.',
       },
       { kind: 'prose', text: 'Three rules make keys work, whoever implements them:' },
       {
@@ -1654,7 +1654,7 @@ export const distributedModules: Module[] = [
           },
           {
             q: 'How long do you keep dedupe records?',
-            a: 'At least as long as a duplicate can still arrive: the broker\'s redelivery window plus the client\'s retry horizon, with margin. Stripe keeps keys for 24 hours. Past that I expire them with a [[TTL]] or by dropping old partitions, so the table stays small.',
+            a: 'At least as long as a duplicate can still arrive: the broker\'s redelivery window plus the client\'s retry horizon, with margin. Stripe keeps keys for at least 24 hours. Past that I expire them with a [[TTL]] or by dropping old partitions, so the table stays small.',
           },
           {
             q: 'Your consumer must call a third party that does not support idempotency keys. What do you do?',
@@ -1848,7 +1848,7 @@ export const distributedModules: Module[] = [
         kind: 'list',
         items: [
           '**Retry at one layer.** Usually the one nearest the user, or the one that knows the operation is idempotent. Everything below fails fast.',
-          '**Use a retry budget.** Cap retries as a fraction of normal traffic; Envoy\'s default allows retries up to 20% of active requests. When the dependency is truly broken, the budget runs out and you stop adding load.',
+          '**Use a retry budget.** Cap retries as a fraction of normal traffic; Envoy\'s retry budget, once switched on, defaults to 20% of active requests. When the dependency is truly broken, the budget runs out and you stop adding load.',
           '**Honour backoff hints.** A 429 or 503 with a `Retry-After` header is the server telling you how long to wait.',
         ],
       },

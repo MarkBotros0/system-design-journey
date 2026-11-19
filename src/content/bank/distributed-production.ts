@@ -324,7 +324,7 @@ export const questions: Question[] = [
     ],
     correct: [0, 2, 4],
     explain:
-      'The key names the logical operation, so it is fixed before the first try, saved atomically with the effect, and guarded by a unique constraint. Keys need only outlive the retry window: Stripe prunes them after 24 hours.',
+      'The key names the logical operation, so it is fixed before the first try, saved atomically with the effect, and guarded by a unique constraint. Keys need only outlive the retry window: Stripe may prune them once they are 24 hours old.',
   },
   {
     id: 'd-delivery-match',
@@ -466,7 +466,7 @@ export const questions: Question[] = [
     kind: 'truefalse',
     moduleId: 'o-slo',
     section: 'The nines',
-    prompt: 'A service that synchronously needs three dependencies, each at 99.9%, can itself reach 99.9%.',
+    prompt: 'A service that synchronously needs three dependencies, each at 99.9% and failing independently, can itself reach 99.9%.',
     answer: false,
     explain:
       "Availability multiplies along a chain: 0.999³ ≈ 99.7%, before counting the service's own failures. A higher target needs redundancy or fewer synchronous dependencies.",
