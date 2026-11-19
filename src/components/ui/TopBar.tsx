@@ -44,7 +44,13 @@ export function TopBar({
         compact ? 'bar-glass shadow-[0_1px_0_var(--hairline)]' : 'bg-paper'
       }`}
     >
-      <div className="grid min-h-14 grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1fr)] items-center gap-1">
+      {/* The centre column exists only once the compact title shows; until then the back
+          label gets the room, so "Learn" never truncates to "Lea…" at 375px. */}
+      <div
+        className={`grid min-h-14 items-center gap-1 ${
+          compact ? 'grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)_0px_auto]'
+        }`}
+      >
         <div className="flex min-w-0 items-center">
           {back && (
             <button

@@ -53,3 +53,15 @@ describe('cssTokens()', () => {
     expect(t).toEqual({ a: '#112233' })
   })
 })
+
+describe('track tint', () => {
+  // A custom property is resolved where it is declared: a --track-soft on :root mixes the
+  // root's --track (unset, so ink) and every subtree inherits that grey. The mix has to be
+  // written into the utility itself so it reads --track on the element that uses it.
+  it('is mixed where it is used, not once on :root', () => {
+    const theme = css.slice(css.indexOf('@theme inline'))
+    const decl = theme.match(/--color-track-soft:\s*([^;]+);/)?.[1] ?? ''
+    expect(decl).toMatch(/^color-mix\(in oklab, var\(--track\b/)
+    expect(css).not.toMatch(/:root\s*\{[^}]*--track-soft:\s*color-mix/)
+  })
+})

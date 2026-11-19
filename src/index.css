@@ -116,13 +116,14 @@
   --shadow-sheet: 0 -12px 44px rgb(0 0 0 / 0.55);
 }
 
-/* A track's colour reaches its subtree through --track: set it with trackStyle(). */
-:root {
-  --track-soft: color-mix(in oklab, var(--track, var(--ink)) var(--tint), transparent);
-}
+/* A track's colour reaches its subtree through --track: set it with trackStyle(). Its tint is
+   mixed inside the utility (--color-track-soft below), not in a variable on :root: a custom
+   property resolves where it is declared, so a root-level mix would freeze the root's (unset)
+   --track and every subtree would inherit grey. Without color-mix, the tint falls back to an
+   inset tone; unlayered, so it outranks the utility. */
 @supports not (color: color-mix(in oklab, red, blue)) {
-  :root {
-    --track-soft: var(--surface-3);
+  .bg-track-soft {
+    background-color: var(--surface-3);
   }
 }
 
@@ -151,7 +152,7 @@
   --color-alert-soft: var(--alert-soft);
 
   --color-track: var(--track, var(--ink));
-  --color-track-soft: var(--track-soft);
+  --color-track-soft: color-mix(in oklab, var(--track, var(--ink)) var(--tint), transparent);
 
   --color-code-kw: var(--code-kw);
   --color-code-str: var(--code-str);

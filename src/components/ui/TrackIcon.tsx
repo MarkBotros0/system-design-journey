@@ -54,12 +54,12 @@ export function TrackGlyph({ trackId, size = 36 }: { trackId: string; size?: 28 
   )
 }
 
-/** A pill naming a track: solid round glyph plus the name, both in the track's colour. */
+/** A pill naming a track: a solid round glyph in the track's colour, the name in ink (track text on its own tint misses AA in light). */
 export function TrackChip({ trackId, label }: { trackId: string; label: string }) {
   return (
     <span
       style={trackStyle(trackId)}
-      className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full bg-track-soft py-1 pr-3 pl-1 text-[0.875rem] font-semibold text-track"
+      className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full bg-track-soft py-1 pr-3 pl-1 text-[0.875rem] font-semibold text-ink"
     >
       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-track text-paper">
         <TrackIcon trackId={trackId} size={13} />
