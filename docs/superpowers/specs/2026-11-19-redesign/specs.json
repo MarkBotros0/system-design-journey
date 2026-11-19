@@ -1,0 +1,139 @@
+{
+  "native": {
+    "key": "native",
+    "name": "Native-grade",
+    "pitch": "Throughput should feel like a polished iPhone app, not a web page. It gets large titles, inset grouped lists on a near-black canvas, a translucent tab bar, and bottom sheets for feedback. Each of the 11 tracks gets its own coloured glyph tile, so they no longer look alike. The day's main action sits in a docked \"Resume\" capsule just above the tab bar, where the thumb already is. Monospace uppercase captions, outlined boxes and the flat blue are all gone. What remains is weight, colour that means something, and 16px+ text that works in short bursts.",
+    "fonts": "Geist (400\u2013800) for display and UI: 34px/750 large titles, 21px section headers, 16.5px row titles, 15px secondary text, tabular numerals for counts. Source Serif 4 at 18.5px/1.62 for lesson body only. Geist Mono only for code blocks and the problem timer. All three come from Google Fonts and are runtime-cached as today.",
+    "palette": "DARK: bg #0A0A0D, cell #17171C, cell-2 #22222A, separator white 8%, ink #F4F4F6 / ink-2 #ACACB6 / ink-3 #8D8D98 (\u22655:1 on cells). Accent indigo: text #9592FF, fill #5B56EA with white label (5.8:1). correct #3DD68C, wrong #FF6B6B, in-progress/streak #FFA24C, mastered gold #F5C84B, each with a ~13% tinted fill. Bars and sheets are translucent rgba(23,23,28,.74) with 24px blur. LIGHT: bg #F2F2F6, cell #FFFFFF, cell-2 #E8E8EE, ink #0B0B10 / #50505A / #686872. Accent #4A44DF. correct #15803F, wrong #C92F2B, streak #B4530A, mastered #946200 (all \u22654.5:1 on white). TRACK HUES are used on glyph tiles only and are never state: Core #2457E6\u2192#4C86FF, Databases #0B8A99\u2192#1FB6C6, Distributed periwinkle, Patterns violet, Interview pink, plus 6 more from the same wheel, skipping the green, red, orange and gold that belong to states. States always pair colour with a shape: tick, cross, partial ring, gold seal.",
+    "components": [
+      "LargeTitle: date eyebrow plus a 34px title that collapses into a 17px centred nav title on scroll; holds trailing controls such as the streak pill",
+      "NavBar: back chevron with the parent's name in accent, plus 44px round icon buttons (bookmark, Aa text size)",
+      "GroupedList / Cell: 16px-radius inset group with a 38px glyph tile, title and subtitle, chevron or trailing tag; separators start after the tile; pressed state = cell-2 fill + scale .985, 90ms",
+      "TrackTile: rounded-square gradient tile with a white lucide glyph, one hue per track (11), at 26, 30, 38 and 44px",
+      "StatTile: three equal tiles (Questions ring 0/10, Cards due 27, Route stops 10/87), each a tap target into its screen",
+      "RouteRibbon: route progress split into 11 track segments sized by lesson count, filled in accent, current segment partly filled",
+      "ResumeDock: translucent capsule docked above the tab bar with track tile, lesson and section, minutes left, a 48px play button and a progress hairline; it is the one primary action on every tab",
+      "TabBar: translucent and blurred, 5 tabs (Today, Learn, Practice, Review with a due badge, You), 25px icons, 11px semibold labels",
+      "ReadingToolbar: floating glass pill in lessons with Contents (opens the TOC sheet), current section 'n of 6', and a next-section button; replaces the tab bar while reading",
+      "BottomSheet: grabber, 28px top radius, detents at medium and large; used for answer feedback, TOC, glossary terms, route picker and filters",
+      "SegmentedProgress: 10 segments for a question set (done, current, upcoming)",
+      "AnswerOption: 56px+ row with a 24px check box; correct = green tint + tick, wrong pick = red tint + cross, missed = dashed green outline + 'Missed: \u2026' note",
+      "VerdictHeader: state icon + 'Correct' / 'Not quite' + a count such as '2 of 3 found \u00b7 1 extra'",
+      "FigureCard: inset cell for CSS figures, with real-text labels, accent strength meters and a caption",
+      "Callout: soft accent fill with a tone label (Say it, Trap, Note, Example), no outline",
+      "StreakPill: flame + 'N days' in the streak colour only",
+      "Buttons: primary 54px accent fill (16px radius), secondary on cell-2, both with physical press (scale .97 + darken)"
+    ],
+    "navigation": "Five-tab translucent bar: Today, Learn, Practice, Review (due badge), You. Search stays out of the tab bar. It is a search field under the Today large title and a pull-down field on Learn and Practice, and \u2318K / '/' still work. The ResumeDock floats above the tab bar on every tab, so continue-reading (or a draft problem, timer showing) is always one thumb tap away. Pushed detail screens (Track, Lesson, Walkthrough) slide in from the right with an edge-swipe back gesture. Lessons hide the tab bar and show the ReadingToolbar instead. Timed or scored screens (Quiz, Problem runner, Card session, Question session) open as full-screen modals over the shell with a single close button at top left, as now. Pickers and secondary detail (TOC, glossary term, route change, filters, rubric scoring) are bottom sheets with medium and large detents.",
+    "screens": [
+      "Home \u2192 'Today': date eyebrow + large title with streak pill, search field, three stat tiles (questions, cards due, route stops), an 'Up next' grouped list headed by the route ribbon and current lesson, and the ResumeDock above the tab bar",
+      "Learn: large title 'Learn' with the route name as a subtitle button that opens the route sheet; the 11 tracks as a grouped list, each with its own coloured TrackTile, a 'n of m passed' line and a mini progress ring; a 'Change route' row at the bottom",
+      "Track: a tall hero in the track's hue with title and progress, then the stations as a numbered inset list with a state glyph per row (empty dot, orange partial ring, green tick passed, gold seal mastered) and 'Builds on' kept as a subtitle, never a lock",
+      "Lesson: compact nav bar with back to the track and bookmark / Aa buttons, a reading-progress hairline, track-tile meta line, 31px title, serif body at 18.5px, figures in inset FigureCards, and the floating ReadingToolbar (Contents sheet, section n of N, next); the end-of-lesson block becomes a sheet offering 'Take the quiz'",
+      "Quiz: full-screen modal with segmented progress, one question per page, AnswerOptions, VerdictHeader + explanation in a bottom sheet, and Continue in the thumb zone; the result page shows a big ring with the score against the 80% pass bar",
+      "Practice: large title, category shelves as horizontally paged card rails (contained, so the page never scrolls sideways), each problem a card with track-hue tile, difficulty and '45 min'; drafts pinned on top with a 'Resume attempt' row",
+      "Problem runner: full-screen modal with the phase timer as a large mono countdown in a top capsule, the phase stepper as segmented progress, the brief in a grouped cell, follow-ups as expandable rows, notes in a native text area, and 'Next phase' docked at the bottom; scoring opens a sheet with must / senior / staff checkbox groups",
+      "Walkthrough: pushed screen inside the shell, one skeleton heading per page with a horizontal page indicator and Back / Next pill buttons at the bottom",
+      "Review: large title 'Review' with two big tiles (Cards: 27 due, Questions: 0 of 10 today) each with a Start button; below, a grouped list of decks by track with due counts and the 120-day activity heatmap in accent tints (not state colours)",
+      "Card session: full-screen modal; the card sits as a large rounded surface you tap to flip; four grade buttons in a docked bottom row (Again in wrong colour, Hard / Good in neutral, Easy in accent) and a segmented progress bar on top",
+      "Question session: full-screen modal with segmented 10-step progress, a kind chip ('Select all that apply'), a 21px prompt and AnswerOptions; the feedback bottom sheet holds the verdict, topic line, explanation and 'Learn more' (secondary) + 'Continue' (primary) side by side; matching uses tap-to-pair rows that link with a shared index badge",
+      "Question bank: pushed from Review, with a search field and segmented filter (All, Due, Missed); questions grouped by track in inset lists, with a status glyph per row and a daily-goal stepper (5 / 10 / 20) in a header cell",
+      "Search: a full-screen sheet with the field focused, recent searches as rows, and results grouped by Lessons / Sections / Terms / Problems / Patterns, each row led by its track tile; terms open the glossary sheet in place",
+      "You: settings-style grouped lists covering profile and streak, readiness rings for the HLD / LLD / Behavioral rounds, Appearance (System / Light / Dark segmented control), Install app (or iOS Share steps), Export / Import data, and Reset as a destructive red row at the bottom",
+      "Onboarding: a full-height sheet with a large title 'Pick your route', the routes as big selectable cells (title, stops count, weeks estimate, track-tile strip), a start-stop picker as a second step, and 'Start' docked in the thumb zone"
+    ],
+    "uxFixes": [
+      "The primary action moves to the thumb zone: the ResumeDock above the tab bar on every tab, the ReadingToolbar in lessons, and Continue / Start buttons docked at the bottom of every modal",
+      "Answer feedback moves into a bottom sheet so it never pushes the options off screen, and 'Learn more' sits next to 'Continue' instead of being a small link",
+      "A missed correct option gets its own treatment (dashed green outline + 'Missed: \u2026' note), so 'you picked it' and 'it was right' are no longer one ambiguous state",
+      "Every track has a coloured glyph tile, so tracks are recognisable at a glance in lists, search results, the dock and feedback",
+      "No uppercase monospace eyebrows: captions are sentence-case 14\u201315px Geist in ink-2, and mono is kept for code and timers",
+      "Secondary text rises from ~13px grey to 15px at \u22655:1 contrast, and body copy stays \u226516px everywhere",
+      "Outlined boxes give way to filled inset groups with separators, cutting visual noise roughly in half",
+      "Every state uses shape as well as colour (tick, cross, partial ring, gold seal), and mastered gets its own gold instead of sharing green with correct",
+      "Physical pressed states (scale + fill) on every tappable row and button give the feedback a native app has, and they respect prefers-reduced-motion by dropping the scale",
+      "The streak is a single pill in the title row, so the streak colour appears only where it is earned"
+    ],
+    "newDependencies": [
+      "Google Fonts: Geist and Geist Mono replace Familjen Grotesk and IBM Plex Mono (Source Serif 4 stays); the Workbox runtime-cache rules for fonts stay the same",
+      "No new npm packages: sheets with detents, the blur bars and the press states are CSS plus small hooks; vaul (bottom-sheet drag) is optional if hand-rolled drag feels off"
+    ],
+    "risks": [
+      "backdrop-filter blur on the tab bar, dock and toolbar costs GPU on older iPhones during long lesson scrolls; fall back to a solid --bar colour under @supports or on low-end devices",
+      "11 track hues that avoid every state hue are tight on the colour wheel; tiles must always carry a glyph, and state colours must never appear on a track tile",
+      "ResumeDock + tab bar take ~170px at the bottom of a 667px iPhone SE; pb-tabbar padding must grow, and the dock should collapse to a 48px chip when scrolling down",
+      "Bottom-sheet feedback on long explanations needs a large detent and must keep focus order and screen-reader announcements correct (role=dialog, focus to the verdict)",
+      "Looking native on the web invites comparison with real iOS physics (swipe-back, rubber-band scrolling); half-done gestures feel worse than none, so ship swipe-back only if it is smooth",
+      "A full visual rewrite touches every screen; it needs a token swap first (index.css), then component-by-component migration behind the same component APIs"
+    ],
+    "weakest": "On Home, the current lesson appears twice, as the route-ribbon header and again in the ResumeDock, so the page wastes space and the hierarchy is muddy. The row drawn in its pressed state (Sharding) looks like a stuck selection rather than a press. In the lesson figure, the Repeatable read chip wraps to three lines and crowds its rung. On home-light, the soft stat icons and the route ribbon look faint next to the dark theme."
+  },
+  "momentum": {
+    "key": "momentum",
+    "name": "Momentum",
+    "pitch": "Progress you can feel at a glance. Every track gets its own colour and glyph, so the route becomes a striped ribbon you fill in. Today's goal is a big 0/10 with ten pips to fill, and the streak is a week strip of flames. Cards are filled, soft surfaces instead of outlined boxes, the type is a confident grotesk in sentence case, and the only buttons are solid ink pills. Answer feedback tells you exactly what you found, missed and over-picked. It reads as grown-up, not gamified: no confetti, no mascots, no XP.",
+    "fonts": "Plus Jakarta Sans 400-800 for display and UI, with tabular numerals for the big stats (0/10, 10 of 87, 3 / 10). Newsreader 400/500 for the lesson body only, at 19px with 1.55-1.6 line height. JetBrains Mono 500 for code blocks only. There are no uppercase monospace eyebrow labels anywhere; eyebrows are 14px bold in sentence case and in the track's colour.",
+    "palette": "DARK: paper #0A0C11, surface #141720, surface-2 #1B1F2A, surface-3 #272C39, ink #F3F4F8, ink-2 #BAC0CE, ink-3 #8F96A9. LIGHT: paper #F4F5F8, surface #FFFFFF, surface-3 #E6E9F0, ink #12141B, ink-2 #464C5F, ink-3 #646A80. ACCENT: there is no single brand blue. Primary actions are solid ink pills (white on dark, near-black on light), and colour comes from the track identities. EARNED STATES (dark / light): correct #3DDC8E / #0B8A52; wrong #FF6672 / #CF2E3C; streak and in-progress #FF9F45 / #BF5A00, with a flame icon; mastered #FFCF5C / #946A00, with a seal icon. Each state always comes with its own icon (check, x, flame, seal), plus a dashed circle for 'missed'. TRACKS (dark / light): Foundations #6CB4FF/#1E6CCB brick; Principles #A493FF/#6247DB compass; Patterns #D08CFF/#8E2FD2 shapes; Low-level design #F58AE0/#B42C96 box; Core system design #3FD2E6/#087C90 network; Databases #3DDBB8/#0A7A64 database; Distributed #8C9EFF/#3F55D6 globe; Architecture & APIs #C9E25B/#66750C plug; Production readiness #FF8FB0/#C02A60 shield; Applied patterns #A6E36B/#3C7B12 puzzle; The interview #E9EBF2/#14161C (ink, 'the destination') with a message icon. Track hues skip the red, orange and gold bands the states use. Tints are made with color-mix: 17% in dark, 12% in light.",
+    "components": [
+      "TrackGlyph: a 44px (or 28px) rounded tile, track-colour glyph on a 17% tint; the visual identity of a track everywhere it appears",
+      "TrackChip: a pill with a solid round glyph and the track name in the track colour; used in lesson and question headers",
+      "GoalHero: the 'Today' card with the streak pill, a 52px 0/10, ten goal pips (the next one pulses unless motion is reduced), a 7-day flame week strip, and Start questions plus 'N cards' buttons",
+      "ContinueCard: a card tinted in its track's colour, with glyph, eyebrow (track and lesson), title, section and minutes left, a round Resume button in the track colour, and a reading progress bar",
+      "RouteRibbon: route progress as segments, one per track in route order, each sized by stop count and filled in its own colour, with a three-row legend (done / current / next)",
+      "TrackTile: a 2-column grid tile with glyph, name and a thin progress bar in the track colour",
+      "FloatingTabBar: an inset, blurred pill bar with 5 tabs (Home, Learn, Practice, Review, You); the active tab gets an ink-tinted pill, and each target is 68px tall",
+      "ReadingDock: replaces the tab bar on a lesson, with a contents button, 'Section 2 of 6' plus the heading, and a next-section button in the track colour; a 3px reading-progress line sits under the top bar",
+      "LadderFigure: CSS rungs whose tint deepens with strength, a vertical 'stronger' axis and '+ anomaly' chips; labels are real text",
+      "SegmentedProgress: 10 segments in the question session, coloured correct or wrong for answered questions and neutral for the rest",
+      "AnswerOption: a 56px+ filled row with a leading box; hit = green fill and check, missed = dashed green outline with a 'Missed' badge sitting on the border, extra = red fill and x with an 'Extra' badge",
+      "FeedbackSheet: a compact bottom sheet with a verdict icon and title, a coloured tally line (2 found \u00b7 1 missed \u00b7 1 extra \u00b7 back tomorrow), the explanation, and a 'learn more' button named after the topic beside Continue",
+      "PillButton: primary (ink fill) and secondary (surface-3); 48-56px tall"
+    ],
+    "navigation": "Five tabs in a floating, inset, blurred pill bar: Home, Learn (route icon), Practice (timer), Review (layers), You. Search moves to a 44px round button in each shell screen's header, and / or Cmd-K opens it on larger screens. On a lesson the tab bar becomes a reading dock (contents, current section, next); the tabs come back on scroll-up and at the end of the lesson. Timed and scored screens (quiz, problem runner, card session, question session) stay outside the shell, with an X close control and segmented progress. At 1024px and wider the bar becomes a left rail with the same icons and the track colours.",
+    "screens": [
+      "Home: date and a greeting header; the GoalHero (daily 0/10 pips, week flame strip, Start questions, 27 cards); a ContinueCard in the current track's colour; the route ribbon with legend; a Tracks grid",
+      "Learn: the route map becomes a vertical line drawn in each track's colour as it passes through; stops are glyph-tiled rows, and a track header shows its glyph and progress ring; 'Change route' sits in the header",
+      "Track: a hero header tinted in the track colour, with a big glyph, passed / mastered counts and a progress bar; lessons listed as numbered stops with passed (ink check) and mastered (gold seal) marks; the track's problems at the end",
+      "Lesson: a track chip and bookmark in the top bar, a 3px reading-progress line in the track colour, a 28px bold title, a serif body at 19px, figures on filled surface cards with track-tinted accents, and the ReadingDock in place of the tabs",
+      "Quiz: the same frame as the question session (X close, segmented progress, filled options); the result is a big score with an 80% pass marker and a 'Passed' state that puts an ink check on the stop",
+      "Practice: shelves become horizontal-free stacked sections, each problem card showing difficulty, the best rubric coverage as a ring, and a 'draft in progress' flame badge when one exists",
+      "Problem runner: a full-screen 45-minute phase timer shown as a segmented bar of phases (the current phase pulses in the streak colour), the prompt and notes on filled cards, follow-ups behind taps, and a rubric self-grade with must / senior / staff tiers",
+      "Walkthrough: inside the shell; skeleton headings shown as a stepper with the problem's category colour, one heading per page, swipe or next to move on",
+      "Review: a hero card with 'N cards due' and 'Daily questions 0/10' side by side, a 14-day activity heat strip (ink intensity, not state colours), and a link to the question bank",
+      "Card session: a large flip card with the track glyph in its corner; front and back in big type; Again / Hard / Good / Easy as a 4-button grid; a summary showing the number of cards strengthened",
+      "Question session: X close, 10-segment progress, a track chip and kind pill, a 20px prompt, filled answer options with hit / missed / extra badges, and a compact feedback sheet with a tally, the explanation, 'learn more' named after the topic, and Continue",
+      "Question bank: a filter by track (glyph chips that wrap), kind and 'due'; each row has the track glyph, the prompt excerpt, and a state dot (correct or wrong last time, mastered seal)",
+      "Search: full-screen with a large input; results grouped as Lessons, Sections, Terms, Problems, Patterns, each lesson result with its track glyph; recent searches appear as chips",
+      "You: streak and goal settings (5 / 10 / 20 as a segmented control), readiness per round as three big rings, the route, theme, export / import, and the install prompt",
+      "Onboarding: three full-bleed steps (pick a route as tall cards each showing its track ribbon; set a daily goal; done), with the CTA as an ink pill pinned to the bottom"
+    ],
+    "uxFixes": [
+      "No more terminal-style uppercase mono captions: eyebrows are 14px bold in sentence case in the track colour, and mono is kept for code only",
+      "Outlined boxes are replaced by filled surfaces with soft elevation (borders only on answer states and figure rungs)",
+      "Each track is recognisable by its colour and glyph on Home, Learn, the lesson header, question chips and search results",
+      "The daily goal and streak become hero visuals (a 52px 0/10, ten goal pips, a week strip of flames) instead of a small 0% ring",
+      "Route progress is a ribbon striped by track instead of the text '10 / 87 stops'",
+      "The ContinueCard uses one round Resume button in the track colour instead of a full-width accent block",
+      "Select-all feedback shows missed answers separately (dashed outline and 'Missed' badge) and extra picks too ('Extra' badge), plus a tally line, so a partly right answer is clear without re-reading",
+      "The 'learn more' link is a button named after the topic, beside Continue, inside the feedback sheet",
+      "Lessons swap the tab bar for a reading dock with section position and a next-section button, which makes long reads less cramped and saves a trip to the table of contents",
+      "Body text in ink-2 at 16px or larger replaces the many small grey lines; ink-3 is used only for metadata, and it still passes AA (5:1 or better) in both themes",
+      "A floating tab bar with 68px targets and labelled icons",
+      "Primary actions become ink pills, so no single blue competes with the track colours"
+    ],
+    "newDependencies": [
+      "Google Fonts: Plus Jakarta Sans, Newsreader, JetBrains Mono (these replace Familjen Grotesk, Source Serif 4 and IBM Plex Mono; the Workbox runtime font cache rules stay the same)",
+      "No new npm packages: icons stay lucide-react (Brick, Compass, Shapes, Box, Network, Database, Globe, Plug, ShieldCheck, Puzzle, MessageSquare), and the tints are CSS color-mix"
+    ],
+    "risks": [
+      "Eleven track hues plus four state hues is a lot of colour. Discipline is needed: track colour only on glyphs, chips, ribbons, progress bars and the ContinueCard tint, never on answer states. Teal Databases sits fairly close to the correct green, and the pink of Production readiness is close to the wrong red, so states must always carry their icon",
+      "The light-theme track colours must be checked one by one for 4.5:1 when used as 14px text (the Architecture olive and Applied green are the borderline ones)",
+      "In dark mode, 26% tints on the empty ribbon segments are low contrast, so the unfilled stripes read as muddy; those segments may need a hairline edge or a higher tint",
+      "color-mix and backdrop-filter need iOS Safari 16.2 or later; older devices need a plain-rgba fallback for the tab bar",
+      "This replaces the CLAUDE.md token rule of 'line = the one accent'. Tokens become ink-as-action plus --t-<track>, and that needs a docs and Tailwind @theme update",
+      "Hiding the tab bar on lessons changes the shell convention (walkthroughs and lessons live in the shell); the scroll-up reveal must be reliable or users will feel trapped",
+      "A streak week strip can feel like pressure. The copy stays factual (no 'don't break it!')"
+    ],
+    "weakest": "On Home, the route ribbon (meant to be a hero visual) sits low on the first screen, just above the tab bar. Its unfilled dark-mode segments are muddy tints that are hard to tell apart, and the track legend below it is cut off by the tab bar. On top of that, the ContinueCard title wraps so '8 min left' leaves 'left' alone on its own line. A secondary issue: on the lesson screen the reading dock covers the figure caption."
+  }
+}

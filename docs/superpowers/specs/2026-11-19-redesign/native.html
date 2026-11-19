@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Throughput — Native-grade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a30;font-family:Geist,system-ui,sans-serif;padding:32px;-webkit-font-smoothing:antialiased}
+.row{display:flex;flex-wrap:wrap;gap:40px}
+.cap{font:500 14px Geist;color:#d4d4da;margin:0 0 10px 4px}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- tokens ---------- */
+.t-dark{
+  --bg:#0A0A0D;--cell:#17171C;--cell-2:#22222A;--sep:rgba(255,255,255,.08);
+  --ink:#F4F4F6;--ink-2:#ACACB6;--ink-3:#8D8D98;
+  --accent:#9592FF;--accent-fill:#5B56EA;--on-accent:#fff;--accent-soft:rgba(149,146,255,.15);
+  --correct:#3DD68C;--correct-soft:rgba(61,214,140,.13);
+  --wrong:#FF6B6B;--wrong-soft:rgba(255,107,107,.13);
+  --streak:#FFA24C;--streak-soft:rgba(255,162,76,.15);
+  --mastered:#F5C84B;
+  --bar:rgba(23,23,28,.74);--sheet:#1C1C22;--shadow:0 10px 30px rgba(0,0,0,.5);
+  color-scheme:dark}
+.t-light{
+  --bg:#F2F2F6;--cell:#FFFFFF;--cell-2:#E8E8EE;--sep:rgba(10,10,30,.09);
+  --ink:#0B0B10;--ink-2:#50505A;--ink-3:#686872;
+  --accent:#4A44DF;--accent-fill:#4A44DF;--on-accent:#fff;--accent-soft:rgba(74,68,223,.1);
+  --correct:#15803F;--correct-soft:rgba(21,128,63,.1);
+  --wrong:#C92F2B;--wrong-soft:rgba(201,47,43,.09);
+  --streak:#B4530A;--streak-soft:rgba(180,83,10,.1);
+  --mastered:#946200;
+  --bar:rgba(250,250,252,.8);--sheet:#fff;--shadow:0 10px 30px rgba(20,20,40,.12);
+  color-scheme:light}
+/* track identity hues (glyph tiles only; never state) */
+.tr-core{background:linear-gradient(150deg,#4C86FF,#2457E6)}
+.tr-db{background:linear-gradient(150deg,#1FB6C6,#0B8A99)}
+.tr-dist{background:linear-gradient(150deg,#7FA6FF,#5664F5)}
+.tr-pat{background:linear-gradient(150deg,#B77BFF,#8740E8)}
+.tr-int{background:linear-gradient(150deg,#F27BC0,#C8448F)}
+
+/* ---------- frame ---------- */
+section[data-frame]{width:390px;height:844px;overflow:hidden;position:relative;border-radius:44px;background:var(--bg);color:var(--ink);box-shadow:0 0 0 10px #111,0 30px 60px rgba(0,0,0,.4)}
+.status{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 10px 38px;font:600 17px Geist;letter-spacing:-.2px;position:relative;z-index:5}
+.status .r{display:flex;gap:6px;align-items:center}
+.sig{display:flex;gap:2px;align-items:flex-end}.sig i{width:3px;background:var(--ink);border-radius:1px}
+.batt{width:25px;height:12px;border:1.5px solid color-mix(in srgb,var(--ink) 45%,transparent);border-radius:4px;padding:1.5px}.batt b{display:block;height:100%;width:72%;background:var(--ink);border-radius:1.5px}
+.scroll{position:absolute;inset:0;overflow:hidden}
+.pad{padding:0 16px}
+
+/* type */
+.eyebrow{font:500 15px Geist;color:var(--ink-2)}
+.large{font:750 34px/1.1 Geist;letter-spacing:-.9px}
+.h-sec{display:flex;justify-content:space-between;align-items:baseline;margin:26px 4px 8px}
+.h-sec h2{font:700 21px Geist;letter-spacing:-.4px}
+.link{font:500 16px Geist;color:var(--accent)}
+
+/* grouped list */
+.group{background:var(--cell);border-radius:16px;overflow:hidden}
+.cell{display:flex;align-items:center;gap:14px;min-height:64px;padding:10px 14px 10px 14px;position:relative}
+.cell+.cell::before{content:"";position:absolute;top:0;left:64px;right:0;height:1px;background:var(--sep)}
+.cell .t{flex:1;min-width:0}
+.cell .t b{display:block;font:600 16.5px/1.3 Geist;letter-spacing:-.2px}
+.cell .t span{display:block;font:400 15px/1.35 Geist;color:var(--ink-2);margin-top:2px}
+.chev{color:var(--ink-3);width:18px!important;height:18px!important}
+.tile{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none}
+.tile svg.i{width:20px;height:20px}
+.cell.pressed{background:var(--cell-2);transform:scale(.985);border-radius:12px}
+
+/* search */
+.search{height:44px;border-radius:12px;background:var(--cell-2);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--ink-3);font:400 17px Geist}
+.search svg.i{width:19px;height:19px}
+
+/* chips */
+.pill{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border-radius:999px;font:650 15px Geist}
+.pill svg.i{width:17px;height:17px}
+.streak{background:var(--streak-soft);color:var(--streak)}
+
+/* stat tiles */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--cell);border-radius:16px;padding:14px 12px 12px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between}
+.stat .n{font:750 28px/1 Geist;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+.stat .n small{font:600 16px Geist;color:var(--ink-3);letter-spacing:0}
+.stat .l{font:500 14px/1.25 Geist;color:var(--ink-2)}
+.ring{width:34px;height:34px;border-radius:50%;background:conic-gradient(var(--accent) 0 0%,var(--cell-2) 0);display:grid;place-items:center;color:var(--accent)}
+.ring::after{content:"";width:26px;height:26px;border-radius:50%;background:var(--cell);grid-area:1/1}
+.ring svg.i{grid-area:1/1;z-index:1;width:15px;height:15px}
+.sicon{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.sicon svg.i{width:17px;height:17px}
+
+/* route ribbon */
+.ribbon{display:flex;gap:3px;height:8px;margin:4px 0 0}
+.ribbon i{border-radius:4px;background:var(--cell-2);position:relative;overflow:hidden}
+.ribbon i.f{background:var(--accent)}
+.ribbon i.p::after{content:"";position:absolute;inset:0 60% 0 0;background:var(--accent)}
+.prog-ring{width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--streak) 0 62%,var(--cell-2) 0);display:grid;place-items:center;flex:none}
+.prog-ring::after{content:"";width:20px;height:20px;border-radius:50%;background:var(--cell)}
+.dot-todo{width:28px;height:28px;border-radius:50%;border:2px solid var(--ink-3);opacity:.7;flex:none}
+.tag{font:600 13px Geist;padding:3px 8px;border-radius:6px}
+
+/* docked resume capsule */
+.dock{position:absolute;left:10px;right:10px;bottom:92px;height:68px;border-radius:22px;background:var(--bar);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:var(--shadow),inset 0 0 0 1px var(--sep);display:flex;align-items:center;gap:12px;padding:0 10px 0 12px;z-index:6}
+.dock .t{flex:1;min-width:0}
+.dock .t b{display:block;font:600 16px Geist;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock .t span{display:block;font:400 14px Geist;color:var(--ink-2)}
+.dock .bar{position:absolute;left:22px;right:22px;bottom:0;height:3px;border-radius:2px;background:var(--sep);overflow:hidden}
+.dock .bar::after{content:"";position:absolute;inset:0 27% 0 0;background:var(--accent)}
+.play{width:48px;height:48px;border-radius:50%;background:var(--accent-fill);color:var(--on-accent);display:grid;place-items:center;flex:none}
+.play svg.i{width:20px;height:20px;fill:currentColor;stroke-width:1.5;margin-left:2px}
+
+/* tab bar */
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:84px;background:var(--bar);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid var(--sep);display:grid;grid-template-columns:repeat(5,1fr);padding-top:7px;z-index:6}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-3);font:600 11px Geist;position:relative;min-height:48px}
+.tab svg.i{width:25px;height:25px;stroke-width:1.8}
+.tab.on{color:var(--accent)}
+.tab .badge{position:absolute;top:-3px;left:calc(50% + 6px);min-width:20px;height:18px;border-radius:9px;background:var(--accent-fill);color:#fff;font:700 11px/18px Geist;text-align:center;padding:0 5px}
+.home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:var(--ink);z-index:9}
+
+/* ---------- lesson ---------- */
+.navbar{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 8px}
+.navbtn{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;gap:2px;color:var(--accent);font:500 17px Geist}
+.navbtn.c{width:44px;border-radius:50%;background:var(--cell);color:var(--ink)}
+.navbtn svg.i{width:24px;height:24px}
+.navbtn.c svg.i{width:19px;height:19px}
+.readbar{height:3px;background:var(--sep);margin:0 16px;border-radius:2px;overflow:hidden}
+.readbar i{display:block;height:100%;width:22%;background:var(--accent)}
+.meta{display:flex;align-items:center;gap:10px;margin:18px 0 10px}
+.meta .tile{width:30px;height:30px;border-radius:8px}
+.meta .tile svg.i{width:16px;height:16px}
+.lt{font:750 31px/1.12 Geist;letter-spacing:-.8px}
+.prose{font:400 18.5px/1.62 'Source Serif 4',Georgia,serif;color:var(--ink);letter-spacing:-.05px}
+.prose em{font-style:italic}
+.h2l{font:700 22px Geist;letter-spacing:-.4px;margin:26px 0 10px}
+.figure{background:var(--cell);border-radius:18px;padding:16px 14px 14px}
+.rung{display:flex;align-items:center;gap:12px;padding:10px 0}
+.rung+.rung{border-top:1px solid var(--sep)}
+.meter{display:flex;gap:3px;flex:none}
+.meter i{width:6px;height:22px;border-radius:2px;background:var(--cell-2)}
+.meter i.on{background:var(--accent)}
+.rung .nm{flex:1;font:600 15.5px/1.25 Geist}
+.rung .nm small{display:block;font:400 13.5px Geist;color:var(--ink-2);margin-top:2px}
+.anom{font:500 13.5px/1.2 Geist;padding:6px 9px;border-radius:8px;background:var(--accent-soft);color:var(--ink);text-align:right;max-width:132px}
+.anom.none{background:transparent;color:var(--ink-3);border:1px dashed var(--sep)}
+.figcap{font:400 14px/1.4 Geist;color:var(--ink-2);margin-top:10px}
+.callout{border-radius:16px;background:var(--accent-soft);padding:14px 16px;display:flex;gap:12px}
+.callout b{font:650 15px Geist;color:var(--accent);display:block;margin-bottom:3px}
+.callout p{font:400 16px/1.45 Geist}
+.toolbar{position:absolute;left:12px;right:12px;bottom:30px;height:60px;border-radius:30px;background:var(--bar);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:var(--shadow),inset 0 0 0 1px var(--sep);display:flex;align-items:center;padding:0 8px;gap:6px;z-index:6}
+.tb-btn{height:44px;min-width:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--ink);font:600 15px Geist;padding:0 12px}
+.tb-mid{flex:1;text-align:center;font:500 14px/1.2 Geist;color:var(--ink-2)}
+.tb-mid b{display:block;color:var(--ink);font:600 15px Geist}
+.tb-primary{background:var(--accent-fill);color:var(--on-accent)}
+
+/* ---------- question ---------- */
+.qtop{display:flex;align-items:center;gap:12px;padding:2px 12px 0}
+.segs{flex:1;display:flex;gap:4px}
+.segs i{flex:1;height:6px;border-radius:3px;background:var(--cell-2)}
+.segs i.ok{background:var(--accent)}
+.segs i.now{background:color-mix(in srgb,var(--accent) 55%,var(--cell-2))}
+.qcount{font:600 15px Geist;color:var(--ink-2);font-variant-numeric:tabular-nums;min-width:44px;text-align:right}
+.kind{display:inline-flex;align-items:center;gap:6px;font:600 14px Geist;color:var(--accent);background:var(--accent-soft);padding:6px 10px;border-radius:8px;margin:12px 0 10px}
+.kind svg.i{width:16px;height:16px}
+.prompt{font:700 21px/1.26 Geist;letter-spacing:-.4px}
+.opts{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:14px;background:var(--cell);font:500 16px/1.35 Geist;min-height:56px;border:1.5px solid transparent}
+.box{width:24px;height:24px;border-radius:7px;flex:none;display:grid;place-items:center;margin-top:-1px}
+.box svg.i{width:16px;height:16px;stroke-width:3;color:#fff}
+.opt .t{flex:1}
+.opt .note{display:block;font:600 13.5px Geist;margin-top:3px}
+.opt.right{background:var(--correct-soft);border-color:color-mix(in srgb,var(--correct) 55%,transparent)}
+.opt.right .box{background:var(--correct)}
+.opt.right .note{color:var(--correct)}
+.opt.bad{background:var(--wrong-soft);border-color:color-mix(in srgb,var(--wrong) 55%,transparent)}
+.opt.bad .box{background:var(--wrong)}
+.opt.bad .note{color:var(--wrong)}
+.opt.miss{border:1.5px dashed var(--correct)}
+.opt.miss .box{border:2px solid var(--correct)}
+.opt.miss .note{color:var(--correct)}
+.t-dark .opt.right .box svg.i,.t-dark .opt.bad .box svg.i{color:#0A0A0D}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);border-radius:28px 28px 0 0;padding:8px 18px 34px;box-shadow:0 -10px 40px rgba(0,0,0,.35);z-index:6}
+.t-dark .sheet{box-shadow:0 -1px 0 var(--sep),0 -16px 40px rgba(0,0,0,.6)}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--ink-3);opacity:.5;margin:0 auto 10px}
+.verdict{display:flex;align-items:center;gap:10px;font:700 19px Geist;letter-spacing:-.3px}
+.verdict .vi{width:30px;height:30px;border-radius:50%;background:var(--wrong-soft);color:var(--wrong);display:grid;place-items:center}
+.verdict .vi svg.i{width:17px;height:17px;stroke-width:2.6}
+.verdict small{margin-left:auto;font:500 14px Geist;color:var(--ink-2)}
+.explain{font:400 16px/1.5 Geist;color:var(--ink);margin:8px 0 6px}
+.topicline{font:500 14px Geist;color:var(--ink-2);margin-bottom:2px}
+.btn.sec{background:var(--cell-2);color:var(--ink);padding:0 16px;font-weight:600}
+.t-light .btn.sec{background:var(--bg)}
+.topic{display:flex;align-items:center;gap:12px;background:var(--cell-2);border-radius:14px;padding:0 6px 0 10px;min-height:52px}
+.t-light .topic{background:var(--bg)}
+.topic .t{flex:1;font:500 15px/1.3 Geist;color:var(--ink-2)}
+.topic .t b{display:block;color:var(--ink);font:600 15px Geist}
+.topic .tile{width:30px;height:30px;border-radius:8px}
+.topic .tile svg.i{width:16px;height:16px}
+.btn{height:54px;border-radius:16px;background:var(--accent-fill);color:var(--on-accent);display:flex;align-items:center;justify-content:center;gap:8px;font:650 17px Geist;margin-top:12px}
+.btn svg.i{width:19px;height:19px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="chev-r" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="chev-l" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol>
+  <symbol id="timer" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol>
+  <symbol id="layers" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+  <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="bookmark" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></symbol>
+  <symbol id="list" viewBox="0 0 24 24"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></symbol>
+  <symbol id="db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></symbol>
+  <symbol id="network" viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></symbol>
+  <symbol id="help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+  <symbol id="route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></symbol>
+  <symbol id="ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></symbol>
+  <symbol id="checks" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="quote" viewBox="0 0 24 24"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/></symbol>
+</svg>
+
+<template id="tpl-status"><div class="status"><span>9:41</span><span class="r"><span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span><svg class="i" style="width:17px;height:17px;stroke-width:2.4" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/></svg><span class="batt"><b></b></span></span></div></template>
+
+<template id="tpl-home">
+  <div class="scroll">
+    <div data-status></div>
+    <div class="pad">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px">
+        <div><div class="eyebrow">Thursday, 19 November</div><h1 class="large" style="margin-top:2px">Today</h1></div>
+        <span class="pill streak" style="margin-bottom:2px"><svg class="i"><use href="#flame"/></svg>2 days</span>
+      </div>
+      <div class="search" style="margin-top:14px"><svg class="i"><use href="#search"/></svg>Lessons, terms, problems</div>
+
+      <div class="stats" style="margin-top:16px">
+        <div class="stat"><span class="ring"><svg class="i"><use href="#help"/></svg></span><div><div class="n">0<small> /10</small></div><div class="l">Questions</div></div></div>
+        <div class="stat"><span class="sicon"><svg class="i"><use href="#layers"/></svg></span><div><div class="n">27</div><div class="l">Cards due</div></div></div>
+        <div class="stat"><span class="sicon"><svg class="i"><use href="#route"/></svg></span><div><div class="n">10<small> /87</small></div><div class="l">Route stops</div></div></div>
+      </div>
+
+      <div class="h-sec"><h2>Up next</h2><span class="link">Full journey</span></div>
+      <div class="group">
+        <div style="padding:14px 14px 8px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span class="prog-ring"></span><div style="flex:1;font:400 15px/1.3 Geist;color:var(--ink-2)"><b style="display:block;font:600 16.5px Geist;color:var(--ink)">Data modelling and indexing</b><span style="color:var(--streak)">In progress</span> · 8 min left</div></div>
+          <div class="ribbon"><i class="f" style="flex:9"></i><i class="p" style="flex:12"></i><i style="flex:8"></i><i style="flex:9"></i><i style="flex:11"></i><i style="flex:8"></i><i style="flex:9"></i><i style="flex:7"></i><i style="flex:6"></i><i style="flex:5"></i><i style="flex:3"></i></div>
+          <div style="display:flex;justify-content:space-between;font:500 13.5px Geist;color:var(--ink-3);margin-top:8px"><span>Foundations</span><span>The interview</span></div>
+        </div>
+        <div class="cell"><span class="tile tr-core"><svg class="i"><use href="#network"/></svg></span><div class="t"><b>Caching, properly</b><span>Core system design · Lesson 4</span></div><svg class="i chev"><use href="#chev-r"/></svg></div>
+        <div class="cell pressed" style="margin:0 4px"><span class="tile tr-core"><svg class="i"><use href="#network"/></svg></span><div class="t"><b>Sharding and consistent hashing</b><span>Core system design · Lesson 5</span></div><svg class="i chev"><use href="#chev-r"/></svg></div>
+        <div class="cell"><span class="tile tr-int"><svg class="i"><use href="#ticket"/></svg></span><div class="t"><b>Design Ticketmaster</b><span>Checkpoint problem · 45 min</span></div><svg class="i chev"><use href="#chev-r"/></svg></div>
+      </div>
+    </div>
+  </div>
+  <div class="dock"><span class="tile tr-core" style="width:44px;height:44px;border-radius:12px"><svg class="i"><use href="#network"/></svg></span><div class="t"><b>Data modelling and indexing</b><span>Secondary indexes · 8 min left</span></div><span class="play"><svg class="i"><use href="#play"/></svg></span><span class="bar"></span></div>
+  <nav class="tabbar">
+    <span class="tab on"><svg class="i"><use href="#home"/></svg>Today</span>
+    <span class="tab"><svg class="i"><use href="#map"/></svg>Learn</span>
+    <span class="tab"><svg class="i"><use href="#timer"/></svg>Practice</span>
+    <span class="tab"><svg class="i"><use href="#layers"/></svg>Review<span class="badge">27</span></span>
+    <span class="tab"><svg class="i"><use href="#user"/></svg>You</span>
+  </nav>
+  <div class="home-ind"></div>
+</template>
+
+<div class="row">
+  <div><p class="cap">home-dark</p><section data-frame="home-dark" class="t-dark" data-use="home"></section></div>
+
+  <div><p class="cap">lesson-dark</p>
+  <section data-frame="lesson-dark" class="t-dark">
+    <div class="scroll">
+      <div data-status></div>
+      <div class="navbar">
+        <span class="navbtn"><svg class="i"><use href="#chev-l"/></svg>Databases</span>
+        <span style="display:flex;gap:8px"><span class="navbtn c"><svg class="i"><use href="#bookmark"/></svg></span><span class="navbtn c" style="font:600 16px Geist">Aa</span></span>
+      </div>
+      <div class="readbar"><i></i></div>
+      <div class="pad">
+        <div class="meta"><span class="tile tr-db"><svg class="i"><use href="#db"/></svg></span><span class="eyebrow" style="font-size:14.5px">Databases in depth · Lesson 4 · 11 min</span></div>
+        <h1 class="lt">Isolation levels and their anomalies</h1>
+        <p class="prose" style="margin-top:14px">Most concurrency bugs that reach production are an anomaly the default isolation level permits, behaving <em>exactly as documented</em>.</p>
+        <h2 class="h2l">The ladder of levels</h2>
+        <div class="figure">
+          <div style="display:flex;justify-content:space-between;font:600 13.5px Geist;color:var(--ink-3);padding-bottom:4px"><span>Level</span><span>Newly prevents</span></div>
+          <div class="rung"><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="nm">Serializable<small>As if one at a time</small></span><span class="anom">Write skew</span></div>
+          <div class="rung"><span class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="nm">Repeatable read<small>One snapshot per txn</small></span><span class="anom">Non-repeatable read, phantom / lost update</span></div>
+          <div class="rung"><span class="meter"><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="nm">Read committed<small>Common default</small></span><span class="anom">Dirty read</span></div>
+          <div class="rung"><span class="meter"><i class="on"></i><i></i><i></i><i></i></span><span class="nm">Read uncommitted<small>Sees unfinished writes</small></span><span class="anom none">Nothing</span></div>
+          <p class="figcap">Each rung up stops one more anomaly, and costs more locking or more aborted transactions.</p>
+        </div>
+        <p class="prose" style="margin-top:18px">Postgres and MySQL both default to a level that lets write skew through. Two doctors each see the other on call and both go home.</p>
+      </div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(to bottom,transparent,var(--bg) 55%);z-index:5"></div>
+    <div class="toolbar">
+      <span class="tb-btn"><svg class="i" style="width:20px;height:20px"><use href="#list"/></svg>Contents</span>
+      <span class="tb-mid"><b>The ladder of levels</b>Section 2 of 6</span>
+      <span class="tb-btn tb-primary" style="width:44px;padding:0"><svg class="i" style="width:20px;height:20px"><use href="#down"/></svg></span>
+    </div>
+    <div class="home-ind"></div>
+  </section></div>
+
+  <div><p class="cap">question-dark</p>
+  <section data-frame="question-dark" class="t-dark">
+    <div class="scroll">
+      <div data-status></div>
+      <div class="qtop">
+        <span class="navbtn c"><svg class="i"><use href="#x"/></svg></span>
+        <span class="segs"><i class="ok"></i><i class="ok"></i><i class="now"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="qcount">3 / 10</span>
+      </div>
+      <div class="pad">
+        <span class="kind"><svg class="i"><use href="#checks"/></svg>Select all that apply</span>
+        <h1 class="prompt">Which of these are write skew, the anomaly that snapshot isolation lets through?</h1>
+        <div class="opts">
+          <div class="opt right"><span class="box"><svg class="i"><use href="#check"/></svg></span><span class="t">Two withdrawals each check a joint balance, then debit different accounts</span></div>
+          <div class="opt miss"><span class="box"></span><span class="t">Two sign-ups each find a username free and insert it, with no unique index<span class="note">Missed: this is write skew too</span></span></div>
+          <div class="opt bad"><span class="box"><svg class="i"><use href="#x"/></svg></span><span class="t">Two requests each read a like count of 10 and write 11</span></div>
+          <div class="opt right"><span class="box"><svg class="i"><use href="#check"/></svg></span><span class="t">Two bookings each find a room free, then insert overlapping slots</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="verdict"><span class="vi"><svg class="i"><use href="#x"/></svg></span>Not quite<small>2 of 3 found · 1 extra</small></div>
+      <div class="topicline" style="margin-top:6px">Databases in depth · Isolation levels</div>
+      <p class="explain">Write skew is two transactions reading the same rows and writing different ones, so no row is written twice. The like count is a lost update on one row.</p>
+      <div style="display:flex;gap:10px"><div class="btn sec"><span class="tile tr-db" style="width:26px;height:26px;border-radius:7px"><svg class="i" style="width:15px;height:15px"><use href="#db"/></svg></span>Learn more</div><div class="btn" style="flex:1">Continue<svg class="i"><use href="#arrow"/></svg></div></div>
+    </div>
+    <div class="home-ind"></div>
+  </section></div>
+
+  <div><p class="cap">home-light</p><section data-frame="home-light" class="t-light" data-use="home"></section></div>
+</div>
+<script>
+const home=document.getElementById("tpl-home"),st=document.getElementById("tpl-status");
+document.querySelectorAll('[data-use="home"]').forEach(s=>s.appendChild(home.content.cloneNode(true)));
+document.querySelectorAll('[data-status]').forEach(s=>s.replaceWith(st.content.cloneNode(true)));
+</script>
+</body>
+</html>
