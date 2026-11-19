@@ -13,8 +13,11 @@ export function RouteRibbon({ segments }: { segments: { trackId: string; total: 
         <span
           key={`${s.trackId}-${i}`}
           style={{ ...trackStyle(s.trackId), flexGrow: s.total }}
-          className="relative min-w-1 basis-0 overflow-hidden rounded-full bg-track-soft"
+          className="relative min-w-1 basis-0 overflow-hidden rounded-full bg-surface-3"
         >
+          {/* The stretch still ahead, in the track's colour but faint: a tint alone read as
+              one grey across tracks in dark and vanished in light. */}
+          <span className="absolute inset-0 bg-track opacity-30" />
           <span
             className="absolute inset-y-0 left-0 rounded-full bg-track"
             style={{ width: `${Math.round((Math.min(s.done, s.total) / s.total) * 100)}%` }}

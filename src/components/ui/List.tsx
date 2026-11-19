@@ -13,7 +13,10 @@ export function Group({
   footer,
   children,
   className = '',
+  id,
 }: {
+  /** For an in-page anchor ("See decks" → #decks). */
+  id?: string
   title?: ReactNode
   /** Right of the title — a "See all" or "Change". */
   action?: ReactNode
@@ -22,7 +25,7 @@ export function Group({
   className?: string
 }) {
   return (
-    <section className={className}>
+    <section id={id} className={className}>
       {(title || action) && (
         <div className="mb-2 flex min-h-11 items-end justify-between gap-3 px-1">
           {title && <h2 className="text-[1.25rem] font-bold">{title}</h2>}
@@ -41,7 +44,8 @@ export function Group({
 }
 
 const rowCls =
-  'flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-100 active:bg-surface-2 hover:bg-surface-2/60'
+  'flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-100 active:bg-surface-2 hover:bg-surface-2/60 focus-visible:-outline-offset-2'
+// The focus ring is drawn inside the row: the Group clips anything outside its rounded edge.
 
 /**
  * One row of a Group. A link (`to`), a button (`onClick`), or plain. `title` and `sub` must

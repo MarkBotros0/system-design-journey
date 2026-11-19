@@ -15,6 +15,22 @@ export function SegmentedProgress({
   label: string
 }) {
   const n = Math.max(1, total)
+  // Past two dozen, segments shrink to slivers: show one continuous bar instead.
+  if (n > 24) {
+    return (
+      <div
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={n}
+        aria-valuenow={Math.min(done, n)}
+        aria-valuetext={`${Math.min(done, n)} of ${n}`}
+        className="h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
+      >
+        <div className="h-full rounded-full bg-line transition-[width] duration-200" style={{ width: `${(Math.min(done, n) / n) * 100}%` }} />
+      </div>
+    )
+  }
   return (
     <div
       role="progressbar"

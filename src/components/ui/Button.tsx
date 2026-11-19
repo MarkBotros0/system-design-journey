@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
-type Size = 'md' | 'lg'
+type Size = 'sm' | 'md' | 'lg'
 
 // Pills with a physical press: a slight shrink that reduced motion switches off.
 const base =
@@ -20,6 +20,8 @@ const variants: Record<Variant, string> = {
 
 // Minimum 44px tall throughout — the touch-target floor, not a style choice.
 const sizes: Record<Size, string> = {
+  // sm is narrower, never shorter: half-width pills in a row of two.
+  sm: 'min-h-11 px-3.5 text-[0.9375rem]',
   md: 'min-h-11 px-5 text-[0.9375rem]',
   lg: 'min-h-14 px-6 text-base w-full',
 }
@@ -56,7 +58,7 @@ export function IconButton({
     <button
       type="button"
       aria-label={label}
-      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink transition-[background-color,transform] duration-150 hover:bg-surface-3 active:scale-95 motion-reduce:active:scale-100 ${className}`}
+      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-3 text-ink transition-[background-color,transform] duration-150 hover:bg-hairline active:scale-95 motion-reduce:active:scale-100 ${className}`}
       {...rest}
     >
       {children}

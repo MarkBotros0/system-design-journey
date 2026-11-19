@@ -59,7 +59,12 @@ export function Shell() {
   const due = useDueCount()
   const wide = pathname.startsWith('/m/') || pathname.startsWith('/learn')
   const immersive = isImmersive(pathname)
-  const resume = useMemo(() => (TAB_ROOTS.has(pathname) ? resumeTarget(progress) : null), [pathname, progress])
+  const resume = useMemo(() => {
+    if (!TAB_ROOTS.has(pathname)) return null
+    const t = resumeTarget(progress)
+    // Practice pins its drafts at the top of the list already; the dock would say it twice.
+    return t && !(pathname === '/practice' && t.kind === 'draft') ? t : null
+  }, [pathname, progress])
 
   return (
     <div className="min-h-dvh lg:flex">

@@ -32,7 +32,7 @@ No CSS framework config file — Tailwind 4 is configured entirely in `src/index
 
 ```bash
 npm run dev        # port 5180, strict
-npm run typecheck  # tsc --noEmit
+npm run typecheck  # tsc -b — the app, the tests (own tsconfig, Node types) and vite.config
 npm test           # vitest run — includes the whole-curriculum check (content.test.ts)
 npm run build      # tsc -b && vite build
 npm run icons      # regenerate PNG app icons from public/favicon.svg (needs sharp)
@@ -64,7 +64,11 @@ src/
 │   ├── lesson/           LessonToc, Takeaways, RelatedRow, useLessonScroll, ReadingDock
 │   ├── line/             LineMap (StationList) + groupStops — the route map
 │   ├── onboarding/       OnboardingSheet — pick a route (also "Change route")
-│   ├── questions/        the four answer kinds, Feedback, DailyCard
+│   ├── questions/        the four answer kinds, Feedback
+│   ├── home/             TodayCard (daily goal, streak, week) + useDailySet
+│   ├── practice/         ProblemCard, FocusFrame (screens outside the shell), Phases,
+│   │                     RubricSheet, problemMeta
+│   ├── you/              ReadinessCard, StatusNote
 │   ├── nav/              Shell.tsx — floating five-tab bar (mobile) / rail (≥1024px),
 │   │                     ResumeDock (lib/resume.ts decides what it offers)
 │   └── ui/               TopBar/PageTitle, Sheet (detents), Segmented, Chip, ProgressRing,
