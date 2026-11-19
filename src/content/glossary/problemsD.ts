@@ -45,7 +45,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'VM',
     full: 'Virtual Machine',
-    gist: "A computer virtualised by a hypervisor, with its own kernel: the processor's hardware support runs the guest's instructions directly, and only devices are emulated. A far harder boundary than a container, which shares the host's kernel — which is why untrusted code belongs in one. Firecracker's minimal VMs boot in about 125 ms, so one per run is affordable.",
+    gist: "A whole computer provided by a hypervisor, with its own kernel; hardware support lets the guest's code run directly on the processor. It is a far harder boundary than a container, which shares the host's kernel, so untrusted code belongs in one; Firecracker's minimal VMs boot in about 125 ms, cheap enough for one per run.",
     figure: {
       kind: 'split',
       left: {
@@ -65,7 +65,7 @@ export const terms: GlossaryEntry[] = [
           { label: 'Guest kernel', sub: 'its own', tone: 'line', to: 'hypervisor' },
           { label: 'Host', tone: 'mastered' },
         ],
-        cost: 'An escape lands in a kernel that guards nothing.',
+        cost: 'An escape lands in a guest kernel that guards nothing else.',
       },
       verdict: 'Same code, same limits. The difference is whose kernel it is talking to.',
     },

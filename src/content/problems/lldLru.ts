@@ -270,6 +270,7 @@ class ExpiringCache<K, V> implements Cache<K, V> {
     const until = this.now() + this.ttlMs
     this.inner.put(key, { value, until })
   }
+  // delete() and size simply forward to inner
 }`,
       },
       note: '`new SynchronizedCache(new ExpiringCache(new LRUCache(n), ttl))`. The order is a decision: one lock around both layers, so expiry and eviction cannot interleave.',
@@ -282,7 +283,7 @@ class ExpiringCache<K, V> implements Cache<K, V> {
     { kind: 'heading', text: 'Concurrency and edge cases' },
     {
       kind: 'prose',
-      text: 'The trap: "reads do not modify anything, so use a read-write lock." In an LRU cache **every `get` moves a node, so a read is a write**. The Java documentation says it outright: in an access-ordered `LinkedHashMap`, merely querying with `get` is a structural modification. Two unlocked gets on neighbouring nodes are enough to break the list.',
+      text: 'The trap: "reads do not modify anything, so use a read-write lock." In an LRU cache **every `get` moves a node, so a read is a write**. The Java documentation says it outright: in an access-ordered `LinkedHashMap`, merely querying with `get` is a structural modification. Two unlocked gets on neighbouring nodes are enough to break the list. In Node a synchronous `get` runs to completion, so this is a threaded-runtime bug: read `Mutex` as Java\'s `synchronized`.',
     },
     {
       kind: 'figure',

@@ -57,7 +57,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'REST',
     full: 'Representational State Transfer',
-    gist: 'The default way to shape a web API: things become addressable resources, and the HTTP verb says what you are doing to them. Right about ninety percent of the time.',
+    gist: 'The default way to shape a web API: things become addressable resources, and the HTTP verb says what you are doing to them. Reach for something else only with a reason.',
     figure: {
       kind: 'stack',
       layers: [
@@ -80,7 +80,7 @@ const baseTerms: GlossaryEntry[] = [
       nodes: [
         { label: 'Client', to: 'request' },
         { label: 'Server', tone: 'line', to: 'response' },
-        { label: 'Client', sub: 'connection closes' },
+        { label: 'Client', sub: 'exchange over' },
       ],
       note: 'One round trip. The server cannot speak first — that limitation is what SSE and WebSocket exist to solve.',
     },
@@ -90,7 +90,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'TCP',
     full: 'Transmission Control Protocol',
-    gist: 'The transport underneath HTTP. It guarantees your bytes arrive, in order, retransmitting what gets lost — at the cost of a handshake before anything useful moves.',
+    gist: 'The transport underneath HTTP. It delivers your bytes in order, retransmitting what gets lost — at the cost of a handshake round trip before anything useful moves.',
     figure: {
       kind: 'flow',
       nodes: [
@@ -100,7 +100,7 @@ const baseTerms: GlossaryEntry[] = [
         { label: 'Data', sub: 'ordered, retried', tone: 'mastered' },
       ],
     },
-    caption: 'Three messages before a single byte of payload. It is why connection reuse matters.',
+    caption: 'A full round trip before the first byte of payload. It is why connection reuse matters.',
     seeAlso: ['HTTP', 'IP'],
   },
   {
@@ -182,7 +182,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'WebSocket',
     full: 'WebSocket',
-    gist: 'A connection that stays open and lets both sides send whenever they like. Worth its costs — Layer 4 load balancing, connection state, your own reconnection logic — only when the client genuinely pushes too.',
+    gist: 'A connection that stays open and lets both sides send whenever they like. Worth its costs — long-lived connections the load balancer must hold (often at Layer 4), state on every server, your own reconnection logic — only when the client genuinely pushes too.',
     figure: {
       kind: 'split',
       left: {
@@ -194,7 +194,7 @@ const baseTerms: GlossaryEntry[] = [
         title: 'WebSocket',
         tone: 'line',
         nodes: [{ label: 'Server', to: 'both ways' }, { label: 'Client', tone: 'line' }],
-        cost: 'Both speak. Costs L4 balancing and connection state.',
+        cost: 'Both speak. Costs held connections and server state.',
       },
       verdict: 'Chat and collaborative editing need both directions. A live dashboard does not.',
     },
@@ -203,8 +203,8 @@ const baseTerms: GlossaryEntry[] = [
   },
   {
     id: 'gRPC',
-    full: 'Google Remote Procedure Call',
-    gist: 'A binary protocol over HTTP/2 for service-to-service calls. Much faster than JSON over HTTP, and not usable from a browser without a proxy.',
+    full: 'gRPC Remote Procedure Calls',
+    gist: 'Google\'s open-source framework for binary calls over HTTP/2, used service to service. Typically faster and more compact than JSON over HTTP, and not usable from a browser without a proxy.',
     figure: {
       kind: 'split',
       left: {
@@ -296,7 +296,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'NoSQL',
     full: 'Not Only SQL',
-    gist: 'Databases that trade joins and flexible querying for predictable performance at scale. You design the keys around the queries you intend to run — and get nothing for a query you did not plan.',
+    gist: 'Databases that mostly trade joins and flexible querying for predictable performance at scale. You design the keys around the queries you intend to run — and get nothing for a query you did not plan.',
     figure: {
       kind: 'split',
       left: {
@@ -333,7 +333,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'CAP',
     full: 'Consistency, Availability, Partition tolerance',
-    gist: 'When the network splits, you can keep answering with possibly-stale data, or refuse to answer rather than be wrong. You cannot do both. Partitions are not optional, so the real choice is only ever the first two.',
+    gist: 'When the network splits, you can keep answering with possibly-stale data, or refuse to answer rather than be wrong. You cannot do both. Partitions are not optional, so the real choice is between consistency and availability.',
     figure: {
       kind: 'split',
       left: {
@@ -350,7 +350,7 @@ const baseTerms: GlossaryEntry[] = [
       },
       verdict: 'Availability by default. Consistency for money, inventory, and booking limited resources.',
     },
-    caption: 'The choice only exists during a network partition — but partitions are guaranteed.',
+    caption: 'The choice only exists during a network partition — but sooner or later there will be one.',
     seeAlso: ['PACELC', 'AP'],
   },
   {
@@ -423,7 +423,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'OCC',
     full: 'Optimistic Concurrency Control',
-    gist: 'Do not lock. Read a row, remember its version, and make the write conditional on that version still being current. If someone got there first, your write fails and you retry — which is the correctness boundary underneath every reservation scheme.',
+    gist: 'Do not lock. Read a row, remember its version, and make the write conditional on that version still being current. If someone got there first, your write fails and you retry. It is the correctness backstop underneath most reservation schemes.',
     figure: {
       kind: 'timeline',
       ticks: ['read', 'both write', 'result'],
@@ -470,7 +470,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'CDC',
     full: 'Change Data Capture',
-    gist: 'Streaming a database\'s write log into something else — usually a search index. It means the index is always about a second behind, which is fine for search and never fine for a booking decision.',
+    gist: 'Streaming a database\'s write log into something else — a search index, a cache, a warehouse. The copy is always a little behind, typically around a second, which is fine for search and never fine for a booking decision.',
     figure: {
       kind: 'flow',
       nodes: [
@@ -566,8 +566,8 @@ const baseTerms: GlossaryEntry[] = [
   },
   {
     id: 'GIN',
-    full: 'Generalised Inverted Index',
-    gist: "Postgres's index type for full-text search. It maps each word to the rows containing it, which is what makes text search a lookup instead of a scan — and it means you often do not need a separate search cluster at all.",
+    full: 'Generalized Inverted Index',
+    gist: "The Postgres index type behind full-text search (and JSON and array lookups). It maps each word to the rows containing it, which is what makes text search a lookup instead of a scan — and it means you often do not need a separate search cluster at all.",
     figure: {
       kind: 'flow',
       nodes: [
@@ -583,7 +583,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'PostGIS',
     full: 'PostGIS',
-    gist: 'The geospatial extension for Postgres. It adds real distance and containment operators plus indexes that make "within 5 km" a range scan instead of a scan of every row.',
+    gist: 'The geospatial extension for Postgres. It adds real distance and containment operators plus spatial indexes that make "within 5 km" an index lookup instead of a scan of every row.',
     figure: {
       kind: 'grid',
       cols: 5,
@@ -605,7 +605,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'S2',
     full: 'S2 cells',
-    gist: "Google's scheme for dividing the globe into cells that subdivide adaptively, so a dense city gets finer cells than an empty ocean. Same idea as geohashing, better behaved at the poles.",
+    gist: "Google's scheme for dividing the globe into a hierarchy of cells, each splitting into four, so you can use fine cells where a city is dense and coarse ones over an empty ocean. Same idea as geohashing, with far less distortion near the poles.",
     figure: {
       kind: 'grid',
       cols: 4,
@@ -710,7 +710,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'DLQ',
     full: 'Dead Letter Queue',
-    gist: 'Where a message goes after it has failed too many times. It parks the poison message and alerts someone, instead of letting it retry forever and block everything behind it.',
+    gist: 'Where a message goes after it has failed too many times. It parks the poison message where a human can inspect it, instead of letting it retry forever and block everything behind it.',
     figure: {
       kind: 'flow',
       nodes: [
@@ -812,7 +812,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'HLS',
     full: 'HTTP Live Streaming',
-    gist: 'Video cut into a few seconds per file at several qualities, plus a manifest listing them. The player picks the next chunk\'s quality itself, which is why quality shifts mid-video instead of buffering.',
+    gist: 'Video cut into files of a few seconds each, at several qualities, plus a manifest listing them. The player picks the next chunk\'s quality itself, which is why quality shifts mid-video instead of buffering.',
     figure: {
       kind: 'stack',
       layers: [
@@ -843,16 +843,16 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'HyperLogLog',
     full: 'HyperLogLog',
-    gist: 'A structure that counts unique items in a huge stream using a fixed, tiny amount of memory — around 12 kilobytes for billions of items — by accepting roughly two percent error.',
+    gist: 'A structure that counts unique items in a huge stream using a fixed, tiny amount of memory — around 12 kilobytes for billions of items — by accepting an error of about one percent.',
     figure: {
       kind: 'ratio',
       parts: [
         { label: 'exact set: ~4 GB', value: 4000, tone: 'alert' },
         { label: 'HyperLogLog: ~12 KB', value: 12, tone: 'mastered' },
       ],
-      note: 'For "how many unique visitors", 2% error is invisible and the memory saving is not.',
+      note: 'For "how many unique visitors", a 1% error is invisible and the memory saving is not.',
     },
-    caption: 'Trading a couple of percent of accuracy for four orders of magnitude of memory.',
+    caption: 'Trading about one percent of accuracy for five orders of magnitude of memory.',
     seeAlso: ['SimHash'],
   },
   {
@@ -896,7 +896,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'TPS',
     full: 'Transactions Per Second',
-    gist: 'The write-side equivalent of QPS. One well-tuned relational instance handles up to about fifty thousand — which is far more than most candidates assume, and why sharding is rarely the first answer.',
+    gist: 'The write-side equivalent of QPS. One well-tuned relational instance handles tens of thousands of simple transactions a second — up to around fifty thousand — which is far more than most candidates assume, and why sharding is rarely the first answer.',
     figure: {
       kind: 'scale',
       items: [
@@ -911,13 +911,13 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'DAU',
     full: 'Daily Active Users',
-    gist: 'How many distinct people use the product in a day. The starting number for almost every capacity estimate — multiply by actions per user to get writes per second.',
+    gist: 'How many distinct people use the product in a day. The starting number for almost every capacity estimate — multiply by actions per user, then divide by the seconds in a day, to get writes per second.',
     figure: {
       kind: 'flow',
       nodes: [
         { label: '1M DAU', to: '× 10 actions' },
         { label: '10M actions/day', tone: 'line', to: '÷ 100k' },
-        { label: '~116 writes/s', sub: 'average', tone: 'mastered' },
+        { label: '~100 writes/s', sub: 'average (116 exactly)', tone: 'mastered' },
       ],
     },
     caption: 'The standard chain from a user count to a load figure.',
@@ -943,7 +943,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'TiB',
     full: 'Tebibyte',
-    gist: 'A terabyte counted in powers of two — 1024⁴ bytes — rather than powers of ten. About ten percent larger than a TB, and the unit storage vendors quote capacity in.',
+    gist: 'A terabyte counted in powers of two — 1024⁴ bytes — rather than powers of ten, so about ten percent larger than a TB. Drives are sold in TB but operating systems and many cloud providers count in TiB, which is why a "1 TB" disk shows up as about 0.91 TiB.',
     figure: {
       kind: 'ratio',
       parts: [
@@ -957,7 +957,7 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'CPU',
     full: 'Central Processing Unit',
-    gist: 'The processor. As a scaling signal it is a lagging one — by the time it is at seventy percent you are already behind, which is why queue depth is the better autoscaling trigger.',
+    gist: 'The processor. As a scaling signal it lags — it rises only once the load has arrived — so you scale well before saturation, and for queue workers, queue depth is often the better autoscaling trigger.',
     figure: {
       kind: 'ratio',
       parts: [
@@ -976,24 +976,24 @@ const baseTerms: GlossaryEntry[] = [
     figure: {
       kind: 'scale',
       items: [
-        { label: 'RAM', display: 'ns', value: 1, tone: 'mastered' },
-        { label: 'SSD', display: 'µs', value: 1000, tone: 'line' },
-        { label: 'Network, same datacentre', display: 'ms', value: 1e6, tone: 'streak' },
-        { label: 'Cross-continent', display: '100 ms', value: 1e8, tone: 'alert' },
+        { label: 'RAM', display: '~100 ns', value: 100, tone: 'mastered' },
+        { label: 'SSD', display: '~100 µs', value: 1e5, tone: 'line' },
+        { label: 'Network, same datacentre', display: '~0.5 ms', value: 5e5, tone: 'streak' },
+        { label: 'Cross-continent', display: '~150 ms', value: 1.5e8, tone: 'alert' },
       ],
     },
-    caption: 'Each step is roughly a thousand times slower than the one above it.',
+    caption: 'From memory to another continent is six orders of magnitude; memory to SSD alone is a thousandfold.',
     seeAlso: ['SSD', 'CPU'],
   },
   {
     id: 'SSD',
     full: 'Solid State Drive',
-    gist: 'Persistent storage with no moving parts — microseconds to read, thousands of times slower than memory, thousands of times faster than the spinning disks the older rules of thumb assumed.',
+    gist: 'Persistent storage with no moving parts — microseconds to read: about a thousand times slower than memory, and about a hundred times faster than the spinning disks the older rules of thumb assumed.',
     figure: {
       kind: 'ratio',
       parts: [
         { label: 'SSD read: ~100 µs', value: 100, tone: 'mastered' },
-        { label: 'spinning disk seek: ~10,000 µs', value: 900, tone: 'alert' },
+        { label: 'spinning disk seek: ~10,000 µs', value: 10000, tone: 'alert' },
       ],
       note: 'Rules of thumb written for spinning disks are why people still over-estimate how much a database struggles.',
     },
@@ -1012,19 +1012,19 @@ const baseTerms: GlossaryEntry[] = [
         { label: '99.99% — four nines', display: '53 min/yr', value: 53, tone: 'line' },
         { label: '99.999% — five nines', display: '5 min/yr', value: 5, tone: 'mastered' },
       ],
-      note: 'Downtime allowed per year. Every extra nine costs roughly ten times as much to reach.',
+      note: 'Downtime allowed per year. Each extra nine costs far more to reach than the last.',
     },
     caption: 'Availability targets expressed as the outage budget they actually permit.',
-    seeAlso: ['CPU'],
+    seeAlso: ['SLO', 'SLI'],
   },
   {
     id: 'GDPR',
     full: 'General Data Protection Regulation',
-    gist: "The European privacy law. In design terms it shows up as three concrete constraints: where data may physically live, how long you may keep it, and being able to genuinely delete a person on request.",
+    gist: "The European privacy law. In design terms it shows up as three concrete constraints: where data may be sent, how long you may keep it, and being able to genuinely delete a person on request.",
     figure: {
       kind: 'stack',
       layers: [
-        { label: 'Residency', sub: 'EU data stays in the EU', tone: 'line' },
+        { label: 'Residency', sub: 'leaving the EU needs safeguards', tone: 'line' },
         { label: 'Retention', sub: 'delete it when the reason expires', tone: 'line' },
         { label: 'Erasure', sub: 'including from every replica, backup and index', tone: 'alert' },
       ],
@@ -1070,16 +1070,16 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'S3',
     full: 'Simple Storage Service',
-    gist: "Amazon's object store. Effectively unlimited, extremely durable, and about fifty times cheaper per gigabyte than a database — which is why file bytes always live here and never in a table.",
+    gist: "Amazon's object store. Effectively unlimited, extremely durable, and about ten times cheaper per gigabyte than a database — which is why file bytes live here and not in a table.",
     figure: {
       kind: 'ratio',
       parts: [
         { label: 'S3: $0.023 per GB/month', value: 23, tone: 'mastered' },
-        { label: 'DynamoDB: $1.25 per GB/month', value: 1250, tone: 'alert' },
+        { label: 'DynamoDB: $0.25 per GB/month', value: 250, tone: 'alert' },
       ],
       note: 'Cost alone settles where the bytes go, before you even reach the throughput argument.',
     },
-    caption: 'Roughly a fiftyfold difference for storing the same bytes.',
+    caption: 'Roughly a tenfold difference for storing the same bytes.',
     seeAlso: ['GCS', 'CDN'],
   },
   {
@@ -1120,20 +1120,20 @@ const baseTerms: GlossaryEntry[] = [
     gist: 'Scheduling reviews at growing intervals, timed to just before you would have forgotten. It is how the drill deck in this app decides what to show you and when.',
     figure: {
       kind: 'timeline',
-      ticks: ['day 0', 'day 6', 'day 30'],
+      ticks: ['day 0', 'day 11', 'day 22'],
       lanes: [
         {
           label: 'Answered correctly each time',
           bars: [
-            { from: 0, to: 0.06, label: '1d', tone: 'line' },
-            { from: 0.08, to: 0.24, label: '6d', tone: 'line' },
-            { from: 0.26, to: 1, label: '~25d', tone: 'mastered' },
+            { from: 0, to: 0.04, label: '1d', tone: 'line' },
+            { from: 0.05, to: 0.31, label: '6d', tone: 'line' },
+            { from: 0.33, to: 1, label: '15d', tone: 'mastered' },
           ],
           outcome: { label: 'learned', tone: 'mastered' },
         },
         {
           label: 'Forgotten once',
-          bars: [{ from: 0, to: 0.06, label: 'reset', tone: 'alert' }, { from: 0.08, to: 0.14, label: '1d', tone: 'line' }],
+          bars: [{ from: 0, to: 0.04, label: 'reset', tone: 'alert' }, { from: 0.05, to: 0.09, label: '1d', tone: 'line' }],
         },
       ],
       note: 'Each success stretches the gap. One lapse sends it back to the start.',
@@ -1144,15 +1144,15 @@ const baseTerms: GlossaryEntry[] = [
   {
     id: 'LLM',
     full: 'Large Language Model',
-    gist: 'A model that generates text. Worth naming in design because a single call costs real money and takes seconds — which puts it firmly in the long-running-task pattern, and makes any endpoint that triggers one a place a rate limiter should fail closed.',
+    gist: 'A model that generates text. Worth naming in design because a single call costs real money and takes seconds — which usually puts it in the long-running-task pattern, and makes any endpoint that triggers one a place a rate limiter should fail closed.',
     figure: {
       kind: 'scale',
       items: [
         { label: 'Cache hit', display: '~1 ms', value: 1, tone: 'mastered' },
-        { label: 'Database query', display: '~30 ms', value: 30, tone: 'line' },
+        { label: 'Database query', display: '~20–50 ms', value: 30, tone: 'line' },
         { label: 'LLM call', display: '~2,000 ms', value: 2000, tone: 'alert' },
       ],
-      note: 'Three orders of magnitude slower than a database read. It never belongs inside a synchronous request the user is waiting on.',
+      note: 'Around a hundred times slower than a database query. Keep it off any path with a tight latency budget: run it in the background, or stream the answer.',
     },
     caption: 'Where a model call sits against the rest of your latency budget.',
     seeAlso: ['SMS', 'DLQ'],
@@ -1169,7 +1169,7 @@ const baseTerms: GlossaryEntry[] = [
         { label: '/v1/tweets/42', sub: 'path — names the resource', tone: 'mastered' },
         { label: '?cursor=abc', sub: 'query — parameters, and cache-busters', tone: 'streak' },
       ],
-      note: 'A crawler normalises the last part away, or the same page enters the queue a hundred times.',
+      note: 'A crawler normalises the query (sorted, tracking parameters stripped), or the same page enters the queue a hundred times.',
     },
     caption: 'Four parts, each doing a different job for routing and caching.',
     seeAlso: ['DNS', 'CDN'],

@@ -51,7 +51,7 @@ export const objectPatterns: Pattern[] = [
     family: 'object',
     moduleId: 'dp-adapter-facade-proxy',
     name: 'Facade',
-    tell: '"a simple way to …"; a subsystem every caller drives through the same five steps in the same order',
+    tell: '"a simple way to …"; every caller has to coordinate the same handful of subsystem classes to get one task done',
     move: 'One class with a few task-shaped methods that orchestrates the subsystem behind it. Callers use the facade, and the subsystem stays reachable for the rare caller that needs more.',
     showsUpIn: ['jQuery', 'Spring JdbcTemplate', 'Git porcelain over plumbing commands'],
   },
@@ -98,7 +98,7 @@ export const objectPatterns: Pattern[] = [
     name: 'State',
     tell: '"status", "lifecycle", "can only … once …"; the same action means different things at different stages',
     move: 'One class per state, each handling every event and choosing its successor. Start from an enum and a transition table; promote states to classes when their behaviour, not just their legal moves, differs.',
-    showsUpIn: ['Stripe PaymentIntent statuses', 'Vending machines', 'TCP connection states'],
+    showsUpIn: ['Stripe PaymentIntent statuses', 'Vending machine', 'TCP connection states'],
   },
   {
     id: 'observer',

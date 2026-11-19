@@ -19,7 +19,7 @@ export const newsFeed: Problem = {
     { id: 'r6', bar: 'senior', criterion: 'Proposed a precomputed feed table and sized it with real arithmetic' },
     { id: 'r7', bar: 'senior', criterion: 'Handled the celebrity case rather than hand-waving it' },
     { id: 'r8', bar: 'senior', criterion: 'Used a queue and worker pool for fan-out, not a synchronous blast' },
-    { id: 'r9', bar: 'staff', criterion: 'Proposed the hybrid, and named the threshold as a tunable knob' },
+    { id: 'r9', bar: 'senior', criterion: 'Proposed the hybrid, and named the threshold as a tunable knob' },
     { id: 'r10', bar: 'staff', criterion: 'Identified the hot-key problem on viral posts and why sharding does not fix it' },
     { id: 'r11', bar: 'staff', criterion: 'Justified not using a graph database for the follow graph' },
   ],
@@ -45,7 +45,7 @@ export const newsFeed: Problem = {
     },
     {
       kind: 'prose',
-      text: 'The Follow table is partitioned by `followerId` with `followeeId` as sort key, plus a **reversed global secondary index** so "who follows X" is equally cheap. That is the whole reason this does not need a graph database — there is no deep traversal, only two O(1) lookups.',
+      text: 'The Follow table is partitioned by `followerId` with `followeeId` as sort key, plus a **reversed global secondary index** so "who follows X" is equally cheap. That is the whole reason this does not need a graph database — there is no deep traversal, only two single-partition reads.',
     },
     { kind: 'heading', text: '[[API]]' },
     {
@@ -142,7 +142,7 @@ GET  /feed?limit=&cursor=<timestamp>   -> { items, nextCursor }`,
         {
           grade: 'good',
           title: 'Queue plus a worker pool',
-          text: 'Post enqueues one event; workers look up followers and prepend. At-least-once delivery is fine here — a duplicate post id in a feed is idempotent. Still uneven: one queue item may mean 50M writes and another 50.',
+          text: 'Post enqueues one event; workers look up followers and prepend. At-least-once delivery is fine as long as the feed write is idempotent: the same post id written twice stays one entry. Still uneven: one queue item may mean 50M writes and another 50.',
         },
         {
           grade: 'best',
@@ -180,7 +180,7 @@ GET  /feed?limit=&cursor=<timestamp>   -> { items, nextCursor }`,
         points: [
           'Any replica serves any post',
           'Reads for one key spread across every replica',
-          'Each replica holds less unique data',
+          'Less total cache capacity, since every replica holds the same data',
         ],
       },
       verdict: 'Replicas. The problem is concentration, not capacity, and immutable posts make copies free to keep in sync.',

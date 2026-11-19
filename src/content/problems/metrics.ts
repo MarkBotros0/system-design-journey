@@ -20,7 +20,7 @@ export const metrics: Problem = {
     { id: 'r7', bar: 'senior', criterion: 'Identified cardinality as the scaling limit and enforced series limits at ingestion' },
     { id: 'r8', bar: 'senior', criterion: 'Stored rollups as min, max, sum and count, with histograms for percentiles' },
     { id: 'r9', bar: 'staff', criterion: 'Evaluated alerts off the stream, independent of the dashboard query path' },
-    { id: 'r10', bar: 'staff', criterion: 'Modelled alert state with a for-duration, deduplication and routing' },
+    { id: 'r10', bar: 'senior', criterion: 'Modelled alert state with a for-duration, deduplication and routing' },
     { id: 'r11', bar: 'staff', criterion: "Alerted on absent data, and built a dead man's switch for the pipeline itself" },
     { id: 'r12', bar: 'staff', criterion: 'Tiered old blocks to object storage, making retention a policy rather than a capacity limit' },
   ],
@@ -44,7 +44,7 @@ export const metrics: Problem = {
       kind: 'list',
       items: [
         '**Ingestion**: 100 million active series reporting every 10 seconds — 10 million points a second, sustained.',
-        '**Alert latency**: an alert fires within a minute of its condition becoming true.',
+        '**Alert latency**: an alert fires within a minute of its condition becoming true, plus any for-duration the rule sets.',
         '**Query latency**: a dashboard over the last hour renders in under a second; over a month, in a few seconds.',
         '**Retention**: 10-second resolution for 15 days, 1-minute for 90 days, 1-hour for two years.',
         '**Availability**: ingestion and alerting stay up when the rest of the company is down, because that is when they are needed.',
@@ -144,7 +144,7 @@ POST /v1/alerts  { query, condition: "> 50", for: "5m",
         {
           grade: 'bad',
           title: 'A row per point in Postgres',
-          text: 'Ten million inserts a second, and each row pays roughly 50 bytes of tuple header, pointer and index overhead to store 16 bytes of data. A month is tens of trillions of rows. It falls over on day one.',
+          text: 'Ten million inserts a second, and each row pays roughly 50 bytes of tuple header, pointer and index overhead on top of its 16 bytes of data. A month is tens of trillions of rows. It falls over on day one.',
         },
         {
           grade: 'good',
@@ -169,7 +169,7 @@ POST /v1/alerts  { query, condition: "> 50", for: "5m",
       figure: {
         kind: 'scale',
         items: [
-          { label: 'A row in Postgres', display: '≈ 50 B', value: 50, tone: 'alert' },
+          { label: 'A row in Postgres', display: '≈ 70 B', value: 70, tone: 'alert' },
           { label: 'Raw timestamp and float', display: '16 B', value: 16, tone: 'streak' },
           { label: 'Gorilla-style compression', display: '≈ 1.4 B', value: 1.4, tone: 'mastered' },
         ],

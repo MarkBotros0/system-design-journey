@@ -53,8 +53,11 @@ export const ticketmaster: Problem = {
       kind: 'code',
       code: `GET  /events/{id}                 -> Event, Venue, Performer, Ticket[]
 GET  /events/search?q=&from=&to=  -> Event[]
+POST /bookings/{eventId}/hold
+       { ticketIds: string[] }  -> { expiresAt }
 POST /bookings/{eventId}
        { ticketIds: string[], payment: … }  -> { bookingId }`,
+      caption: 'Booking is two calls: hold the seats, then pay. The hold is what expires.',
     },
     { kind: 'heading', text: 'High-level design' },
     {
@@ -143,7 +146,7 @@ POST /bookings/{eventId}
     { kind: 'heading', text: 'Deep dive 2 — search under 500 ms' },
     {
       kind: 'prose',
-      text: 'Standard indexes cannot do partial matches — "Taylor" will not hit "Taylor Swift" on a B-tree. Elasticsearch with an inverted index handles it, plus fuzzy matching so "Tayler" still finds her, which matters because a large share of real searches are misspelled. Sync from Postgres by **[[CDC]]**; the second of lag is fine for search and never touches the booking path.',
+      text: 'A B-tree only matches from the start of a string — "Swift" will not find "Taylor Swift". Elasticsearch with an inverted index matches any word, plus fuzzy matching so "Tayler" still finds her, which matters because people misspell names constantly. Sync from Postgres by **[[CDC]]**; the second of lag is fine for search and never touches the booking path.',
     },
     {
       kind: 'compare',
@@ -203,7 +206,7 @@ POST /bookings/{eventId}
   followups: [
     {
       q: 'Holds live in Redis. How does the seat map show which seats are taken?',
-      a: 'It cannot read them from Postgres. Keep a sorted set per event scored by expiry: `ZADD event:{id}:held <expiresAt> ticketId`. The seat map counts only members with a future score, and stale entries are trimmed lazily with `ZREMRANGEBYSCORE`.',
+      a: 'It cannot read them from Postgres. Keep a sorted set per event scored by expiry: `ZADD event:{id}:held <expiresAt> ticketId`. The seat map marks a seat held only while its score is in the future, and stale entries are trimmed lazily with `ZREMRANGEBYSCORE`.',
     },
     {
       q: 'Redis goes down mid on-sale. What happens?',
@@ -211,7 +214,7 @@ POST /bookings/{eventId}
     },
     {
       q: 'The hold\'s TTL expires while the user is still paying. Now what?',
-      a: 'The conditional write fails, so you refund automatically. And you extend the lock when payment begins, so it rarely gets that far.',
+      a: 'Once the hold lapses, someone else may take the seat; the conditional booking write then fails and you refund automatically. Extend the hold when payment begins, so it rarely gets that far.',
     },
     {
       q: 'What stops one account holding fifty seats and never buying?',

@@ -26,7 +26,7 @@ export const lldLibrary: Problem = {
   followups: [
     {
       q: 'A member wants a hold on one specific copy: a signed first edition.',
-      a: 'Then a hold targets either a book or a copy. Give `Hold` a target that is one or the other, and have check-in look for holds on this exact copy before holds on its book. Koha supports both kinds for exactly this reason, and the queue logic is the only code that changes.',
+      a: 'Then a hold targets either a book or a copy. Give `Hold` a target that is one or the other, and have check-in look for holds on this exact copy before holds on its book. Koha supports both kinds, and the queue logic is the only code that changes.',
     },
     {
       q: 'Add e-books with a licence for three simultaneous loans.',
@@ -186,7 +186,7 @@ interface LendingService {
     },
     {
       kind: 'prose',
-      text: 'Search is its own read model behind `Catalogue`. A public library\'s catalogue runs to hundreds of thousands of titles, which a Postgres full-text index handles comfortably. Move to Elasticsearch when you need fuzzy matching and relevance tuning, and nothing else in the design notices.',
+      text: 'Search is its own read model behind `Catalogue`. A public library\'s catalogue runs to hundreds of thousands of titles, which a Postgres full-text index handles comfortably. Move to Elasticsearch when fuzzy matching and relevance tuning outgrow it, and nothing else in the design notices.',
     },
 
     { kind: 'heading', text: 'Patterns and extensibility' },

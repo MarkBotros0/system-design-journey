@@ -31,7 +31,7 @@ export const lldRateLimiter: Problem = {
     },
     {
       q: 'A customer gets 1,000 requests a minute and at most 50 in any one second. One limiter or two?',
-      a: 'Two limits behind one `Limiter`: a composite that allows only if every child allows. The catch is consumption. If the per-second check denies, the per-minute bucket must not have spent a token, so decide on all of them before consuming from any. Shared, that means one Lua script touching both keys, hash-tagged so they land on the same cluster slot; most hand-rolled versions quietly overcharge here.',
+      a: 'Two limits behind one `Limiter`: a composite that allows only if every child allows. The catch is consumption. If the per-second check denies, the per-minute bucket must not have spent a token, so decide on all of them before consuming from any. Shared, that means one Lua script touching both keys, hash-tagged so they land on the same cluster slot; hand-rolled versions often quietly overcharge here.',
     },
     {
       q: 'How do you test "100 per minute"?',
@@ -75,7 +75,7 @@ export const lldRateLimiter: Problem = {
         '`Limiter`: the one-method interface callers see. `RateLimiter` and every wrapper implement it.',
         '`LimitAlgorithm<S>`: the strategy. A pure function from stored state, the time and the cost to a decision and the next state.',
         '`StateStore`: where per-key state lives. An in-memory map with expiry, or Redis.',
-        '`Clock`: milliseconds. Monotonic in-process, one every host agrees on when state is shared, and a fake in tests.',
+        '`Clock`: milliseconds. Monotonic in-process, epoch time when hosts share state, a fake in tests.',
         '`Decision`: allowed, remaining, retry-after. A value.',
       ],
     },

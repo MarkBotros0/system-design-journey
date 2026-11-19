@@ -103,7 +103,7 @@ POST /orders
         layers: [
           { label: 'CDN: deal page, countdown, queue state', sub: '~1M users', tone: 'neutral' },
           { label: 'Edge: bot filter and rate limits', sub: 'drops the junk', tone: 'neutral' },
-          { label: 'Waiting room', sub: 'admits ~500/s', tone: 'line' },
+          { label: 'Waiting room', sub: 'admits ~2,000/s', tone: 'line' },
           { label: 'Reservation: Redis gate, then a unit row', sub: '10,000 units', tone: 'line' },
           { label: 'Checkout and payment', sub: 'holders only', tone: 'mastered' },
         ],
@@ -127,7 +127,7 @@ POST /orders
     { kind: 'heading', text: 'Deep dive 1 — inventory contention: never oversell' },
     {
       kind: 'prose',
-      text: 'Ten thousand units, and in the first seconds tens of thousands of admitted requests each trying to take one. Judge every option on two questions: can it oversell, and what melts first?',
+      text: 'Ten thousand units, and in the first seconds thousands of admitted requests a second, each trying to take one. Judge every option on two questions: can it oversell, and what melts first?',
     },
     {
       kind: 'ladder',
@@ -150,7 +150,7 @@ POST /orders
         {
           grade: 'best',
           title: 'Redis as the gate, one row per unit as the truth',
-          text: 'Redis turns away the 99% who cannot have a unit. The few who pass claim a row: any `available` unit, skipping rows another transaction has locked. There are exactly 10,000 rows, so overselling is impossible by construction, not by vigilance.',
+          text: 'Redis turns away every request once the stock is gone, without touching the database. The ones that pass claim a row: any `available` unit, skipping rows another transaction has locked. There are exactly 10,000 rows, so overselling is impossible by construction, not by vigilance.',
         },
       ],
     },
@@ -202,7 +202,7 @@ RETURNING id;`,
         {
           grade: 'bad',
           title: 'Autoscale and let everyone in',
-          text: 'Autoscaling reacts in minutes; this spike arrives in a second and the stock is gone in a few minutes. The store falls over at noon, and the units go to whoever retried fastest — usually a bot.',
+          text: 'Autoscaling reacts in minutes; this spike arrives in a second, and the sale is over before new servers are up. The store falls over at noon, and the units go to whoever retried fastest — usually a bot.',
         },
         {
           grade: 'good',
@@ -227,9 +227,9 @@ RETURNING id;`,
       figure: {
         kind: 'flow',
         nodes: [
-          { label: 'Join the queue', sub: 'INCR gives #48,213', to: 'signed ticket' },
-          { label: 'Poll queue state', sub: 'edge-cached for 1 s', to: '#48,213 ≤ admitted' },
-          { label: 'Admitted', sub: 'admittedUpTo = 50,000', tone: 'line', to: 'ticket + request' },
+          { label: 'Join the queue', sub: 'INCR gives #9,213', to: 'signed ticket' },
+          { label: 'Poll queue state', sub: 'edge-cached for 1 s', to: '#9,213 ≤ admitted' },
+          { label: 'Admitted', sub: 'admittedUpTo = 12,000', tone: 'line', to: 'ticket + request' },
           { label: 'Reservation service', sub: 'checks signature, one use', tone: 'mastered' },
         ],
         note: 'The ticket is signed with an [[HMAC]], so the reservation service can check it without a database lookup. Marking it used in Redis means each ticket buys exactly one attempt.',
@@ -325,7 +325,7 @@ RETURNING id;`,
       a: 'Limit per payment card, shipping address and device as well as per account, and require accounts that existed before the sale was announced. Run the checks before shipping, so duplicate orders can be cancelled after the fact. You cannot stop it entirely; you can make it cost more than the discount is worth.',
     },
     {
-      q: 'The stock is gone in eight seconds. What do the 900,000 people still queued see?',
+      q: 'The stock is gone in eight seconds. What does everyone still in the queue see?',
       a: 'Sold out, within a second — the waiting room stops admitting once every unit is sold or held, and the flag goes out with the edge-cached queue state. They keep their place on a waitlist, and as holds lapse the reconciler admits the next tickets in order. Nobody waits twenty minutes to be told no.',
     },
     {

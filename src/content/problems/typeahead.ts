@@ -185,7 +185,7 @@ event query_submitted { text, locale, ts, userId? }`,
     },
     {
       kind: 'prose',
-      text: 'Pick the precomputed map. Cap stored prefixes at around 20 characters — past that, take the 20-character entry and filter it by the rest of the prefix — and store suggestion ids rather than repeating strings, so the map stays in the tens of GB.',
+      text: 'Pick the precomputed map. Cap stored prefixes at around 20 characters — past that, filter the 20-character entry by the rest of the prefix, so that last level keeps a longer list — and store suggestion ids rather than repeating strings, so the map stays in the tens of GB.',
     },
 
     { kind: 'heading', text: 'Deep dive 2 — the latency budget and the caches' },

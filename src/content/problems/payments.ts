@@ -294,7 +294,7 @@ POST /processor/webhooks                -> 200 once stored
         {
           grade: 'best',
           title: 'Double-entry, posted exactly once, reconciled daily',
-          text: 'Entries are posted in the same transaction as the state change that causes them, or from an outbox under a unique key per transition. Either way, a capture without its entries — or with them twice — is impossible. Then a daily job proves it against the processor.',
+          text: 'Entries are posted in the same transaction as the state change that causes them, or from an outbox under a unique key per transition. Either way, a capture never ends up without its entries, or with them twice. Then a daily job proves it against the processor.',
         },
       ],
     },
@@ -359,7 +359,7 @@ POST /processor/webhooks                -> 200 once stored
     },
     {
       q: 'How do you scale the ledger past one database?',
-      a: 'First say it takes a long time: a few thousand entries a second fits one Postgres primary. Then shard by merchant, since most transactions touch one merchant\'s accounts. The hot spot is the platform\'s own fee account, which every transaction touches — split it into many sub-accounts and sum them when you report. Purpose-built ledgers such as TigerBeetle exist for when even that runs out.',
+      a: 'First say you will not need to for a long time: a few thousand entries a second fits one Postgres primary. Then shard by merchant, since most transactions touch one merchant\'s accounts. The hot spot is the platform\'s own fee account, which every transaction touches — split it into many sub-accounts and sum them when you report. Purpose-built ledgers such as TigerBeetle exist for when even that runs out.',
     },
   ],
 }

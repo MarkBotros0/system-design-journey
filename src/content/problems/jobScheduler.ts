@@ -44,7 +44,7 @@ export const jobScheduler: Problem = {
       kind: 'list',
       items: [
         '**Scale**: 10 million recurring jobs, plus about a billion one-off runs a day — delayed emails, reminders, retries. The one-offs alone are around 12,000 runs a second on average.',
-        '**Spikes**: at the top of every hour, everything written as `0 * * * *` fires at once. If a tenth of the recurring jobs are written that way, a million runs fall due in the same second — spread over a few seconds of allowed lag, still a couple of hundred thousand a second, more than fifteen times the average.',
+        '**Spikes**: at the top of every hour, everything written as `0 * * * *` fires at once. If a tenth of the recurring jobs are written that way, a million runs fall due in the same second — spread over a few seconds of allowed lag, still a couple of hundred thousand a second, about fifteen times the one-off average.',
         '**Timeliness**: a run starts within a few seconds of its scheduled time at p99. Seconds, not milliseconds.',
         '**Reliability**: a scheduled run is never silently skipped, and survives the loss of any machine. Running twice is tolerable; never running is not.',
         '**Duration**: runs last anywhere from milliseconds to an hour.',
@@ -112,7 +112,7 @@ POST   /runs/{runId}/complete  { leaseVersion, ok | error }`,
     },
     {
       kind: 'prose',
-      text: '**Firing.** Dispatchers read the runs that are due, push them onto a ready queue and mark them queued. For a recurring job, marking run *n* queued and inserting run *n + 1* — the next occurrence of its cron expression — happen in one transaction, so a dispatcher that crashes between the two cannot silently end the schedule; and because run ids are derived from job and time, redoing it after a crash is harmless. Pausing flips the job\'s state, and dispatchers check it at fire time, so the run already waiting is skipped and no successor is created.',
+      text: '**Firing.** Dispatchers read the runs that are due, push them onto a ready queue and mark them queued. For a recurring job, marking run *n* queued and inserting run *n + 1* — the next occurrence of its cron expression — happen in one transaction, so a dispatcher that crashes between the two cannot silently end the schedule; and because run ids are derived from job and time, redoing it after a crash is harmless. Pausing flips the job\'s state, and dispatchers check it at fire time, so the run already waiting is skipped and no successor is created. Resuming writes the next run from the current time.',
     },
     {
       kind: 'prose',
@@ -144,7 +144,7 @@ POST   /runs/{runId}/complete  { leaseVersion, ok | error }`,
         {
           grade: 'great',
           title: 'Time-bucketed partitions in a durable store',
-          text: 'Key each run by its minute and a shard: partition key `2026-11-21T09:00#3`, sort key `runAt#runId`. A dispatcher reads only the current minute of the shards it owns, with one range query each. The top-of-the-hour spike is spread over every shard. Expiry should be cheap too: in Cassandra a [[TTL]] with time-window compaction drops old buckets as whole files; in DynamoDB, which deletes expired items one by one, use a table per day and drop it.',
+          text: 'Key each run by its minute and a shard: partition key `2026-11-21T09:00#3`, sort key `runAt#runId`. A dispatcher reads only the current minute of the shards it owns, with one range query each. The top-of-the-hour spike is spread over every shard. Expiry should be cheap too: in Cassandra a [[TTL]] with time-window compaction drops old buckets as whole files; in DynamoDB a per-item TTL deletes them in the background at no write cost, though it can lag by days.',
         },
         {
           grade: 'best',

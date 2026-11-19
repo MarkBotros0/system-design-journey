@@ -52,7 +52,7 @@ export const onlineJudge: Problem = {
     },
     {
       kind: 'prose',
-      text: 'Capacity: at 1,000 submissions a second, each needing about 2 seconds of [[CPU]] across its test cases, you need around 2,000 sandboxes running at once — a couple of hundred eight-core machines. Outside contests you need a fraction of that, which is the first hint about autoscaling.',
+      text: 'Capacity: at 1,000 submissions a second, each needing about 2 seconds of [[CPU]] across its test cases, you need around 2,000 sandboxes running at once — about 250 eight-core machines. Outside contests you need a fraction of that, which is the first hint about autoscaling.',
     },
     {
       kind: 'callout',
@@ -183,7 +183,7 @@ GET  /contests/{id}/leaderboard/me -> { rank, score, penalty }`,
         {
           grade: 'bad',
           title: 'Judge inside the request',
-          text: 'The [[HTTP]] request is held for seconds while the API server runs untrusted code — the worst of both worlds. At contest start the API servers saturate, and even loading the problem page fails.',
+          text: 'The [[HTTP]] request is held for seconds while the API server runs untrusted code: slow for the user, and hostile code on the machines that reach your data. At contest start the API servers saturate, and even loading the problem page fails.',
         },
         {
           grade: 'good',
@@ -282,7 +282,7 @@ ZREVRANK  contest:42 user:9              # my rank, 0-based`,
     },
     {
       q: 'How do you make timing fair?',
-      a: 'Measure CPU time from cgroup accounting rather than wall time, pin each run to dedicated cores, and keep judge hardware identical within a pool. Give slower languages a published time multiplier rather than pretending Python and C++ are equal. Re-run any time-limit failure that came within a few percent of the limit once, on a quiet core, before reporting it.',
+      a: 'Measure CPU time from cgroup accounting rather than wall time, pin each run to dedicated cores, and keep judge hardware identical within a pool. Give slower languages a published time multiplier rather than pretending Python and C++ are equal. Before reporting a time-limit failure that missed by only a few percent, re-run it once on a quiet core.',
     },
     {
       q: 'Polling, or a push channel for the verdict?',

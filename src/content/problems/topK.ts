@@ -30,7 +30,7 @@ export const topK: Problem = {
       kind: 'list',
       items: [
         'Users should be able to fetch the top K videos by views for the last hour, the last day, the last month and all time, with K up to 1,000.',
-        'Clients should be able to report a view, and every view should count toward those lists.',
+        'Clients should be able to report a view, and every view should count towards those lists.',
         'Out of scope: per-country and per-category lists (raise them at the end), the view count on a video\'s own page, recommendations.',
       ],
     },
@@ -273,7 +273,7 @@ GET  /top?window=1h|1d|30d|all&k=100
     { kind: 'heading', text: 'Deep dive 3 — exact or approximate: the count-min sketch' },
     {
       kind: 'prose',
-      text: 'Size the exact design first, because the arithmetic decides this. Assume 200 million distinct videos are viewed in an hour. A hash-map entry — id, count, overhead — is roughly 50 bytes, so one hour of exact counts is ~10 [[GB]], spread across the workers. Add the buckets you keep and it is tens of gigabytes: affordable across a cluster. Exact is a legitimate answer for four global lists.',
+      text: 'Size the exact design first, because the arithmetic decides this. Assume 200 million distinct videos are viewed in an hour. A hash-map entry — id, count, overhead — is roughly 50 bytes, so one hour of exact counts is ~10 [[GB]]. The day and month windows, with their long tails, take the buckets you keep into the hundreds of gigabytes — spread across the workers, with state spilled to local disk, still affordable. Exact is a legitimate answer for four global lists.',
     },
     {
       kind: 'prose',
@@ -343,7 +343,7 @@ GET  /top?window=1h|1d|30d|all&k=100
   followups: [
     {
       q: '"Trending" should mean rising fast, not just big. How would you change this?',
-      a: 'Rank by velocity against a baseline rather than by raw count: views in the last hour divided by what that video, or videos like it, normally get in an hour, smoothed so a jump from 2 views to 20 does not top the list. The counting pipeline stays the same; only the scoring stage changes. YouTube has described its trending list as weighing view velocity, a video\'s age and how it compares with other recent uploads, not view totals alone.',
+      a: 'Rank by velocity against a baseline rather than by raw count: views in the last hour divided by what that video, or videos like it, normally get in an hour, smoothed so a jump from 2 views to 20 does not top the list. The counting pipeline stays the same; only the scoring stage changes. YouTube described its trending list, before retiring it in 2025, as weighing view velocity, a video\'s age and how it compares with other recent uploads, not view totals alone.',
     },
     {
       q: 'Product now wants top K per country and per category.',

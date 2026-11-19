@@ -11,7 +11,7 @@ export const instagram: Problem = {
   patterns: ['blobs', 'scaling-reads', 'longrunning'],
   suggests: ['a-blobs', 'a-reads', 'c-caching', 'c-sharding'],
   rubric: [
-    { id: 'r1', bar: 'must', criterion: 'Scoped to posting, following and the feed, and stories, and named ranking, search and comments as out of scope' },
+    { id: 'r1', bar: 'must', criterion: 'Scoped to posting, following, the feed and stories, and named ranking, search and comments as out of scope' },
     { id: 'r2', bar: 'must', criterion: 'Uploaded media straight to blob storage with presigned URLs, never through the API servers' },
     { id: 'r3', bar: 'must', criterion: 'Served images from a CDN in several sizes rather than serving the original' },
     { id: 'r4', bar: 'must', criterion: 'Identified feed assembly as the read bottleneck and chose availability over consistency for it' },
@@ -119,7 +119,7 @@ GET  /stories/tray          -> [{ authorId, storyIds[], seen }]`,
       items: [
         '**Upload.** The app calls `POST /media`; the media service creates a `Media` row in state `pending` and returns presigned [[URL|URLs]] scoped to one key. The app uploads straight to S3.',
         '**Process.** S3\'s object-created event lands on a queue. Workers make the resized variants, strip metadata, run safety checks and mark the media `ready`.',
-        '**Publish.** `POST /posts` writes the post row to a store sharded by post id, then emits `PostCreated` to Kafka. Fan-out workers write the post id into followers\' feeds.',
+        '**Publish.** `POST /posts` writes the post row to a store sharded by author — the shard bits in the post id say which — then emits `PostCreated` to Kafka. Fan-out workers write the post id into followers\' feeds.',
         '**Follow.** A write to the follow graph, stored once per direction (deep dive 2).',
         '**Read the feed.** The feed service reads the precomputed ids, merges in recent posts from the few celebrities the user follows, hydrates the posts from a cache, and returns CDN links. The app fetches the images from the edge.',
         '**Stories.** A separate, smaller store with an expiry on every row, read through a per-viewer tray (deep dive 3).',
@@ -181,7 +181,7 @@ GET  /stories/tray          -> [{ authorId, storyIds[], seen }]`,
     },
     {
       kind: 'prose',
-      text: 'Serving is where the money goes. Every variant gets a content-addressed key that is never reused, like `/m/{mediaId}/640.webp`, so the CDN can cache it with a year-long `Cache-Control: immutable` and never invalidate it — an edited photo is a new key. The app asks for the width that matches its screen, and the feed response carries keys, not bytes.',
+      text: 'Serving is where the money goes. Every variant gets a key that is never reused, like `/m/{mediaId}/640.webp`, so the CDN can cache it with a year-long `Cache-Control: immutable` and never invalidate it — an edited photo is a new key. The app asks for the width that matches its screen, and the feed response carries keys, not bytes.',
     },
     {
       kind: 'callout',
@@ -220,7 +220,7 @@ GET  /stories/tray          -> [{ authorId, storyIds[], seen }]`,
     },
     {
       kind: 'prose',
-      text: 'Size the feed store out loud. Keep the latest 500 post ids per active user: 500 × 8 bytes = **4 KB**; × 500M users ≈ **2 TB**. That fits in a Redis cluster with replicas, which settles that the feed lives in memory. Hydration is then a batch get against a post cache that hits almost every time, because one post appears in thousands of feeds.',
+      text: 'Size the feed store out loud. Keep the latest 500 post ids per active user: 500 × 8 bytes = **4 KB**; × 500M users ≈ **2 TB** of raw ids, several times that with Redis overhead. That fits in a Redis cluster with replicas, which settles that the feed lives in memory. Hydration is then a batch get against a post cache that hits almost every time, because one post appears in thousands of feeds.',
     },
     {
       kind: 'prose',
@@ -274,7 +274,7 @@ GET  /stories/tray          -> [{ authorId, storyIds[], seen }]`,
         {
           grade: 'good',
           title: 'A native [[TTL]] on the row',
-          text: 'Cassandra and DynamoDB both expire rows for you. But that expiry is lazy housekeeping: DynamoDB deletes expired items within a few days, not at the second, and Cassandra leaves tombstones that reads must skip until compaction. Rely on it for visibility and a story can outlive its 24 hours by days.',
+          text: 'Cassandra and DynamoDB both expire rows for you, but not the same way. DynamoDB\'s expiry is lazy housekeeping: it deletes expired items within a few days, and reads return them until then, so a story can outlive its 24 hours by days. Cassandra hides expired cells on time, but leaves tombstones that slow reads until compaction. Either way, a privacy promise now rests on one store\'s expiry rules.',
         },
         {
           grade: 'great',

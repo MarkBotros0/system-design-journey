@@ -11,7 +11,7 @@ export const systemPatterns: Pattern[] = [
     family: 'system',
     name: 'Real-time updates',
     tell: '"live", "as it happens", "without refreshing"',
-    move: 'Polling < SSE < WebSocket, in that order of cost. Behind it, pub/sub to decouple, or stateful servers on a consistent-hash ring when there is real per-connection work.',
+    move: 'Polling < SSE < WebSocket, in rising order of complexity — use the simplest that meets the need. Behind it, pub/sub to decouple, or stateful servers on a consistent-hash ring when there is real per-connection work.',
     showsUpIn: ['WhatsApp', 'Live Comments', 'Google Docs'],
   },
   {
@@ -43,7 +43,7 @@ export const systemPatterns: Pattern[] = [
     family: 'system',
     name: 'Scaling writes',
     tell: 'events, clicks, metrics, millions per second',
-    move: 'Shard on a key that spreads evenly, partition vertically by data type, batch to amortise per-write overhead, and put a queue in front so bursts shed rather than topple.',
+    move: 'Shard on a key that spreads evenly, partition vertically by data type, batch to amortise per-write overhead, and put a queue in front so a burst waits in line instead of toppling the database.',
     showsUpIn: ['Ad Click Aggregator', 'Metrics Monitoring'],
   },
   {
@@ -67,8 +67,8 @@ export const systemPatterns: Pattern[] = [
     family: 'system',
     name: 'Proximity',
     tell: '"near me", "within 5 km", a map',
-    move: 'Geospatial index — PostGIS, Redis geo types, or Elasticsearch geo queries. Only genuinely needed past a few hundred thousand entities; below that, say so and skip it.',
-    showsUpIn: ['Uber', 'Yelp', 'Local Delivery'],
+    move: 'Geospatial index — PostGIS, Redis geo commands, or Elasticsearch geo queries. Below a few hundred thousand entities, a bounding-box query on indexed latitude and longitude is usually enough; say so and skip it.',
+    showsUpIn: ['Uber', 'Yelp', 'DoorDash'],
   },
 ]
 

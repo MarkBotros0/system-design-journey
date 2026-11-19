@@ -17,7 +17,7 @@ export const kvStore: Problem = {
     { id: 'r4', bar: 'must', criterion: 'Chose availability over consistency explicitly, because the requirement is "always writable"' },
     { id: 'r5', bar: 'senior', criterion: 'Used virtual nodes and said what they fix: uneven load and slow rebuilds' },
     { id: 'r6', bar: 'senior', criterion: 'Stated what R + W > N guarantees and what it does not' },
-    { id: 'r7', bar: 'senior', criterion: 'Stayed writable through a dead replica with a sloppy quorum and hinted handoff' },
+    { id: 'r7', bar: 'senior', criterion: 'Stayed writable when home replicas are unreachable, with a sloppy quorum and hinted handoff' },
     { id: 'r8', bar: 'senior', criterion: 'Compared last-write-wins with vector clocks, including clock skew silently dropping writes' },
     { id: 'r9', bar: 'senior', criterion: 'Chose an LSM engine and explained the memtable, SSTables, Bloom filters and compaction' },
     { id: 'r10', bar: 'staff', criterion: 'Separated transient failure detection (gossip, accrual detector) from permanent membership change' },
@@ -28,7 +28,7 @@ export const kvStore: Problem = {
     { kind: 'heading', text: 'Requirements' },
     {
       kind: 'prose',
-      text: 'You are being asked to build DynamoDB from the inside, so the first job is to keep the interface small. **Single-key operations only.** Every feature you let in here — range scans, secondary indexes, transactions — is a separate system design, and the interviewer wants to see you refuse them politely.',
+      text: 'You are being asked to build Amazon\'s Dynamo, or Cassandra, from the inside, so the first job is to keep the interface small. **Single-key operations only.** Every feature you let in here — range scans, secondary indexes, transactions — is a separate system design, and the interviewer wants to see you refuse them politely.',
     },
     {
       kind: 'list',
@@ -188,7 +188,7 @@ DELETE /kv/{key}?w=2
     { kind: 'heading', text: 'Deep dive 2 — replication, quorums and staying writable' },
     {
       kind: 'prose',
-      text: 'Every key lives on **N** replicas. A write waits for **W** acknowledgements, a read for **R** answers. With **R + W > N**, every read set overlaps every write set in at least one replica, so a read sees the latest acknowledged write. N = 3, R = 2, W = 2 is the usual default: it survives one replica down on both paths, and latency is set by the second-fastest replica rather than the slowest.',
+      text: 'Every key lives on **N** replicas. A write waits for **W** acknowledgements, a read for **R** answers. With **R + W > N**, every read set overlaps every write set in at least one replica, so a read always reaches a copy of the latest acknowledged write. N = 3, R = 2, W = 2 is the common choice: it survives one replica down on both paths, and latency is set by the second-fastest replica rather than the slowest.',
     },
     {
       kind: 'table',
@@ -197,7 +197,7 @@ DELETE /kv/{key}?w=2
         ['3, 1, 1', 'The fastest reads and writes', 'Stale reads; an acknowledged write sits on one disk until it spreads'],
         ['3, 2, 2', 'Reads overlap the latest write; one replica can be down', 'The second-fastest replica, on every request'],
         ['3, 1, 3', 'Fast, current reads', 'One dead replica blocks every write'],
-        ['3, 3, 1', 'Fast writes', 'Every read waits for the slowest replica'],
+        ['3, 3, 1', 'Fast writes', 'Every read waits for the slowest replica, and one dead replica blocks every read'],
       ],
     },
     {
@@ -360,7 +360,7 @@ A: 2 > 1   but   B: 0 < 1      -> neither dominates
     {
       kind: 'callout',
       tone: 'example',
-      text: 'Amazon\'s 2007 Dynamo paper assembled this whole toolkit — consistent hashing with virtual nodes, sloppy quorums, hinted handoff, vector clocks, Merkle-tree anti-entropy and gossip membership — and Cassandra, Riak and Voldemort were built from it. Citing it tells the interviewer you know where the ideas come from.',
+      text: 'Amazon\'s 2007 Dynamo paper assembled this whole toolkit — consistent hashing with virtual nodes, sloppy quorums, hinted handoff, vector clocks, Merkle-tree anti-entropy and gossip membership. Riak and Voldemort followed it closely; Cassandra borrowed its ring, gossip and repair. Citing it tells the interviewer you know where the ideas come from.',
     },
 
     { kind: 'heading', text: 'Deep dive 5 — the storage engine on each node' },
@@ -410,7 +410,7 @@ A: 2 > 1   but   B: 0 < 1      -> neither dominates
     },
     {
       kind: 'prose',
-      text: 'The pick is the LSM tree, because the requirement is "always writable" under heavy writes, and an LSM engine never makes a write wait on a read. Cassandra, ScyllaDB, HBase and RocksDB are all built on one. Pay for it knowingly: compaction competes with live traffic for the disk, so throttle it, and leave it the free space it needs.',
+      text: 'The pick is the LSM tree, because the requirement is "always writable" under heavy writes, and an LSM write is a sequential append that never reads the old value first. Cassandra, ScyllaDB, HBase and RocksDB are all built on one. Pay for it knowingly: compaction competes with live traffic for the disk, so throttle it, and leave it the free space it needs.',
     },
   ],
   followups: [

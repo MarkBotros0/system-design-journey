@@ -5,7 +5,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'CQRS',
     full: 'Command Query Responsibility Segregation',
-    gist: 'Separate models for changing data and for reading it. The write model enforces the rules; read models are projections shaped for each query. It pays off when reads and writes want very different shapes, and it costs you reads that lag behind writes.',
+    gist: 'Separate models for changing data and for reading it. The write model enforces the rules; read models are projections shaped for each query. It pays off when reads and writes want very different shapes, and it usually costs you read models that lag behind writes.',
     figure: {
       kind: 'split',
       left: {
@@ -47,7 +47,7 @@ export const terms: GlossaryEntry[] = [
   },
   {
     id: 'BFF',
-    full: 'Backend For Frontend',
+    full: 'Backend for Frontend',
     gist: 'A thin server per client experience, such as the iOS app or the web app, that calls the underlying services and shapes one response per screen. The team that owns the client owns its BFF, so it can change its payload without waiting on anyone.',
     figure: {
       kind: 'flow',
@@ -81,7 +81,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'CRUD',
     full: 'Create, Read, Update, Delete',
-    gist: 'The four basic operations on stored records, and shorthand for a service that is mostly forms over a table. Most services are CRUD, which is a good reason not to give them CQRS or event sourcing.',
+    gist: 'The four basic operations on stored records, and shorthand for a service that is mostly forms over a table. Many services are mostly CRUD, which is a good reason not to give them CQRS or event sourcing.',
     figure: {
       kind: 'stack',
       layers: [
@@ -98,7 +98,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'RFC',
     full: 'Request for Comments',
-    gist: 'The numbered documents that define internet standards. Citing one, such as "problem details, RFC 9457", tells an interviewer you are following a standard rather than inventing a format.',
+    gist: 'The numbered documents in which internet standards are published. Citing one, such as "problem details, RFC 9457", tells an interviewer you are following a standard rather than inventing a format.',
     figure: {
       kind: 'stack',
       layers: [

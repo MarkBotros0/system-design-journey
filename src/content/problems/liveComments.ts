@@ -12,7 +12,7 @@ export const liveComments: Problem = {
   suggests: ['a-realtime', 'c-queues', 'c-sharding', 'a-reads'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to post, watch live and load history, with the video stream itself out of scope' },
-    { id: 'r2', bar: 'must', criterion: 'Chose SSE over WebSocket and justified it by the one-way hot direction' },
+    { id: 'r2', bar: 'must', criterion: 'Chose a server-push channel (SSE, or WebSocket with a reason) and justified it by the one-way hot direction' },
     { id: 'r3', bar: 'must', criterion: 'Stored comments partitioned by video with a time-ordered id as the history cursor' },
     { id: 'r4', bar: 'must', criterion: 'Used pub/sub so a comment reaches viewers connected to other servers' },
     { id: 'r5', bar: 'senior', criterion: 'Did the fan-out arithmetic for a hot video before designing for it' },
@@ -68,7 +68,7 @@ export const liveComments: Problem = {
     {
       kind: 'callout',
       tone: 'say',
-      text: 'Comments are written once and read a million times. The write path is tens of thousands of inserts a second across every video, and it is easy. The fan-out is the whole problem, and that is where I want to spend the time.',
+      text: 'Comments are written once and read a million times. The write path is about twenty thousand inserts a second across every video, and it is easy. The fan-out is the whole problem, and that is where I want to spend the time.',
     },
 
     { kind: 'heading', text: 'Core entities' },
@@ -123,8 +123,8 @@ GET  /videos/{videoId}/comments/stream    (text/event-stream)
     {
       kind: 'list',
       items: [
-        "**Posting.** The comment service checks length, a per-user rate limit and a blocklist, assigns a time-ordered id, writes to Cassandra and publishes to the video's channel. Partitioning by `videoId` keeps a video's comments together and in order. If 1% of viewers post once a minute, that is about 17,000 writes a second across the fleet: routine for Cassandra.",
-        '**History.** `?before=` is a range read on that one partition, newest first. The time-ordered id is the cursor, so pages never shift as new comments arrive.',
+        "**Posting.** The comment service checks length, a per-user rate limit and a blocklist, assigns a time-ordered id, writes to Cassandra and publishes to the video's channel. Partitioning by `videoId` (plus an hour bucket, so a long hot stream cannot grow one partition without bound) keeps a video's comments together and in order. If 1% of viewers post once a minute, that is about 17,000 writes a second across the fleet: routine for Cassandra.",
+        '**History.** `?before=` is a range read on the video\'s partition, newest first. The time-ordered id is the cursor, so pages never shift as new comments arrive.',
         "**Streaming.** The viewer opens an [[SSE]] connection to a realtime server. That server subscribes to the video's channel if it has not already, and pushes each comment down every matching connection. An idle connection is cheap: a tuned server holds tens of thousands to a few hundred thousand. Call it 100,000, so 100M viewers is about a thousand servers.",
       ],
     },
@@ -249,7 +249,7 @@ GET  /videos/{videoId}/comments/stream    (text/event-stream)
     },
     {
       kind: 'figure',
-      caption: 'The hot video before and after each lever. Every step is an order of magnitude or more.',
+      caption: 'The hot video after each lever. The cap and the fan-out tree remove orders of magnitude; batching cuts frames, not bytes.',
       figure: {
         kind: 'scale',
         items: [

@@ -24,7 +24,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'GRASP',
     full: 'General Responsibility Assignment Software Patterns',
-    gist: 'Craig Larman\'s nine principles for deciding which class should do what. Information expert, creator and controller settle almost every placement in an interview; the rest explain why those three work.',
+    gist: 'Craig Larman\'s nine principles for deciding which class should do what. Information expert, creator and controller settle most placements in an interview; the other six name the goals, and the moves for when those three do not fit.',
     figure: {
       kind: 'stack',
       layers: [
@@ -43,7 +43,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'LLD',
     full: 'Low-Level Design',
-    gist: 'The interview round, also called object-oriented design or machine coding, where a prompt such as "design a parking lot" becomes classes, methods and working code. Its sibling, system design, works one level up, in services and machines.',
+    gist: 'The interview round, also called object-oriented design (or machine coding, when the code must run), where a prompt such as "design a parking lot" becomes classes, methods and working code. Its sibling, system design, works one level up, in services and machines.',
     figure: {
       kind: 'flow',
       nodes: [

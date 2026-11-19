@@ -163,7 +163,7 @@ GET   /trips/{id}/live    -> event stream: position, status`,
     { kind: 'heading', text: 'Deep dive 3 — watching each other move' },
     {
       kind: 'prose',
-      text: 'Once matched, both parties need the other\'s position a few times a second. That is real-time push — [[SSE]] is sufficient, since the rider sends nothing back on this channel.',
+      text: 'Once matched, each party needs the other\'s position every few seconds. That is real-time push — [[SSE]] is sufficient, since positions go up through their own endpoint and nothing flows back on this channel.',
     },
     {
       kind: 'compare',
@@ -172,7 +172,7 @@ GET   /trips/{id}/live    -> event stream: position, status`,
         points: [
           'Both directions on one connection',
           'Needs its own load balancing and reconnection logic',
-          'The rider has nothing to send back',
+          'Nothing needs to flow back on this channel',
         ],
       },
       right: {
@@ -180,7 +180,7 @@ GET   /trips/{id}/live    -> event stream: position, status`,
         points: [
           'Server to client over plain [[HTTP]]',
           'Reconnects and resumes on its own',
-          'Driver positions already arrive on their own endpoint',
+          'Positions already go up through their own endpoint',
         ],
       },
       verdict: 'SSE. The traffic only flows one way, so the simpler channel is the right one.',
@@ -192,7 +192,7 @@ GET   /trips/{id}/live    -> event stream: position, status`,
     {
       kind: 'callout',
       tone: 'say',
-      text: 'Durability differs per path, and saying so closes the loop cleanly. Losing a location update is invisible — another arrives in two seconds. Losing a trip record means an unpaid driver and an unbilled rider. One lives in memory; the other is an [[ACID]] transaction with a real audit trail.',
+      text: 'Durability differs per path, and saying so closes the loop cleanly. Losing a location update is invisible — another arrives in four seconds. Losing a trip record means an unpaid driver and an unbilled rider. One lives in memory; the other is an [[ACID]] transaction with a real audit trail.',
     },
   ],
   followups: [

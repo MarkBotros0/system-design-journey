@@ -20,9 +20,9 @@ export const googleDocs: Problem = {
     { id: 'r7', bar: 'senior', criterion: 'Stored an append-only operation log with periodic snapshots' },
     { id: 'r8', bar: 'senior', criterion: 'Made edits idempotent with a client operation id and acknowledged them with a revision' },
     { id: 'r9', bar: 'senior', criterion: 'Kept presence and cursors ephemeral, throttled, and out of the log' },
-    { id: 'r10', bar: 'staff', criterion: 'Handled owner failover with a lease and a conditional append, so a stale owner cannot write' },
+    { id: 'r10', bar: 'staff', criterion: 'Handled owner failover with a lease and a conditional append, so a stale owner cannot write over a new one' },
     { id: 'r11', bar: 'staff', criterion: 'Bounded offline editing: rebase on reconnect, and what happens past the bound' },
-    { id: 'r12', bar: 'staff', criterion: 'Implemented restore as a new forward revision instead of rewriting history' },
+    { id: 'r12', bar: 'senior', criterion: 'Implemented restore as a new forward revision instead of rewriting history' },
   ],
   followups: [
     {
@@ -39,7 +39,7 @@ export const googleDocs: Problem = {
     },
     {
       q: "How do you search across everyone's documents?",
-      a: "Asynchronously. Snapshot writes emit an event, an indexer pushes the text into Elasticsearch, and every query is filtered by the caller's permissions. A few seconds of lag is invisible in search and keeps indexing off the editing path entirely.",
+      a: "Asynchronously. The owner emits a change event, debounced to one every few seconds per document; an indexer pushes the latest text into Elasticsearch, and every query is filtered by the caller's permissions. A few seconds of lag is invisible in search and keeps indexing off the editing path entirely.",
     },
     {
       q: 'You add a document server and a tenth of documents change owner. What do editors notice?',
@@ -90,7 +90,7 @@ export const googleDocs: Problem = {
     },
     {
       kind: 'code',
-      code: `GET  /docs/{docId}          -> { snapshot, revision }
+      code: `GET  /docs/{docId}          -> { snapshot, tail, revision }
 
 WS   /docs/{docId}/session
   -> { type: 'op', baseRev, clientOpId, ops }
@@ -215,7 +215,7 @@ POST /docs/{docId}/versions/{rev}/restore -> { revision }`,
         {
           grade: 'best',
           title: 'Sticky routing, with a lease and a fenced log',
-          text: 'Ownership is a lease from a coordination service (ZooKeeper or etcd) that the owner keeps renewing. Every log append is conditional on `(docId, revision)` not existing yet, so an owner that lost its lease during a partition cannot write: its append fails and it lets go of the document. On a crash the lease expires, a new owner loads snapshot plus tail, and clients resend unacknowledged edits, which `clientOpId` deduplicates.',
+          text: 'Ownership is a lease from a coordination service (ZooKeeper or etcd) that the owner keeps renewing. Every log append is conditional on `(docId, revision)` not existing yet, so two owners can never both write a revision. An owner that lost its lease during a partition has its next append rejected once the new owner has written, and lets go of the document. On a crash the lease expires, a new owner loads snapshot plus tail, and clients resend unacknowledged edits, which `clientOpId` deduplicates.',
         },
       ],
     },
@@ -302,8 +302,8 @@ POST /docs/{docId}/versions/{rev}/restore -> { revision }`,
       items: [
         'The client keeps unacknowledged edits in IndexedDB with the `baseRev` they were made on, and the user keeps typing.',
         'On reconnect it sends them in order. The owner transforms them against everything since `baseRev`, exactly as it would a slow edit.',
-        'If `baseRev` has been compacted away, or the gap is thousands of operations, the client fetches what it missed and transforms its own edits locally before sending. The server never transforms against history it no longer holds.',
-        'Past a hard limit (days offline, or the document rewritten meanwhile), save the offline work as a copy and say so, rather than silently splicing two drafts together.',
+        'If the gap is thousands of operations, the client fetches what it missed and transforms its own edits locally before sending, so one long rebase never stalls the owner.',
+        'Past a hard limit (days offline, `baseRev` already compacted away, or the document rewritten meanwhile), save the offline work as a copy and say so, rather than silently splicing two drafts together. Nobody can transform against history that no longer exists.',
       ],
     },
     {

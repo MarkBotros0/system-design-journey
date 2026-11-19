@@ -213,7 +213,7 @@ POST /listings/{id}/blocks                      (host only)
         {
           grade: 'best',
           title: 'The same steps as a durable state machine',
-          text: 'Each transition — `held → authorised → confirmed`, or `→ released` — is a conditional update committed before the next call, driven by a workflow engine such as Temporal, with the booking id as the idempotency key on every processor call. A crash anywhere resumes from the last committed state instead of leaving a mystery.',
+          text: 'Each transition — `held → confirmed`, or `held → released` — is a conditional update committed before the next call, driven by a workflow engine such as Temporal, with an idempotency key derived from the booking id on every processor call. A crash anywhere resumes from the last committed state instead of leaving a mystery.',
         },
       ],
     },

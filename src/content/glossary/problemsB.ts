@@ -21,7 +21,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'FCM',
     full: 'Firebase Cloud Messaging',
-    gist: "Google's push gateway for Android apps, which can also relay to iOS and the web. Same contract as Apple's: one token per app install, and a token that goes stale the moment the app is uninstalled.",
+    gist: "Google's push gateway for Android apps, which can also relay to iOS and the web. Same contract as Apple's: one token per app install, and a token that dies when the app is uninstalled.",
     figure: {
       kind: 'split',
       left: {
@@ -40,7 +40,7 @@ export const terms: GlossaryEntry[] = [
           { label: 'Send with token', to: 'unregistered' },
           { label: 'Delete the token', tone: 'alert' },
         ],
-        cost: 'Keep sending to dead tokens and you pay for every one of them.',
+        cost: 'Keep sending to dead tokens and every send is wasted work.',
       },
     },
     caption: 'A device token is only good while the app is installed. The error on send is your signal to forget it.',
@@ -48,7 +48,7 @@ export const terms: GlossaryEntry[] = [
   },
   {
     id: 'ETA',
-    full: 'Estimated time of arrival',
+    full: 'Estimated Time of Arrival',
     gist: 'When something is predicted to arrive. In delivery design it is a sum of estimates (preparation, pickup, travel), each with its own error, which is why a good one is shown as a range and recomputed at every event.',
     figure: {
       kind: 'flow',

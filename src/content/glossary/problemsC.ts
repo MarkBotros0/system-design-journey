@@ -53,7 +53,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'HMAC',
     full: 'Hash-based Message Authentication Code',
-    gist: 'A signature made by hashing a message together with a secret key. Whoever holds the key can check the message came from someone else holding it and was not altered — which is how webhooks and signed tokens are verified without a database lookup.',
+    gist: 'A tag, usually called a signature, made by hashing a message together with a secret key. Whoever holds the key can check the message came from someone else holding it and was not altered — which is how webhooks and signed tokens are verified without a database lookup.',
     figure: {
       kind: 'flow',
       nodes: [

@@ -52,7 +52,7 @@ export const lldElevator: Problem = {
       items: [
         'Up and down call buttons on every floor; floor buttons, door-open and alarm inside each car.',
         'A dispatcher assigns each hall call to exactly one car.',
-        'Each car serves its stops in an order that never strands a floor and never reverses while riders are still heading the other way.',
+        'Each car serves its stops in an order that never strands a floor and never reverses while it still has stops ahead.',
         'A car can be taken out of service. Fire service recalls every car to the lobby.',
         'Out of scope: motor control, door safety hardware, acceleration curves.',
       ],
@@ -203,7 +203,7 @@ nextStop(): number | null {
       : call.floor <= car.floor
     if (ahead && call.dir === car.dir) return dist
     // Otherwise finish this sweep and come back. An estimate:
-    // a call behind the car, going our way, needs two turns.
+    // it undercounts a call behind us going our way (two turns).
     const turn = car.furthestStopAhead() ?? car.floor
     return Math.abs(car.floor - turn) + Math.abs(turn - call.floor)
   }
@@ -271,7 +271,7 @@ const system = new ElevatorSystem(cars, new ByTimeOfDay(
     {
       kind: 'callout',
       tone: 'example',
-      text: 'Destination dispatch, where riders key their floor into a lobby panel and are told which car to take, was introduced by Schindler with Miconic 10 in the early 1990s. In this design it is a `HallCall` that carries a destination, plus one new strategy that groups riders going to the same floors. The cars do not change.',
+      text: 'Destination dispatch, where riders key their floor into a lobby panel and are told which car to take, was first sold commercially by Schindler, as Miconic 10, in the early 1990s. In this design it is a `HallCall` that carries a destination, plus one new strategy that groups riders going to the same floors. The cars do not change.',
     },
 
     { kind: 'heading', text: 'Concurrency and edge cases' },

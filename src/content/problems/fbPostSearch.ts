@@ -143,7 +143,7 @@ POST /posts/{id}/likes            -> 200`,
     { kind: 'heading', text: 'Deep dive 1 — the index, and how to shard it' },
     {
       kind: 'prose',
-      text: 'Keep two posting lists per term, one per sort. The recency list is ordered by post id, newest first; the likes list is ordered by like count. A one-word recency query is then the first page of one list. A two-word query intersects two lists sorted the same way, walking both from the newest end and stopping once it has a page of matches — it never reads the tail.',
+      text: 'Keep two posting lists per term, one per sort. The recency list is ordered by post id, newest first; the likes list is ordered by like count. A one-word recency query is then the first page of one list. A two-word query intersects two lists sorted the same way, walking both from the newest end and stopping once it has a page of matches — for common pairs it never reaches the tail.',
     },
     {
       kind: 'code',

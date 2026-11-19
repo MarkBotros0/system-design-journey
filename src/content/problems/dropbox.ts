@@ -54,7 +54,7 @@ POST /files/{id}/shares     { userId, permission } -> 200`,
     { kind: 'heading', text: 'High-level design' },
     {
       kind: 'prose',
-      text: 'Metadata in the database — id, owner, name, size, chunk list, permissions. **Bytes in blob storage.** [[S3]] at ~$0.023/GB/month against a database at ~$1.25 settles it on cost alone, before you even reach the throughput argument.',
+      text: 'Metadata in the database — id, owner, name, size, chunk list, permissions. **Bytes in blob storage.** [[S3]] at ~$0.023/GB/month is around a tenth of what replicated database storage costs, and databases are not built to stream, replicate and back up multi-gigabyte values.',
     },
     {
       kind: 'figure',
@@ -88,7 +88,7 @@ POST /files/{id}/shares     { userId, permission } -> 200`,
     },
     {
       kind: 'prose',
-      text: 'Downloads mirror it: a presigned URL again, but served through a CDN so a shared file is delivered from the requester\'s region rather than yours. Signed URLs keep private files cacheable at the edge — the signature expires, the cached object does not have to.',
+      text: 'Downloads mirror it: a signed URL again, this time for the CDN, so a shared file is delivered from the requester\'s region rather than yours. Signed URLs keep private files cacheable at the edge — the signature expires, the cached object does not have to.',
     },
     {
       kind: 'prose',
@@ -150,7 +150,7 @@ POST /files/{id}/shares     { userId, permission } -> 200`,
     { kind: 'heading', text: 'Deep dive 2 — deduplication' },
     {
       kind: 'prose',
-      text: 'The same 200 MB file exists in thousands of accounts. Hash each chunk and address it by content: `chunks/{sha256}`. If the hash already exists, the upload is a metadata write and zero bytes move. That turns a re-upload of a shared file into an instant operation and cuts storage dramatically.',
+      text: 'The same 200 MB file exists in thousands of accounts. Hash each chunk and address it by content: `chunks/{sha256}`. Each chunk is then its own object, and a file is its ordered list of hashes. If a hash already exists, that chunk is a metadata write and zero bytes move. That turns a re-upload of a shared file into an instant operation and cuts storage dramatically.',
     },
     {
       kind: 'compare',

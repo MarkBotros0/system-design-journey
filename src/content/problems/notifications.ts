@@ -31,7 +31,7 @@ export const notifications: Problem = {
     },
     {
       q: 'How do you send to 50M users without melting anything?',
-      a: "Expand the segment in batches with a cursor, enqueue onto the bulk queues, and drain at a fixed target rate that leaves headroom for critical traffic. Spread the sends by each user's local time so nobody gets a promotion at 3 am, and let per-user caps drop the excess. The blast takes an hour instead of a minute, which nobody minds.",
+      a: "Expand the segment in batches with a cursor, enqueue onto the bulk queues, and drain at a fixed target rate that leaves headroom for critical traffic. Spread the sends by each user's local time so nobody gets a promotion at 3 am, and let per-user caps drop the excess. The blast takes an hour instead of ten minutes, which nobody minds.",
     },
     {
       q: 'How do you know a notification was actually delivered?',
@@ -39,7 +39,7 @@ export const notifications: Problem = {
     },
     {
       q: 'A user unsubscribes from an email. How fast must that take effect?',
-      a: "Immediately for anything not yet sent. The router reads preferences at decision time, and the worker re-checks just before sending bulk mail that was queued hours earlier. Unsubscribes arriving by the provider's webhook write the preference directly. Bulk mail also needs a one-click unsubscribe header, which Gmail and Yahoo now require of bulk senders.",
+      a: "Before the next send. Gmail and Yahoo give bulk senders two days, but there is no reason to use them: the router reads preferences at decision time, and the worker re-checks just before sending bulk mail queued hours earlier. Unsubscribes arriving by the provider's webhook write the preference directly. Bulk mail also needs a one-click unsubscribe header, which those two have required of bulk senders since 2024.",
     },
     {
       q: 'How do templates change without a deploy?',
@@ -59,7 +59,7 @@ export const notifications: Problem = {
     },
     {
       kind: 'prose',
-      text: 'Non-functional: **no duplicates**. A user must never get the same notification twice on a channel, which with retries means at-least-once delivery plus deduplication. **Critical notifications are fast**: a sign-in code arrives within 10 seconds, even while a 50M-user marketing blast is going out. **Accepting never depends on sending**: the [[API]] keeps taking requests while a provider is down. Assume **1B notifications a day**, about 12,000 a second on average, with blasts pushing peaks past 100,000 a second.',
+      text: 'Non-functional: **no visible duplicates**. Retries make delivery at-least-once, so deduplication must make a second copy on a channel rare and, where the channel allows, harmless. **Critical notifications are fast**: a sign-in code arrives within 10 seconds, even while a 50M-user marketing blast is going out. **Accepting never depends on sending**: the [[API]] keeps taking requests while a provider is down. Assume **1B notifications a day**, about 12,000 a second on average, with blasts pushing peaks past 100,000 a second.',
     },
     {
       kind: 'callout',

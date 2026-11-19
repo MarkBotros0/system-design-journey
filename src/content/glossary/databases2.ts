@@ -19,10 +19,10 @@ export const terms: GlossaryEntry[] = [
       },
       right: {
         title: 'Analytical',
-        tone: 'mastered',
+        tone: 'neutral',
         nodes: [
           { label: 'Few large queries', sub: 'revenue by month', to: 'each scans' },
-          { label: 'Millions of rows, a few columns', tone: 'mastered' },
+          { label: 'Millions of rows, a few columns', tone: 'neutral' },
         ],
         cost: 'Column store: ClickHouse, BigQuery.',
       },
@@ -56,11 +56,11 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'RTO',
     full: 'Recovery Time Objective',
-    gist: 'How long the service may be down after a failure. Automatic failover to a replica gets you back in about a minute; restoring from a backup takes hours. The RTO you promise decides which one you have to build.',
+    gist: 'How long the service may be down after a failure. Automatic failover to a replica typically takes a minute or two; restoring from a backup can take hours. The RTO you promise decides which one you have to build.',
     figure: {
       kind: 'scale',
       items: [
-        { label: 'Automatic failover to a replica', display: 'about a minute', value: 60, tone: 'mastered' },
+        { label: 'Automatic failover to a replica', display: 'a minute or two', value: 60, tone: 'mastered' },
         { label: 'Manual failover, someone paged', display: 'tens of minutes', value: 1800, tone: 'streak' },
         { label: 'Restore from backup', display: 'hours', value: 14400, tone: 'alert' },
       ],

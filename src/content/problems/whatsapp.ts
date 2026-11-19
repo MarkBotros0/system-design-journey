@@ -45,7 +45,7 @@ export const whatsapp: Problem = {
     { kind: 'heading', text: '[[API]]' },
     {
       kind: 'prose',
-      text: 'Both sides send constantly, so this is one of the genuine [[WebSocket]] cases rather than an [[SSE]] one. That decision brings its costs with it: long-lived connections the load balancer must hold (an [[L4]] balancer is the usual choice), connection state, and reconnection logic you write yourself.',
+      text: 'Both sides send constantly, so this is one of the genuine [[WebSocket]] cases rather than an [[SSE]] one. That decision brings its costs with it: long-lived connections the load balancer must hold (an [[L4]] balancer is a common choice), connection state, and reconnection logic you write yourself.',
     },
     {
       kind: 'code',
@@ -195,12 +195,12 @@ POST /groups   { name, memberIds[] }  -> { conversationId }`,
     },
     {
       kind: 'prose',
-      text: 'Receipts are the hidden scaling problem: a 500-member group produces 500 delivered receipts and 500 read receipts **per message**. That is a 1000× write amplification on metadata nobody reads carefully. Aggregate them — store counts and a member list, push a summary rather than an event per member.',
+      text: 'Receipts are the hidden scaling problem: a 500-member group produces 500 delivered receipts and 500 read receipts **per message**. That is a thousand receipt writes for one send, on metadata few people check. Aggregate them — store counts and a member list, push a summary rather than an event per member.',
     },
     {
       kind: 'callout',
       tone: 'note',
-      text: 'Worth one sentence: with end-to-end encryption the server stores ciphertext it cannot read. That rules out server-side search, server-side spam filtering, and previews — the client does all of it. Mentioning the consequence, not just the acronym, is what reads as depth.',
+      text: 'Worth one sentence: with end-to-end encryption the server stores ciphertext it cannot read. That rules out server-side search, content-based spam filtering and link previews — the client does all of it. Mentioning the consequence, not just the acronym, is what reads as depth.',
     },
   ],
   followups: [

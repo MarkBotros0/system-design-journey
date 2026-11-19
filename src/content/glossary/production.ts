@@ -68,7 +68,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'MTTR',
     full: 'Mean Time To Recovery',
-    gist: 'The average time from an incident starting to the service being restored. Halving it halves what every incident costs, and a fast rollback is usually the cheapest way to do that.',
+    gist: 'The average time from an incident starting to the service being restored. Halving it halves the downtime of every incident, and a fast rollback is usually the cheapest way to do that.',
     figure: {
       kind: 'timeline',
       ticks: ['0', '10 min', '20 min', '30 min', '40 min'],
@@ -224,7 +224,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'XSS',
     full: 'Cross-Site Scripting',
-    gist: "An attacker gets their script to run on your page, usually by saving input that you later render as markup. The script then acts as whoever is viewing. Escape output for its context; React does it by default.",
+    gist: "An attacker gets their script to run on your page, often by saving input that you later render as markup. The script then acts as whoever is viewing. Escape output for its context; React does it by default.",
     figure: {
       kind: 'flow',
       nodes: [
@@ -269,7 +269,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'OWASP',
     full: 'Open Worldwide Application Security Project',
-    gist: 'A non-profit best known for the OWASP Top 10, a ranked list of the most critical web application risks. Broken access control was number one in the 2021 edition.',
+    gist: 'A non-profit best known for the OWASP Top 10, a ranked list of the most critical web application risks. Broken access control was number one in the 2021 edition and kept the spot in 2025.',
     figure: {
       kind: 'stack',
       layers: [
@@ -278,7 +278,7 @@ export const terms: GlossaryEntry[] = [
         { label: '3. Injection', sub: 'now includes XSS', tone: 'streak' },
         { label: '10. Server-side request forgery', sub: 'new in 2021', tone: 'neutral' },
       ],
-      note: 'Most of the list is the same two mistakes: trusting input, and forgetting to check permissions.',
+      note: 'Much of the list is the same two mistakes: trusting input, and forgetting to check permissions.',
     },
     caption: 'The top of the 2021 OWASP Top 10, and one of its new entries at number ten.',
     seeAlso: ['XSS', 'CSRF', 'SSRF'],

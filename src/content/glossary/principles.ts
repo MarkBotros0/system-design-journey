@@ -14,7 +14,7 @@ export const terms: GlossaryEntry[] = [
         { label: 'Inheritance', sub: 'reuse a parent you can stand in for', tone: 'streak' },
         { label: 'Polymorphism', sub: 'one call, many behaviours', tone: 'mastered' },
       ],
-      note: 'Inheritance is the one pillar a language can drop: Go and Rust do.',
+      note: 'Inheritance is the pillar some languages drop: Go and Rust have no class inheritance.',
     },
     caption: 'The four pillars, by what each one buys you.',
     seeAlso: ['SOLID'],

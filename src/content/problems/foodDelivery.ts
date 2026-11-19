@@ -97,7 +97,7 @@ export const foodDelivery: Problem = {
 POST /restaurant/orders/{id}/accept   { prepMinutes }
 POST /restaurant/orders/{id}/ready
 
-POST /courier/location  { lat, lng, heading, ts }   -> 204
+POST /courier/location  { lat, lng, heading, speed, ts }  -> 204
 POST /courier/offers/{offerId}/accept    -> { delivery }
 POST /courier/deliveries/{id}/pickup  |  /dropoff
 
@@ -297,7 +297,7 @@ GET  /orders/{id}/track   (SSE)  -> state, position, eta`,
         {
           grade: 'good',
           title: 'Authorise at checkout, capture at delivery',
-          text: 'An authorisation holds the funds without moving them, so a cancellation is a void: instant and free. Capture the final amount at delivery, which may be less than the hold when an item was missing. Every provider call carries an idempotency key (Stripe accepts one on every POST), so a retried capture cannot charge twice.',
+          text: 'An authorisation holds the funds without moving them, so a cancellation is a void, not a refund: nothing moved, so nothing has to come back. Capture the final amount at delivery, which may be less than the hold when an item was missing. Every provider call carries an idempotency key (Stripe accepts one on every POST), so a retried capture cannot charge twice.',
         },
         {
           grade: 'great',

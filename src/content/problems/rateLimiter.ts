@@ -13,7 +13,7 @@ export const rateLimiter: Problem = {
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Clarified what is limited (user, IP, API key) and the window' },
     { id: 'r2', bar: 'must', criterion: 'Named where it sits — gateway or middleware, before real work happens' },
-    { id: 'r3', bar: 'must', criterion: 'Returns 429 with Retry-After and the standard limit headers' },
+    { id: 'r3', bar: 'must', criterion: 'Returns 429 with Retry-After and the usual limit headers' },
     { id: 'r4', bar: 'must', criterion: 'Chose an algorithm and explained its behaviour' },
     { id: 'r5', bar: 'senior', criterion: 'Identified the fixed-window boundary burst problem' },
     { id: 'r6', bar: 'senior', criterion: 'Explained why counters must be shared across hosts, not per-host' },
@@ -57,7 +57,7 @@ Retry-After: 12
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 0
 X-RateLimit-Reset: 1767225600`,
-      caption: 'The real interface is internal. The client-facing contract is the status code and three headers.',
+      caption: 'The real interface is internal. The client-facing contract is the status code and its headers.',
     },
     { kind: 'heading', text: 'High-level design' },
     {
@@ -100,12 +100,12 @@ X-RateLimit-Reset: 1767225600`,
         {
           grade: 'great',
           title: 'Sliding window counter',
-          text: 'Weight the previous window by how far into the current one you are. Two integers per client, and it smooths the boundary burst almost entirely. The usual production answer.',
+          text: 'Weight the previous window by how far into the current one you are. Two integers per client, and it smooths the boundary burst almost entirely. Cloudflare runs this one.',
         },
         {
           grade: 'best',
           title: 'Token bucket',
-          text: 'Tokens refill at a fixed rate up to a cap; each request takes one. Two numbers per client — token count and last refill time — and it **permits deliberate bursts** while bounding the sustained rate, which is usually what an API actually wants. It is also what most gateways implement.',
+          text: 'Tokens refill at a fixed rate up to a cap; each request takes one. Two numbers per client — token count and last refill time — and it **permits deliberate bursts** while bounding the sustained rate, which is usually what an API actually wants. It is also what many gateways implement.',
         },
       ],
     },
@@ -189,7 +189,7 @@ local tokens, last = redis.call('HMGET', KEYS[1], 'n', 't')
     },
     {
       kind: 'prose',
-      text: 'On latency: a Redis round trip inside the datacentre is 1–10 ms on every request. If that is too much, hold a small per-host token allowance drawn from the shared pool in batches — each host claims 10 tokens at a time, so you make one network call per ten requests and accept slightly fuzzier enforcement at the edges.',
+      text: 'On latency: a Redis round trip inside the datacentre is around a millisecond, on every request. If that is too much, hold a small per-host token allowance drawn from the shared pool in batches — each host claims 10 tokens at a time, so you make one network call per ten requests and accept slightly fuzzier enforcement at the edges.',
     },
   ],
   followups: [

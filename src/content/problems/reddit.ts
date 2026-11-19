@@ -37,7 +37,7 @@ export const reddit: Problem = {
     },
     {
       kind: 'prose',
-      text: 'Non-functional, with numbers. Assume **100M [[DAU]]** viewing ~30 pages each: ~3 billion page views a day, **~35k a second**, with spikes when a thread goes viral. Assume five votes per user a day: 500M votes, **~6k a second** on average and many times that on one hot thread. Reads outnumber writes by an order of magnitude or more.',
+      text: 'Non-functional, with numbers. Assume **100M [[DAU]]** viewing ~30 pages each: ~3 billion page views a day, **~35k a second**, with spikes when a thread goes viral. Assume five votes per user a day: 500M votes, **~6k a second** on average and many times that on one hot thread. Page views outnumber votes about six to one, and every page reads dozens of records.',
     },
     {
       kind: 'list',
@@ -114,7 +114,7 @@ GET  /posts/{id}/comments?sort=best
       items: [
         '**Post.** The post service writes to Postgres, sharded by post id with an index on `(communityId, createdAt)`, and adds the id to the community\'s `new` and `hot` sorted sets.',
         '**Comment.** Comments live in their own table, indexed by `postId`, so all of a post\'s comments are one range read.',
-        '**Vote.** The vote service upserts the vote row and emits the change to Kafka. The aggregator sums changes per item and writes scores in batches.',
+        '**Vote.** The vote service upserts the vote row, and in the same transaction an outbox row that is relayed to Kafka. The aggregator sums changes per item and writes scores in batches.',
         '**Browse.** The listing service reads a page of ids from the community\'s sorted set and hydrates them from the post cache. The client fetches the user\'s own votes for those ids in one batch call to light the arrows.',
         '**Read comments.** One read of the post\'s comments, assembled into a tree, sorted and cut to size (deep dive 3).',
       ],
@@ -153,11 +153,13 @@ GET  /posts/{id}/comments?sort=best
     {
       kind: 'code',
       code: `-- one short transaction per vote
+INSERT INTO votes VALUES ($1, $2, 0)
+  ON CONFLICT DO NOTHING      -- so the lock below has a row
 prev := SELECT dir FROM votes
           WHERE user_id = $1 AND target_id = $2 FOR UPDATE
-UPSERT votes (user_id, target_id, dir) VALUES ($1, $2, $new)
-emit { target: $2, delta: $new - coalesce(prev, 0) }`,
-      caption: 'The delta comes from the row the transaction replaced, so two taps from two devices cannot both count.',
+UPDATE votes SET dir = $new WHERE user_id = $1 AND target_id = $2
+INSERT INTO outbox VALUES ($2, $new - prev)  -- relayed to Kafka`,
+      caption: 'The delta comes from the row the transaction locked, so two taps from two devices cannot both count. The first insert matters: FOR UPDATE cannot lock a row that does not exist yet. The outbox row commits with the vote, so no delta is lost.',
     },
     {
       kind: 'figure',
@@ -179,7 +181,7 @@ emit { target: $2, delta: $new - coalesce(prev, 0) }`,
     },
     {
       kind: 'prose',
-      text: 'Size the votes store. 500M votes a day is ~180 billion rows a year at ~20 bytes: **~4 [[TB]] a year** before replication. The access pattern is pure key lookup — "what did this user vote on these 25 items" — with no joins, so a wide-column store partitioned by `userId` fits well, and lighting a page of arrows is one partition read. Posts and comments, which have real relationships, stay in Postgres.',
+      text: 'Size the votes store. 500M votes a day is ~180 billion rows a year at ~20 bytes: **~4 [[TB]] a year** before replication. The access pattern is pure key lookup — "what did this user vote on these 25 items" — with no joins, so a wide-column store partitioned by `userId` fits well (the transaction above becomes a conditional write), and lighting a page of arrows is one partition read. Posts and comments, which have real relationships, stay in Postgres.',
     },
     {
       kind: 'callout',
@@ -268,7 +270,7 @@ hot     = sign * order + seconds / 45000`,
     },
     {
       kind: 'prose',
-      text: '**Top** is a sorted set per community and window, scored by net votes and holding only posts created inside the window: a sweep removes members older than the window start, and reads double-check creation time. **New** is just the `(communityId, createdAt)` index. Capping each listing at about a thousand ids is a product decision as much as an engineering one — Reddit\'s own listings have long stopped there, and nobody pages that deep.',
+      text: '**Top** is a sorted set per community and window, scored by net votes and holding only posts created inside the window: a sweep removes members older than the window start, and reads double-check creation time. **New** is a sorted set scored by creation time, rebuildable from the `(communityId, createdAt)` index. Capping each listing at about a thousand ids is a product decision as much as an engineering one — Reddit\'s own listings have long stopped there, and nobody pages that deep.',
     },
     {
       kind: 'callout',
@@ -334,7 +336,7 @@ hot     = sign * order + seconds / 45000`,
   followups: [
     {
       q: 'How do you build the home page from someone\'s two hundred subscriptions?',
-      a: 'Merge on read: take the head of each subscribed community\'s cached hot list, merge by hot score, and hydrate one page. Hot scores are comparable across communities because the formula is global, so this is a plain merge of sorted lists. Cap how many communities one request merges, and see the news-feed problem for when per-user precomputation wins instead.',
+      a: 'Merge on read: take the head of each subscribed community\'s cached hot list, merge by hot score, and hydrate one page. Hot scores are comparable across communities because the formula is global, so this is a plain merge of sorted lists — though big communities then crowd out small ones, so cap each community\'s share of a page. Limit how many communities one request merges, and see the news-feed problem for when per-user precomputation wins instead.',
     },
     {
       q: 'A post goes viral and takes fifty thousand votes a minute. What breaks?',

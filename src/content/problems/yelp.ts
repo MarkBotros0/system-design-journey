@@ -13,7 +13,7 @@ export const yelp: Problem = {
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Scoped to nearby search with filters, business pages, and one review per user per business' },
     { id: 'r2', bar: 'must', criterion: 'Sized the data and noticed the business set is small and nearly static' },
-    { id: 'r3', bar: 'must', criterion: 'Explained why separate latitude and longitude indexes cannot serve a radius query' },
+    { id: 'r3', bar: 'must', criterion: 'Explained why separate latitude and longitude indexes cannot serve a radius query efficiently' },
     { id: 'r4', bar: 'must', criterion: 'Chose a geospatial index and handled cell boundaries by querying neighbours' },
     { id: 'r5', bar: 'senior', criterion: 'Served geo, filters and text in one query with Elasticsearch or PostGIS, and said why' },
     { id: 'r6', bar: 'senior', criterion: 'Kept Postgres as the source of truth and synced the index by CDC' },
@@ -153,7 +153,7 @@ POST /businesses/{id}/reviews  { rating, text }  -> 201 Review`,
         {
           grade: 'bad',
           title: 'Latitude and longitude columns with ordinary indexes',
-          text: "`WHERE lat BETWEEN … AND lng BETWEEN …` can use one of the two indexes, so it fetches a band of latitude that circles the planet and filters the rest. A composite index on `(lat, lng)` narrows only the first column's range.",
+          text: "`WHERE lat BETWEEN … AND lng BETWEEN …` reads a band of latitude that circles the planet (at best intersected with a pole-to-pole band of longitude) and filters the rest. A composite index on `(lat, lng)` narrows only the first column's range.",
         },
         {
           grade: 'good',
@@ -163,7 +163,7 @@ POST /businesses/{id}/reviews  { rating, text }  -> 201 Review`,
         {
           grade: 'great',
           title: 'A quadtree or [[S2]] cells',
-          text: 'Cells split where businesses are dense and stay coarse where they are sparse, so every leaf holds a similar number. Businesses barely move, so the tree is built in memory and rebuilt nightly. Excellent for pure proximity, but it is a custom service, and filters and text still need another system.',
+          text: 'A quadtree splits cells where businesses are dense and keeps them coarse where they are sparse, so every leaf holds a similar number; S2 gives the same cell hierarchy on a sphere. Businesses barely move, so the tree is built in memory and rebuilt nightly. Excellent for pure proximity, but it is a custom service, and filters and text still need another system.',
         },
         {
           grade: 'best',
@@ -251,7 +251,7 @@ POST /businesses/{id}/reviews  { rating, text }  -> 201 Review`,
         {
           grade: 'great',
           title: 'Cache the candidates, apply the rest per request',
-          text: 'Cache only candidate ids and summary fields per cell and category, then apply distance from the exact point, open now and the rating filter in the search service. One entry serves every filter combination, and nothing volatile is baked into it.',
+          text: 'Cache only candidate ids and summary fields per cell and category, then apply distance from the exact point, open now and the rating filter in the search service. One entry serves every structured filter combination (free text still goes to the index), and nothing volatile is baked into it.',
         },
         {
           grade: 'best',

@@ -98,7 +98,7 @@ GET /campaigns/{id}/clicks?from=&to=&granularity=
     },
     {
       kind: 'prose',
-      text: 'Kafka absorbs the volume — around 1M messages/sec per broker, and you partition across several. The **partition key** is the decision that matters: partition by `adId` and a single viral ad saturates one partition. Partition by `adId + random bucket` and load spreads while all events for one ad still land in a known, bounded set of partitions that the aggregator can combine.',
+      text: 'Kafka absorbs the volume — hundreds of thousands of small messages a second per broker, so you partition across a cluster. The **partition key** is the decision that matters: partition by `adId` and a single viral ad saturates one partition. Partition by `adId + random bucket` and load spreads while all events for one ad still land in a known, bounded set of partitions that the aggregator can combine.',
     },
     {
       kind: 'ladder',
@@ -183,7 +183,7 @@ GET /campaigns/{id}/clicks?from=&to=&granularity=
     {
       kind: 'callout',
       tone: 'say',
-      text: 'Every event carries a client-generated `clickId`, and the aggregator deduplicates on it within the window. At-least-once delivery means duplicates are normal operation — without idempotency you over-bill advertisers, which is a considerably worse failure than a slow dashboard.',
+      text: 'Every event carries a `clickId` that survives retries (derived from the signed impression id in the ad\'s link), and the aggregator deduplicates on it within the window. At-least-once delivery means duplicates are normal operation — without idempotency you over-bill advertisers, which is a considerably worse failure than a slow dashboard.',
     },
     {
       kind: 'prose',

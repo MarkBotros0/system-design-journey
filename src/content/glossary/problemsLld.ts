@@ -23,7 +23,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'ISBN',
     full: 'International Standard Book Number',
-    gist: 'The 13-digit number given to each edition and format of a book, so the hardback and the paperback get different ones. It names a published product, never a physical copy, which is why a library also puts a barcode on every item.',
+    gist: 'The 13-digit number (10 digits before 2007) given to each edition and format of a book, so the hardback and the paperback get different ones. It names a published product, never a physical copy, which is why a library also puts a barcode on every item.',
     figure: {
       kind: 'flow',
       nodes: [

@@ -13,7 +13,7 @@ export const lldParkingLot: Problem = {
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Pinned down vehicle sizes, spot sizes and the fit rule before drawing classes' },
     { id: 'r2', bar: 'must', criterion: 'Modelled lot, level, spot and ticket with a clear owner for each piece of state' },
-    { id: 'r3', bar: 'must', criterion: 'Used enums for sizes instead of a subclass per vehicle type' },
+    { id: 'r3', bar: 'senior', criterion: 'Used enums for sizes instead of a subclass per vehicle type' },
     { id: 'r4', bar: 'must', criterion: 'Computed fees in integer money through an injected pricing strategy' },
     { id: 'r5', bar: 'senior', criterion: 'Found spots from per-size free lists instead of scanning every spot' },
     { id: 'r6', bar: 'senior', criterion: 'Named check-then-act at assignment and made claiming a spot one atomic step' },

@@ -163,7 +163,7 @@ GET  /auctions/{id}/events
         {
           grade: 'best',
           title: 'One conditional update, where the condition is the bidding rule',
-          text: 'A single statement that succeeds only if the auction is open, the end time has not passed, and this bid meets the minimum next bid. One round trip holds the lock. And a failed update is not a conflict to retry: it is the answer. You were outbid, or the auction is over.',
+          text: 'A single statement that succeeds only if the auction is open, the end time has not passed, and this bid meets the minimum next bid. The lock is held from this one statement to the commit, never across a read and a decision in application code. And a failed update is not a conflict to retry: it is the answer. You were outbid, or the auction is over.',
         },
       ],
     },
@@ -191,7 +191,7 @@ GET  /auctions/{id}/events
         points: [
           'Synchronous: the bidder learns leading or outbid in the same request.',
           'No new infrastructure — one statement against the row you already have.',
-          'Tops out at what one row can take, comfortably above the few hundred a second a hot auction sees.',
+          'Tops out at one commit at a time on that row — hundreds to about a thousand a second with a synchronous standby — enough for a hot auction\'s last minute.',
           'Every rule has to fit in a WHERE clause.',
         ],
       },
@@ -204,7 +204,7 @@ GET  /auctions/{id}/events
           'You now own partition ownership, failover, and rebuilding state on a new owner.',
         ],
       },
-      verdict: 'The conditional write. Move to one writer per auction only when the rules stop fitting in a WHERE clause — proxy bidding is the usual reason — or one item needs thousands of bids a second. Naming that trigger is the senior part of the answer.',
+      verdict: 'The conditional write. Move to one writer per auction only when the rules stop fitting in a WHERE clause — proxy bidding is the usual reason — or one item needs thousands of bids a second. Naming that trigger is the staff-level part of the answer.',
     },
 
     { kind: 'heading', text: 'Deep dive 2 — the live price for 100,000 viewers' },

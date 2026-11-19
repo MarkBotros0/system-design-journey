@@ -145,7 +145,7 @@ export const terms: GlossaryEntry[] = [
   {
     id: 'WAL',
     full: 'Write-Ahead Log',
-    gist: 'An append-only file where every change is recorded, and flushed on commit, before the data pages it describes are written. It is what makes a commit durable and crash recovery possible, and replicas and change data capture read the same log.',
+    gist: 'An append-only file where every change is recorded, and flushed on commit, before the data pages it describes are written. It is what makes a commit durable and crash recovery possible, and in Postgres, replicas and change data capture read the same log.',
     figure: {
       kind: 'flow',
       nodes: [
@@ -166,7 +166,7 @@ export const terms: GlossaryEntry[] = [
     figure: {
       kind: 'flow',
       nodes: [
-        { label: 'Write', to: 'append' },
+        { label: 'Write', to: 'insert' },
         { label: 'Memtable', sub: 'sorted, in memory', tone: 'line', to: 'flush when full' },
         { label: 'SSTable', sub: 'sorted, immutable file', to: 'merge later' },
         { label: 'Compaction', sub: 'drops old versions', tone: 'mastered' },

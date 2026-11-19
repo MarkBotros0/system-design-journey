@@ -12,7 +12,7 @@ export const lldVending: Problem = {
   suggests: ['dp-strategy-state', 'l-modelling', 'l-extension', 'l-concurrency'],
   rubric: [
     { id: 'r1', bar: 'must', criterion: 'Recognised a state machine and drew the states and transitions before writing code' },
-    { id: 'r2', bar: 'must', criterion: 'Modelled each state as a class, with the machine delegating every event to the current one' },
+    { id: 'r2', bar: 'must', criterion: 'Modelled each state explicitly (a class each, or a justified table), with every event routed through the current one' },
     { id: 'r3', bar: 'must', criterion: 'Stored money as integer cents, never floats' },
     { id: 'r4', bar: 'must', criterion: 'Handled cancel and sold out with a complete refund path' },
     { id: 'r5', bar: 'senior', criterion: 'Refused a sale before taking the money when change could not be made' },
