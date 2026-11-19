@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { BookA, ChevronRight, Compass, LocateFixed, Puzzle, Route as RouteIcon, Search } from 'lucide-react'
+import { BookA, Check, ChevronDown, Compass, Flag, LocateFixed, Puzzle, Route as RouteIcon, Search } from 'lucide-react'
 import { getRoute, modulesOfTrack, populatedTracks } from '../content'
 import { useProgress } from '../state/ProgressProvider'
-import { isPassed, nextOnRoute, routeProgress } from '../lib/progress'
+import { isPassed, nextOnRoute, routeProgress, stopDone } from '../lib/progress'
 import { stopKey } from '../lib/storage'
 import { TopBar, PageTitle } from '../components/ui/TopBar'
 import { Segmented } from '../components/ui/Segmented'
-import { Chip } from '../components/ui/Chip'
+import { Chip, ChipRow } from '../components/ui/Chip'
 import { ProgressRing } from '../components/ui/ProgressRing'
-import { TrackTile } from '../components/ui/TrackIcon'
-import { Skeleton } from '../components/ui/Bits'
+import { TrackGlyph, TrackIcon } from '../components/ui/TrackIcon'
+import { trackStyle } from '../components/ui/trackStyle'
+import { Panel, Skeleton } from '../components/ui/Bits'
+import { Cell, Group } from '../components/ui/List'
+import { RouteRibbon } from '../components/ui/RouteRibbon'
 import { useScrolledPast } from '../components/ui/useScrolledPast'
 import { LineMap } from '../components/line/LineMap'
 import { groupStops } from '../components/line/groupStops'
@@ -27,7 +30,12 @@ function scrollToId(id: string) {
   )
 }
 
-function RouteView() {
+/** A square tile for rows that are not a track: same size and radius as a TrackGlyph. */
+function IconTile({ children }: { children: ReactNode }) {
+  return <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] bg-surface-3 text-ink">{children}</span>
+}
+
+function RouteView({ onChangeRoute }: { onChangeRoute: () => void }) {
   const { progress } = useProgress()
   const route = getRoute(progress.routeId)
   const groups = useMemo(() => groupStops(route), [route])
@@ -35,8 +43,9 @@ function RouteView() {
   const nextKey = next ? stopKey(next) : undefined
   const nextGroup = groups.find((g) => g.stops.some((s) => stopKey(s) === nextKey))?.key
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(nextGroup ? [nextGroup] : groups[0] ? [groups[0].key] : []))
-  const [sheet, setSheet] = useState(false)
   const { done, total } = routeProgress(progress, route)
+  const chipsTop = useRef<HTMLDivElement>(null)
+  const stuck = useScrolledPast(chipsTop)
 
   // A route change regroups the line; open wherever "next" now lives.
   const routeId = route.id
@@ -53,78 +62,102 @@ function RouteView() {
   }
 
   const allOpen = expanded.size === groups.length
+  const segments = groups.map((g) => ({
+    trackId: g.track?.id ?? 'practice',
+    total: g.stops.length,
+    done: g.stops.filter((s) => stopDone(progress, s)).length,
+  }))
 
   return (
     <>
-      <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <ProgressRing value={total ? done / total : 0} size={40} label={`${route.title} progress`} showValue />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[1rem] font-semibold">{route.title}</p>
-          <p className="line-clamp-2 text-[0.8125rem] leading-snug text-ink-2">{route.blurb}</p>
+      <Panel>
+        <p className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-[2.25rem] leading-none font-extrabold tracking-[-0.03em] tabular">{done}</span>
+          <span className="text-base font-semibold text-ink-2 tabular">
+            of {total} stops passed · {total ? Math.round((done / total) * 100) : 0}%
+          </span>
+        </p>
+        <div className="mt-4">
+          <RouteRibbon segments={segments} />
         </div>
-        <button
-          type="button"
-          onClick={() => setSheet(true)}
-          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-hairline px-3 text-[0.875rem] font-medium hover:border-line"
-        >
-          <RouteIcon size={15} strokeWidth={2} aria-hidden="true" />
-          Change
-        </button>
-      </div>
+        <p className="mt-4 text-[0.9375rem] leading-snug text-ink-2">
+          {route.blurb} <span className="font-semibold text-ink">Nothing is locked.</span>
+        </p>
+      </Panel>
 
-      <div className="sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 -mx-4 mt-3 border-b border-hairline/60 bg-paper/90 py-1 backdrop-blur-md lg:-mx-8">
-        <div
-          role="group"
-          aria-label="Jump to a track"
-          className="flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-1 [scrollbar-width:none] lg:px-8 [&::-webkit-scrollbar]:hidden"
-        >
+      {/* The chip row sits on the page until it reaches the top bar, then turns to glass with it. */}
+      <div ref={chipsTop} aria-hidden="true" className="mt-4 h-px" />
+      <div
+        className={`sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 -mx-4 px-4 py-1.5 transition-[background-color,box-shadow] duration-200 lg:-mx-8 lg:px-8 ${
+          stuck ? 'bar-glass shadow-[0_1px_0_var(--hairline)]' : 'bg-paper'
+        }`}
+      >
+        <ChipRow label="Jump to a track">
           {nextGroup && nextKey && (
             <Chip onClick={() => jumpTo(nextGroup, `stop-${nextKey}`)} active>
-              <LocateFixed size={14} strokeWidth={2.2} aria-hidden="true" /> Up next
+              <LocateFixed size={16} strokeWidth={2.2} aria-hidden="true" /> Up next
             </Chip>
           )}
           {groups.map((g) => {
             const gDone = g.stops.every((s) => ('module' in s ? isPassed(progress, s.module) : false))
             return (
               <Chip key={g.key} onClick={() => jumpTo(g.key)}>
-                {g.code && <span className="font-mono text-[0.6875rem] text-ink-3">{g.code}</span>}
+                <span style={trackStyle(g.track?.id)} className="flex text-track">
+                  {g.track ? <TrackIcon trackId={g.track.id} size={16} /> : <Flag size={16} strokeWidth={2} aria-hidden="true" />}
+                </span>
                 {g.title}
-                {gDone && <span className="sr-only">(done)</span>}
+                {gDone && (
+                  <>
+                    <Check size={15} strokeWidth={3} aria-hidden="true" className="text-correct" />
+                    <span className="sr-only">(done)</span>
+                  </>
+                )}
               </Chip>
             )
           })}
-        </div>
+        </ChipRow>
       </div>
 
-      <div className="mt-4 mb-2 flex items-center justify-between">
-        <p className="font-mono text-[0.75rem] text-ink-3 tabular">
-          {done} of {total} stops · nothing is locked
-        </p>
-        <button
-          type="button"
-          onClick={() => setExpanded(allOpen ? new Set() : new Set(groups.map((g) => g.key)))}
-          className="min-h-11 px-1 text-[0.8125rem] font-medium text-line hover:underline"
-        >
-          {allOpen ? 'Collapse all' : 'Expand all'}
-        </button>
+      <div className="mt-3">
+        <LineMap
+          title="Stops by track"
+          action={
+            <button
+              type="button"
+              onClick={() => setExpanded(allOpen ? new Set() : new Set(groups.map((g) => g.key)))}
+              className="-mr-2 -mb-2 inline-flex min-h-11 items-center rounded-full px-3 text-[0.9375rem] font-semibold text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
+            >
+              {allOpen ? 'Collapse all' : 'Expand all'}
+            </button>
+          }
+          groups={groups}
+          progress={progress}
+          nextKey={nextKey}
+          expanded={expanded}
+          onToggle={(key) =>
+            setExpanded((s) => {
+              const n = new Set(s)
+              if (n.has(key)) n.delete(key)
+              else n.add(key)
+              return n
+            })
+          }
+        />
       </div>
 
-      <LineMap
-        groups={groups}
-        progress={progress}
-        nextKey={nextKey}
-        expanded={expanded}
-        onToggle={(key) =>
-          setExpanded((s) => {
-            const n = new Set(s)
-            if (n.has(key)) n.delete(key)
-            else n.add(key)
-            return n
-          })
-        }
-      />
-
-      {sheet && <OnboardingSheet open mode="edit" onClose={() => setSheet(false)} />}
+      <Group className="mt-6">
+        <Cell
+          onClick={onChangeRoute}
+          chevron
+          leading={
+            <IconTile>
+              <RouteIcon size={18} strokeWidth={2.2} aria-hidden="true" />
+            </IconTile>
+          }
+          title="Change route"
+          sub={`On ${route.title} · ${route.stops.length} stops`}
+        />
+      </Group>
     </>
   )
 }
@@ -138,60 +171,60 @@ const REFERENCE = [
 function TopicsView() {
   const { progress } = useProgress()
   return (
-    <>
-      <div className="grid gap-3 sm:grid-cols-2">
+    <div className="flex flex-col gap-6">
+      <Group title="Tracks">
         {populatedTracks.map((t) => {
           const mods = modulesOfTrack(t.id)
           const done = mods.filter((m) => isPassed(progress, m.id)).length
           const minutes = mods.reduce((n, m) => n + m.minutes, 0)
           return (
-            <Link
+            <Cell
               key={t.id}
               to={`/learn/${t.id}`}
-              className="flex gap-3.5 rounded-2xl border border-hairline bg-surface p-4 transition-colors duration-150 hover:border-line active:bg-surface-2"
-              style={{ boxShadow: 'var(--shadow-card)' }}
-            >
-              <TrackTile trackId={t.id} code={t.code} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="text-[1rem] leading-snug font-semibold">{t.title}</h2>
-                  <ProgressRing value={mods.length ? done / mods.length : 0} size={28} label={`${t.title} progress`} />
-                </div>
-                <p className="mt-1 line-clamp-2 text-[0.8125rem] leading-relaxed text-ink-2">{t.blurb}</p>
-                <p className="mt-2 font-mono text-[0.6875rem] text-ink-3 tabular">
-                  {mods.length} lessons · {minutes} min{done ? ` · ${done} done` : ''}
-                </p>
-              </div>
-            </Link>
+              leading={<TrackGlyph trackId={t.id} size={36} />}
+              title={t.title}
+              sub={
+                <span className="tabular">
+                  {done} of {mods.length} passed · {minutes} min
+                </span>
+              }
+              trailing={
+                <span style={trackStyle(t.id)} className="flex">
+                  <ProgressRing value={mods.length ? done / mods.length : 0} size={28} label={`${t.title} progress`} tone="track" />
+                </span>
+              }
+            />
           )
         })}
-      </div>
+      </Group>
 
-      <h2 className="mt-8 mb-3 font-mono text-[0.6875rem] tracking-[0.14em] text-ink-3 uppercase">Reference</h2>
-      <ul className="overflow-hidden rounded-2xl border border-hairline bg-surface">
+      <Group title="Reference">
         {REFERENCE.map((r) => (
-          <li key={r.to} className="border-b border-hairline last:border-b-0">
-            <Link to={r.to} className="flex min-h-16 items-center gap-3.5 px-4 py-3 transition-colors hover:bg-surface-2/60">
-              <r.icon size={19} strokeWidth={1.9} aria-hidden="true" className="shrink-0 text-line" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[0.9375rem] font-medium">{r.title}</span>
-                <span className="block text-[0.8125rem] text-ink-2">{r.sub}</span>
-              </span>
-              <ChevronRight size={18} strokeWidth={2} aria-hidden="true" className="shrink-0 text-ink-3" />
-            </Link>
-          </li>
+          <Cell
+            key={r.to}
+            to={r.to}
+            leading={
+              <IconTile>
+                <r.icon size={18} strokeWidth={2.2} aria-hidden="true" />
+              </IconTile>
+            }
+            title={r.title}
+            sub={r.sub}
+          />
         ))}
-      </ul>
-    </>
+      </Group>
+    </div>
   )
 }
 
 export function LearnScreen() {
-  const { ready } = useProgress()
+  const { ready, progress } = useProgress()
   const [params, setParams] = useSearchParams()
   const view: View = params.get('view') === 'topics' ? 'topics' : 'route'
   const titleRef = useRef<HTMLHeadingElement>(null)
   const scrolled = useScrolledPast(titleRef)
+  const [sheet, setSheet] = useState(false)
+  const route = getRoute(progress.routeId)
 
   return (
     <div>
@@ -202,15 +235,35 @@ export function LearnScreen() {
           <Link
             to="/search"
             aria-label="Search"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2 hover:text-ink lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-ink transition-colors duration-150 hover:bg-surface-3 lg:hidden"
           >
-            <Search size={19} strokeWidth={2} />
+            <Search size={19} strokeWidth={2.2} aria-hidden="true" />
           </Link>
         }
       />
-      <PageTitle title="Learn" titleRef={titleRef} sub="Follow the line, or go straight to any topic." />
+      <PageTitle
+        title="Learn"
+        titleRef={titleRef}
+        sub={
+          ready ? (
+            <button
+              type="button"
+              onClick={() => setSheet(true)}
+              aria-haspopup="dialog"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface-2 py-2 pr-3 pl-3.5 text-left text-[0.9375rem] font-semibold text-ink transition-[background-color,transform] duration-150 hover:bg-surface-3 active:scale-[0.97] motion-reduce:active:scale-100"
+            >
+              <RouteIcon size={17} strokeWidth={2.2} aria-hidden="true" className="shrink-0 text-ink-2" />
+              <span>{route.title}</span>
+              <span className="sr-only">, change route</span>
+              <ChevronDown size={17} strokeWidth={2.4} aria-hidden="true" className="shrink-0 text-ink-3" />
+            </button>
+          ) : (
+            <span className="block min-h-11" />
+          )
+        }
+      />
 
-      <div className="mb-4 max-w-xs">
+      <div className="mb-5 sm:max-w-sm">
         <Segmented<View>
           label="View"
           value={view}
@@ -224,16 +277,18 @@ export function LearnScreen() {
 
       {!ready ? (
         <div className="flex flex-col gap-3">
-          <Skeleton className="h-20" />
+          <Skeleton className="h-32" />
           <Skeleton className="h-16" />
           <Skeleton className="h-16" />
           <Skeleton className="h-16" />
         </div>
       ) : view === 'route' ? (
-        <RouteView />
+        <RouteView onChangeRoute={() => setSheet(true)} />
       ) : (
         <TopicsView />
       )}
+
+      {sheet && <OnboardingSheet open mode="edit" onClose={() => setSheet(false)} />}
     </div>
   )
 }
