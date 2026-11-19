@@ -130,8 +130,8 @@ export const architectureModules: Module[] = [
           kind: 'scale',
           items: [
             { label: 'Function call, same process', display: 'a few ns', value: 3, tone: 'mastered' },
-            { label: 'Network call, same data centre', display: '~0.5 ms', value: 500_000, tone: 'streak' },
-            { label: 'Network call, across continents', display: '~150 ms', value: 150_000_000, tone: 'alert' },
+            { label: 'Round trip, same data centre', display: '~0.5 ms', value: 500_000, tone: 'streak' },
+            { label: 'Round trip, across continents', display: '~150 ms', value: 150_000_000, tone: 'alert' },
           ],
           note: 'Crossing a service boundary costs five orders of magnitude in latency, before you count the new ways the call can fail.',
         },
@@ -632,7 +632,7 @@ export const architectureModules: Module[] = [
         ],
         correct: 2,
         explain:
-          'The key picks the partition and a partition is ordered, so everything for one customer is in order, which includes each of their orders. Nothing is ordered across partitions. Round-robin assignment applies only to messages with no key.',
+          'The key picks the partition and a partition is ordered, so everything for one customer is in order, which includes each of their orders. Nothing is ordered across partitions. Only messages with no key are spread across partitions regardless of content.',
       },
       {
         id: 'q-ar-events-3',
@@ -735,7 +735,7 @@ export const architectureModules: Module[] = [
         kind: 'callout',
         tone: 'example',
         title: 'LinkedIn\'s Databus',
-        text: 'LinkedIn built Databus to stream committed changes out of its primary databases into the systems that serve reads: the search index, the social graph, caches. Each is a read model shaped for its own queries, fed from one source of truth. That is CQRS at company scale with no event sourcing anywhere: the write side stores ordinary state, and the projections read its change log.',
+        text: 'LinkedIn built Databus to stream committed changes out of its primary databases into the systems that serve reads: the search index, the social graph, caches. Each is a read model shaped for its own queries, fed from one source of truth. In effect that is CQRS at company scale with no event sourcing anywhere: the write side stores ordinary state, and the projections read its change log.',
       },
       { kind: 'heading', text: 'Projections, and the lag they create' },
       {
@@ -856,7 +856,7 @@ await store.append('account-42', [withdrew], {
         kind: 'callout',
         tone: 'example',
         title: 'Double-entry ledgers',
-        text: 'Accounting has been event-sourced for five centuries. A ledger never erases a line: a mistake is corrected by posting a reversing entry, and an account\'s balance is the sum of its entries. When an auditor asks why a balance is what it is, the answer is the list of entries. A complete, immutable history that someone outside the team will demand is the requirement that most justifies event sourcing in software.',
+        text: 'Accounting has been event-sourced for more than five centuries. A ledger never erases a line: a mistake is corrected by posting a reversing entry, and an account\'s balance is the sum of its entries. When an auditor asks why a balance is what it is, the answer is the list of entries. A complete, immutable history that someone outside the team will demand is the requirement that most justifies event sourcing in software.',
       },
       { kind: 'heading', text: 'Two decisions, not one' },
       {
@@ -1038,7 +1038,7 @@ await store.append('account-42', [withdrew], {
     lesson: [
       {
         kind: 'prose',
-        text: 'The foundations lesson covered the API you sketch in the room: one endpoint per feature, the actor from the token, cursors over offsets. This is the version a senior interviewer pushes on. What happens when a client retries a payment? Why is page 5,000 slow? How do you rename a field that two hundred integrations read?',
+        text: 'The foundations lesson covered the API you sketch in the room: one endpoint per feature, the caller\'s identity from the token rather than the body, cursors over offsets. This is the version a senior interviewer pushes on. What happens when a client retries a payment? Why is page 5,000 slow? How do you rename a field that two hundred integrations read?',
       },
       {
         kind: 'prose',
@@ -1052,7 +1052,7 @@ await store.append('account-42', [withdrew], {
           ['**Shape**', 'Resources, with [[HTTP]] methods as the operations', 'One endpoint; the client asks for exactly the fields it wants', 'Typed methods generated from a Protobuf schema'],
           ['**Wire**', 'JSON over HTTP', 'JSON over HTTP, usually one POST endpoint', 'Binary Protobuf over HTTP/2'],
           ['**Caching**', 'HTTP caches and [[CDN|CDNs]] work as they are', 'Hard: one URL, varied bodies', 'None at the HTTP layer'],
-          ['**Browsers**', 'Native', 'Native', 'Needs a proxy (gRPC-Web)'],
+          ['**Browsers**', 'Native', 'Native', 'Only through gRPC-Web, usually via a proxy'],
           ['**Streaming**', 'Added on: [[SSE]], [[WebSocket|WebSockets]]', 'Subscriptions, added on', 'Built in, in both directions'],
           ['**Main cost**', 'Over- and under-fetching for varied clients', 'Query cost limits, N+1 resolvers, caching', 'Opaque on the wire; needs tooling to debug'],
           ['**Pick it for**', 'Public APIs and most product APIs', 'Many clients needing different slices of one graph', 'Internal service-to-service calls at volume'],
@@ -1573,7 +1573,7 @@ x-ratelimit-reset: 1763467230`,
       },
       {
         kind: 'prose',
-        text: 'The cost is real. Every hop now passes through two proxies, which adds latency, plus a proxy\'s memory and [[CPU]] in every pod. The control plane becomes a dependency you must upgrade, monitor and understand when it misbehaves, and a bad configuration push can break every service at once. Istio\'s ambient mode exists to cut the per-pod cost, moving the proxy to one per node.',
+        text: 'The cost is real. Every hop now passes through two proxies, which adds latency, plus a proxy\'s memory and [[CPU]] in every pod. The control plane becomes a dependency you must upgrade, monitor and understand when it misbehaves, and a bad configuration push can break every service at once. Istio\'s ambient mode exists to cut the per-pod cost: a shared proxy on each node handles encryption and identity, and the heavier request-level features run in optional shared proxies rather than beside every pod.',
       },
       {
         kind: 'prose',

@@ -41,12 +41,12 @@ export const appliedModules: Module[] = [
           {
             grade: 'great',
             title: 'Server-Sent Events',
-            text: 'One [[HTTP]] request, server pushes indefinitely, automatic reconnect built into the browser. Covers most "live" features. Client-to-server still goes over ordinary requests, which is usually all you need.',
+            text: 'One [[HTTP]] request held open; the server pushes indefinitely, and the browser reconnects automatically. Covers most "live" features. Client-to-server still goes over ordinary requests, which is usually all you need.',
           },
           {
             grade: 'best',
             title: '[[WebSocket]] — when the client genuinely pushes',
-            text: 'Chat, collaborative editing, multiplayer. Costs you long-lived connections the load balancer must hold and drain on every deploy, connection state to manage, and reconnection logic you write yourself. Worth it only when both directions are hot.',
+            text: 'Chat, collaborative editing, multiplayer. Costs you a protocol upgrade that every proxy on the path must allow, per-connection state to rebuild when a server drains on deploy, and reconnection logic you write yourself. Worth it only when both directions are hot.',
           },
         ],
       },
@@ -59,7 +59,7 @@ export const appliedModules: Module[] = [
             { label: 'Polling', sub: 'mostly empty responses', tone: 'alert' },
             { label: 'Long polling', sub: 'fewer wasted trips, still a connection each', tone: 'streak' },
             { label: 'Server-sent events', sub: 'server pushes, plain HTTP, auto-reconnect', tone: 'mastered' },
-            { label: 'WebSocket', sub: 'both directions — costs held connections and state', tone: 'line' },
+            { label: 'WebSocket', sub: 'both directions — costs an upgrade, state and your own reconnects', tone: 'line' },
           ],
           note: 'Most features labelled "real time" only need the third rung.',
         },
@@ -101,21 +101,21 @@ export const appliedModules: Module[] = [
         moduleId: 'a-realtime',
         stem: 'A live comments feed pushes new comments to viewers. Viewers post through a normal POST. What transport?',
         options: [
-          '[[WebSocket]] — it is a real-time feature',
-          '[[SSE]] — the push is one-directional and posting is an ordinary request',
+          'WebSocket — it is a real-time feature',
+          'SSE — the push is one-directional and posting is an ordinary request',
           'Polling every 2 seconds',
-          '[[gRPC]] streaming',
+          'gRPC streaming',
         ],
         correct: 1,
         explain:
-          'The push is one-directional; posts go over regular [[HTTP]]. SSE covers it over plain [[HTTP]] with automatic reconnect. WebSocket buys bidirectionality you are not using.',
+          'The push is one-directional; posts go over regular [[HTTP]]. [[SSE]] covers it over plain HTTP with automatic reconnect. [[WebSocket]] buys bidirectionality you are not using, and [[gRPC]] reaches a browser only through gRPC-Web, usually via a proxy.',
       },
       {
         id: 'q-a-realtime-2',
         moduleId: 'a-realtime',
         stem: 'A user on a train loses connectivity for 40 seconds. What must your design include?',
         options: [
-          'A longer [[WebSocket]] timeout',
+          'A longer WebSocket timeout',
           'A last-seen cursor so the client can fetch what it missed on reconnect',
           'Automatic retry of the failed connection',
           'A message queue in front of the connection',
@@ -129,14 +129,14 @@ export const appliedModules: Module[] = [
       {
         id: 'c-a-realtime-1',
         moduleId: 'a-realtime',
-        front: 'The real-time transport ladder.',
-        back: 'Polling → long polling → [[SSE]] (server push, plain [[HTTP]], auto-reconnect) → [[WebSocket]] (only when the client pushes too; it costs held connections to balance and drain, plus connection state).',
+        front: 'What is the real-time transport ladder?',
+        back: 'Polling → long polling → [[SSE]] (server push, plain [[HTTP]], auto-reconnect) → [[WebSocket]] (only when the client pushes too; it costs connection state and reconnect logic you write).',
         tag: 'Real-time',
       },
       {
         id: 'c-a-realtime-2',
         moduleId: 'a-realtime',
-        front: 'The thing everyone forgets about real-time.',
+        front: 'What does everyone forget about real-time?',
         back: 'Reconnection. Mobile clients drop constantly — without a last-seen cursor to fetch the gap, users silently lose messages.',
         tag: 'Real-time',
       },
@@ -156,7 +156,7 @@ export const appliedModules: Module[] = [
     lesson: [
       {
         kind: 'prose',
-        text: 'Anything past a few seconds cannot happen inside the request. Video encoding, report generation, bulk imports, model inference. The shape is always the same.',
+        text: 'Anything past a few seconds should not happen inside the request. Video encoding, report generation, bulk imports, model inference. The shape is always the same.',
       },
       {
         kind: 'flow',
@@ -215,7 +215,7 @@ export const appliedModules: Module[] = [
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Returning 200 with a fake result, or holding the [[HTTP]] connection open for two minutes. Load balancers and browsers will time it out, and the user gets an error for a job that actually succeeded.',
+        text: 'Returning 200 with a fake result, or holding the [[HTTP]] connection open for two minutes. Load balancers and proxies commonly cut a silent request after about a minute, and the user gets an error for a job that actually succeeded.',
       },
     ],
     quiz: [
@@ -224,23 +224,23 @@ export const appliedModules: Module[] = [
         moduleId: 'a-longrunning',
         stem: 'What should a video upload endpoint return?',
         options: [
-          '200 with the encoded video [[URL]], once encoding finishes',
+          '200 with the encoded video URL, once encoding finishes',
           '202 with a job id, immediately after validating and enqueueing',
           '204 with no body',
           '200 with a placeholder URL that will work later',
         ],
         correct: 1,
         explain:
-          'Encoding takes minutes; holding the connection guarantees a timeout somewhere in the chain. Acknowledge with a job id the client can poll or subscribe to.',
+          'Encoding takes minutes; holding the connection all but guarantees a timeout somewhere in the chain, and a placeholder [[URL]] promises a result that does not exist yet. Acknowledge with a job id the client can poll or subscribe to.',
       },
       {
         id: 'q-a-longrunning-2',
         moduleId: 'a-longrunning',
         stem: 'What signal should worker autoscaling use?',
         options: [
-          'Worker [[CPU]] utilisation',
+          'Worker CPU utilisation',
           'Queue depth — work that has already arrived and is waiting',
-          'Requests per second on the [[API]] tier',
+          'Requests per second on the API tier',
           'Time of day',
         ],
         correct: 1,
@@ -255,7 +255,7 @@ export const appliedModules: Module[] = [
           'The job is lost and the user must resubmit',
           'The visibility timeout expires, another worker picks it up, and idempotency keeps the output correct',
           'The queue detects the crash and marks the job failed',
-          'The [[API]] retries the original request',
+          'The API retries the original request',
         ],
         correct: 1,
         explain:
@@ -266,7 +266,7 @@ export const appliedModules: Module[] = [
       {
         id: 'c-a-longrunning-1',
         moduleId: 'a-longrunning',
-        front: 'The long-running task shape.',
+        front: 'What is the shape of a long-running task?',
         back: 'Validate synchronously → enqueue → return 202 with a job id → workers pull → write status → client polls or subscribes. Retries with backoff, [[DLQ]] for the failures.',
         tag: 'Async',
       },
@@ -353,7 +353,7 @@ export const appliedModules: Module[] = [
           {
             grade: 'best',
             title: 'Distributed lock with a [[TTL]]',
-            text: '`SET seat:123 user:9 NX EX 600` — atomic, fast under heavy concurrency, and expiry is automatic because the TTL is doing the work. The row only ever holds *available* or *booked*.',
+            text: '`SET seat:123 user:9 NX EX 600` — atomic, fast under heavy concurrency, and expiry is automatic because the TTL is doing the work. The row only ever holds *available* or *booked*, and the final booking is still a conditional write. The price is a second store to read from.',
           },
         ],
       },
@@ -365,9 +365,9 @@ export const appliedModules: Module[] = [
       {
         kind: 'list',
         items: [
-          '**The read path.** The seat map must show held seats as unavailable, and the holds live in Redis, not the database. A sorted set scored by expiry answers it — count only members whose score is in the future, and trim stale ones lazily with `ZREMRANGEBYSCORE`.',
+          '**The read path.** The seat map must show held seats as unavailable, and the holds live in Redis, not the database. A sorted set per event, scored by expiry and written alongside each lock, answers it — read only the members whose score is in the future, and trim stale ones lazily with `ZREMRANGEBYSCORE`.',
           '**Redis dies.** You degrade rather than break: database-level optimistic concurrency still prevents double-booking. A user may lose a race *after* paying, which you resolve with an automatic refund. Better than every seat appearing unavailable.',
-          '**The TTL expires mid-payment.** The write fails on the optimistic check, so you refund automatically — and you extend the lock when payment begins so it rarely happens.',
+          '**The TTL expires mid-payment.** The hold has lapsed, so if another buyer has claimed the seat meanwhile, the final write fails the optimistic check and you refund automatically — and you extend the lock when payment begins so it rarely happens.',
         ],
       },
       {
@@ -411,7 +411,7 @@ export const appliedModules: Module[] = [
         stem: 'With reservations in Redis, how does the seat map show held seats?',
         options: [
           'Query the database status column',
-          'A Redis sorted set scored by expiry — count members whose score is in the future',
+          'A Redis sorted set scored by expiry — read the members whose score is in the future',
           'Recalculate from the booking service on every request',
           'It cannot; held seats appear available',
         ],
@@ -424,7 +424,7 @@ export const appliedModules: Module[] = [
       {
         id: 'c-a-contention-1',
         moduleId: 'a-contention',
-        front: 'The distributed lock, precisely.',
+        front: 'How do you take a lock that expires on its own in Redis?',
         back: '`SET key value NX EX 600` — atomic set-if-absent with a [[TTL]], so a crashed holder cannot wedge the resource. The TTL is the whole point.',
         tag: 'Contention',
       },
@@ -438,7 +438,7 @@ export const appliedModules: Module[] = [
       {
         id: 'c-a-contention-3',
         moduleId: 'a-contention',
-        front: 'The three follow-ups after choosing a Redis lock.',
+        front: 'What are the three follow-ups after choosing a Redis lock?',
         back: 'The read path (seat map from a sorted set scored by expiry) · Redis dying (degrade, [[OCC]] still holds) · [[TTL]] expiring mid-payment (auto-refund, extend on payment start).',
         tag: 'Contention',
       },
@@ -467,7 +467,7 @@ export const appliedModules: Module[] = [
           '**Index the query.** Free, and often the whole problem.',
           '**Denormalise the hot path.** One lookup instead of a join.',
           '**Read replicas.** Spread read load; writes stay on the primary.',
-          '**Cache.** 20–50× on the hits.',
+          '**Cache.** A hit at ~1 ms against a 20–50 ms query: 20–50× on the hits.',
           '**[[CDN]].** Anything static or unpersonalised, served from the edge.',
         ],
       },
@@ -552,7 +552,7 @@ export const appliedModules: Module[] = [
       {
         id: 'c-a-reads-1',
         moduleId: 'a-reads',
-        front: 'The read-scaling ladder, in order.',
+        front: 'What is the read-scaling ladder, in order?',
         back: 'Index → denormalise the hot path → read replicas → cache → [[CDN]]. Then own the two costs: replication lag and cache invalidation.',
         tag: 'Scaling',
       },
@@ -632,23 +632,23 @@ export const appliedModules: Module[] = [
       {
         kind: 'callout',
         tone: 'say',
-        text: '"Ad click events are sampled at 1-in-10 above 500k events/sec, and the sample rate is recorded with the data so downstream aggregates stay correct." That is a designed answer. "We scale horizontally" is not.',
+        text: '"Page-view events are sampled at 1-in-10 above 500k events/sec, with the rate recorded so downstream totals can be scaled back up. Billable clicks are never sampled." That is a designed answer. "We scale horizontally" is not.',
       },
     ],
     quiz: [
       {
         id: 'q-a-writes-1',
         moduleId: 'a-writes',
-        stem: 'You partition a high-volume event stream by timestamp. What have you built?',
+        stem: 'You partition a high-volume event stream by timestamp. What happens to the writes?',
         options: [
-          'An efficient time-range query system',
+          'They spread evenly, because timestamps never repeat',
           'A hot spot — every write goes to the current time partition',
-          'A naturally balanced distribution',
-          'A system that cannot be queried by time',
+          'They balance out over time, as each partition takes its turn',
+          'They slow down only while someone runs a time-range query',
         ],
         correct: 1,
         explain:
-          'All writes target *now*, so one partition takes everything while the rest hold history. Partition keys for write-heavy data need high cardinality and no correlation with time.',
+          'All writes target *now*, so one partition takes everything while the rest hold history; taking turns does not help, because at any moment one partition has the whole load. Partition keys for write-heavy data need high cardinality and no correlation with time.',
       },
       {
         id: 'q-a-writes-2',
@@ -669,7 +669,7 @@ export const appliedModules: Module[] = [
       {
         id: 'c-a-writes-1',
         moduleId: 'a-writes',
-        front: 'The four write-scaling levers.',
+        front: 'What are the four write-scaling levers?',
         back: 'Batch (amortise per-write overhead) · partition (spread on a good key) · queue in front (absorb bursts) · aggregate early (write rollups, not events).',
         tag: 'Scaling',
       },
@@ -705,7 +705,7 @@ export const appliedModules: Module[] = [
       },
       {
         kind: 'figure',
-        caption: 'Your servers handle kilobytes of metadata while gigabytes move around them.',
+        caption: 'Who does what in a direct upload, and what marks the file ready.',
         figure: {
           kind: 'flow',
           nodes: [
@@ -740,7 +740,7 @@ export const appliedModules: Module[] = [
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Marking the file ready when the API returns the presigned URL. The upload has not happened yet — it may never happen. The storage event is the only trustworthy completion signal.',
+        text: 'Marking the file ready when the API returns the presigned URL. The upload has not happened yet — it may never happen. Only storage knows the bytes landed, so its completion event is the signal to trust, not the client.',
       },
     ],
     quiz: [
@@ -749,14 +749,14 @@ export const appliedModules: Module[] = [
         moduleId: 'a-blobs',
         stem: 'When is an uploaded file safe to mark as ready?',
         options: [
-          'When the [[API]] issues the presigned [[URL]]',
+          'When the API issues the presigned URL',
           'When the client reports the upload finished',
           'When the storage service emits a completion event',
           'After a fixed delay following the URL request',
         ],
         correct: 2,
         explain:
-          'The presigned URL is only permission to upload. A client can vanish mid-transfer or lie. The storage event is the only signal that the bytes actually landed.',
+          'The presigned URL is only permission to upload. A client can vanish mid-transfer or lie. Only the storage service knows the bytes actually landed, and its completion event says so.',
       },
       {
         id: 'q-a-blobs-2',
@@ -777,7 +777,7 @@ export const appliedModules: Module[] = [
       {
         id: 'c-a-blobs-1',
         moduleId: 'a-blobs',
-        front: 'The large-blob rule and its consequences.',
+        front: 'What is the large-blob rule, and what follows from it?',
         back: 'Bytes never pass through your app servers. Presigned [[URL]] direct to storage, multipart for size and resumability, storage event as the completion signal, [[CDN]] with signed URLs on the way out.',
         tag: 'Blobs',
       },
@@ -802,7 +802,7 @@ export const appliedModules: Module[] = [
       { kind: 'heading', text: 'The saga' },
       {
         kind: 'prose',
-        text: 'Each step commits locally and emits an event that triggers the next. If a step fails, you run **compensating actions** to undo the completed ones — you cannot roll back a captured payment, but you can refund it.',
+        text: 'Each step commits locally, and its completion triggers the next, through an event or a coordinator. If a step fails, you run **compensating actions** to undo the completed ones — you cannot roll back a captured payment, but you can refund it.',
       },
       {
         kind: 'flow',
@@ -875,7 +875,7 @@ export const appliedModules: Module[] = [
         ],
         correct: 1,
         explain:
-          'There is no distributed transaction to roll back — the payment is captured. Sagas undo forward with compensating actions, and the compensation must itself be idempotent.',
+          'There is no distributed transaction to roll back — the payment is captured. A saga undoes completed steps with new, compensating actions, and the compensation must itself be idempotent.',
       },
       {
         id: 'q-a-multistep-2',
@@ -897,7 +897,7 @@ export const appliedModules: Module[] = [
         id: 'c-a-multistep-1',
         moduleId: 'a-multistep',
         front: 'What is a saga?',
-        back: 'Each step commits locally and emits an event triggering the next; failure runs compensating actions to undo completed steps. You cannot roll back a captured payment, but you can refund it.',
+        back: 'Each step commits locally and its completion triggers the next; failure runs compensating actions to undo completed steps. You cannot roll back a captured payment, but you can refund it.',
         tag: 'Workflows',
       },
       {
@@ -928,12 +928,13 @@ export const appliedModules: Module[] = [
       { kind: 'heading', text: 'How the index works' },
       {
         kind: 'prose',
-        text: 'Every approach reduces two dimensions to one so it can be indexed and range-scanned. **Geohashing** interleaves latitude and longitude bits into a string, so a shared prefix means physical proximity. **Quadtrees** and **[[S2]] cells** subdivide space adaptively, which handles dense cities better than a uniform grid.',
+        text: 'Every approach reduces two dimensions to one so it can be indexed and range-scanned. **Geohashing** interleaves latitude and longitude bits into a string, so a shared prefix means physical proximity. **Quadtrees** split a cell only where points are dense, which handles cities better than a uniform grid. **[[S2]] cells**, from Google, are a fixed hierarchy with more even cell sizes than geohash.',
       },
       {
         kind: 'code',
-        code: `geohash("u10hfr2c")   -- London
-geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
+        code: `geohash("gcpvj0du")   -- central London
+geohash("gcpvj0dv")   -- ~20 m away, shares 7 chars
+-- a 7-char cell is roughly 150 m by 100 m here
 
 -- "nearby" becomes a prefix scan, which any B-tree can do`,
       },
@@ -972,7 +973,7 @@ geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
         kind: 'table',
         head: ['Option', 'When'],
         rows: [
-          ['Bounding box on indexed columns', 'Up to ~100k entities, low query rate'],
+          ['Bounding box on indexed columns', 'Up to a few hundred thousand entities, low query rate'],
           ['**[[PostGIS]]**', 'You already run Postgres and want real geospatial operators'],
           ['**Redis geo commands**', 'Positions change constantly — live driver locations'],
           ['**Elasticsearch geo queries**', 'Proximity combined with text and filters — "pizza near me, open now, 4+ stars"'],
@@ -1004,7 +1005,7 @@ geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
         moduleId: 'a-proximity',
         stem: 'You are tracking 50,000 live driver positions updating every 4 seconds. Which store fits best?',
         options: [
-          '[[PostGIS]] — the most capable geospatial engine',
+          'PostGIS — the most capable geospatial engine',
           'Redis geo commands — in-memory, and the write rate dominates',
           'Elasticsearch geo queries',
           'A bounding-box query on indexed columns',
@@ -1025,7 +1026,7 @@ geohash("u10hfr2f")   -- ~150 m away, shares 7 chars
       {
         id: 'c-a-proximity-2',
         moduleId: 'a-proximity',
-        front: 'Moving versus static entities in proximity search.',
+        front: 'How do moving and static entities differ in proximity search?',
         back: 'Static (restaurants): read-heavy, index anywhere. Moving (drivers): the write rate dominates, so hold positions in memory — Redis geo.',
         tag: 'Proximity',
       },

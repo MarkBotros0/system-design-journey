@@ -294,13 +294,13 @@ export const questions: Question[] = [
     prompt: 'Which workloads justify pinning each room to one server with a consistent-hash ring, rather than plain pub/sub?',
     options: [
       'Broadcasting a score update to every viewer',
-      'Showing typing indicators in a chat room',
+      'Delivering a new chat message to a room\'s members',
       'Pushing new comments to a live feed',
       'Applying operational transforms to a shared document',
       'Holding live game state for each match',
     ],
     correct: [3, 4],
-    explain: 'The ring is worth its rebalancing pain only when one server must hold real per-room state. Plain broadcasts are the job of pub/sub, where servers stay stateless and interchangeable.',
+    explain: 'The ring is worth its rebalancing pain only when one server must hold real per-room state. Plain broadcasts, chat messages included, are the job of pub/sub, where servers stay stateless and interchangeable.',
   },
   {
     id: 'a-realtime-match',
@@ -482,9 +482,9 @@ export const questions: Question[] = [
     kind: 'truefalse',
     moduleId: 'a-writes',
     section: 'Shedding',
-    prompt: 'Sampling click events at 1-in-10 under load still lets downstream totals be estimated reliably, as long as the sample rate is recorded with the data.',
+    prompt: 'Sampling page-view events at 1-in-10 under load still lets downstream totals be estimated reliably, as long as the sample rate is recorded with the data.',
     answer: true,
-    explain: 'Each sampled event stands for ten, so aggregates scale by the recorded rate and stay sound at high volume. Choosing in advance what you will sample is the design decision.',
+    explain: 'Each sampled event stands for ten, so aggregates scale by the recorded rate and stay sound at high volume. Choosing in advance what you will sample, and what you never will, such as billable events, is the design decision.',
   },
   {
     id: 'a-writes-tf2',
@@ -588,7 +588,7 @@ export const questions: Question[] = [
     section: 'The saga',
     prompt: 'During a saga, a customer can briefly see an order that is charged but still unconfirmed, because each step commits on its own.',
     answer: true,
-    explain: 'A saga gives up the isolation of a single transaction: each local commit is visible as soon as it happens. That is why failures are undone forward, with compensating actions, rather than rolled back.',
+    explain: 'A saga gives up the isolation of a single transaction: each local commit is visible as soon as it happens. That is why a failure is undone by new, compensating actions rather than rolled back.',
   },
   {
     id: 'a-multistep-tf2',
