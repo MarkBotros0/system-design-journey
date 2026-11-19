@@ -112,7 +112,7 @@ export function OnboardingSheet({ open, onClose, mode = 'first-run' }: { open: b
           {step === 'route' ? (
             <>
               <p className="pr-12 text-[0.9375rem] font-semibold text-ink-2">
-                {firstRun ? 'Welcome to Throughput' : 'Route and starting point'}
+                {firstRun ? 'Welcome to Senior Loop' : 'Route and starting point'}
               </p>
               <h2
                 id="onboarding-title"

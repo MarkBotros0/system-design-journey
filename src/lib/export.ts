@@ -8,6 +8,7 @@
 
 import { migrate, type ProgressState } from './progressState'
 
+// The app was called Throughput when this was written. The id stays, so every export still imports.
 const FORMAT = 'throughput.progress'
 
 interface Envelope {
@@ -22,7 +23,7 @@ export function exportFilename(now = new Date()): string {
   const d = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
     now.getDate(),
   ).padStart(2, '0')}`
-  return `throughput-progress-${d}.json`
+  return `senior-loop-progress-${d}.json`
 }
 
 export function toJson(progress: ProgressState): string {
@@ -44,7 +45,7 @@ export function parseImport(text: string): ParseResult {
   try {
     raw = JSON.parse(text)
   } catch {
-    return { ok: false, error: "That file isn't valid JSON. Pick the file you exported from Throughput." }
+    return { ok: false, error: "That file isn't valid JSON. Pick the file you exported from Senior Loop." }
   }
 
   if (typeof raw !== 'object' || raw === null) {
@@ -55,7 +56,7 @@ export function parseImport(text: string): ParseResult {
   if (env.format !== FORMAT) {
     return {
       ok: false,
-      error: "That's not a Throughput export. Look for a file named throughput-progress-<date>.json.",
+      error: "That's not a Senior Loop export. Look for a file named senior-loop-progress-<date>.json (or throughput-progress-<date>.json from before the app was renamed).",
     }
   }
 

@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('Throughput crashed while rendering', error, info.componentStack)
+    console.error('Senior Loop crashed while rendering', error, info.componentStack)
   }
 
   private async exportProgress() {
@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
         <div className="flex flex-col gap-2.5 pb-4">
           <Button size="lg" onClick={() => window.location.assign(import.meta.env.BASE_URL)}>
             <RotateCw size={18} strokeWidth={2.2} aria-hidden="true" />
-            Reload Throughput
+            Reload Senior Loop
           </Button>
           <Button size="lg" variant="secondary" onClick={() => void this.exportProgress()}>
             <Download size={18} strokeWidth={2.2} aria-hidden="true" />

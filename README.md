@@ -1,8 +1,8 @@
-# Throughput
+# Senior Loop
 
 Senior interview preparation that works on a phone, offline.
 
-Throughput gets a software engineer ready for the three rounds that decide a senior
+Senior Loop (formerly Throughput) gets a software engineer ready for the three rounds that decide a senior
 offer — **system design**, **OOP / low-level design**, and **behavioral** — by teaching the
 concepts, drilling them, and then running the famous questions against the clock.
 

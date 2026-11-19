@@ -71,11 +71,9 @@ export function Shell() {
       {/* ≥1024px: the tab bar becomes a rail. Same destinations, same order. */}
       <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-64 lg:shrink-0 lg:flex-col lg:gap-1 lg:overflow-y-auto lg:bg-surface-2/50 lg:p-4">
         <Link to="/" className="mb-4 flex items-center gap-2.5 rounded-xl px-3 pt-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-line text-line-ink">
-            <RouteIcon size={17} strokeWidth={2.4} aria-hidden="true" />
-          </span>
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-8 w-8 rounded-[9px]" />
           <span>
-            <span className="block text-[1rem] leading-tight font-extrabold">Throughput</span>
+            <span className="block text-[1rem] leading-tight font-extrabold">Senior Loop</span>
             <span className="block text-[0.8125rem] text-ink-3">Senior interview prep</span>
           </span>
         </Link>

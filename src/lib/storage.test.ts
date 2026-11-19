@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { migrate, stopKey } from './storage'
-import { parseImport } from './export'
+import { emptyProgress, migrate, stopKey } from './storage'
+import { exportFilename, parseImport, toJson } from './export'
 
 /** A v1 record exactly as the previous build wrote it. */
 function v1(over: Record<string, unknown> = {}) {
@@ -193,10 +193,21 @@ describe('parseImport', () => {
     expect(r.progress.onboarded).toBe(true)
   })
 
-  it('rejects JSON that is not a Throughput export', () => {
+  it('rejects JSON that is not a Senior Loop export', () => {
     const r = parseImport(JSON.stringify({ hello: 'world' }))
     expect(r.ok).toBe(false)
     if (r.ok) return
-    expect(r.error).toMatch(/not a Throughput export/)
+    expect(r.error).toMatch(/not a Senior Loop export/)
+  })
+
+  it('names the export file after the app', () => {
+    expect(exportFilename(new Date(2026, 10, 9))).toBe('senior-loop-progress-2026-11-09.json')
+  })
+
+  it('still reads an export made under the old name, Throughput', () => {
+    // The format id inside the file is unchanged by the rename, so old files keep importing.
+    const text = toJson({ ...emptyProgress(), onboarded: true })
+    expect(JSON.parse(text).format).toBe('throughput.progress')
+    expect(parseImport(text).ok).toBe(true)
   })
 })

@@ -50,10 +50,10 @@ export default defineConfig({
       injectRegister: null, // PwaBanner registers via useRegisterSW
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Throughput — System Design',
-        short_name: 'Throughput',
+        name: 'Senior Loop',
+        short_name: 'Senior Loop',
         description:
-          'A system design training app: read a station, drill it, then run the real problem on the clock.',
+          'Senior interview prep: system design, low-level design and behavioral. Read a lesson, drill it, then run the real problem on the clock.',
         theme_color: '#0A0C11',
         background_color: '#0A0C11',
         display: 'standalone',

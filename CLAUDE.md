@@ -1,4 +1,8 @@
-# Throughput — Claude Code context
+# Senior Loop — Claude Code context
+
+The app was called **Throughput** until 2026-11-19; the repo, the Pages URL, the export format
+id (`throughput.progress`) and the storage keys (`tp:*`) keep the old name on purpose, so
+links, installs and saved progress keep working. Name the app "Senior Loop" in anything new.
 
 ## What this is
 

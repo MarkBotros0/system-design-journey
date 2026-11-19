@@ -31,7 +31,7 @@ for (const { file, size } of OUTPUTS) {
 const inner = Math.round(512 * 0.6)
 const glyph = await sharp(svg, { density: 512 }).resize(inner, inner).png().toBuffer()
 await sharp({
-  create: { width: 512, height: 512, channels: 4, background: '#0D1014' },
+  create: { width: 512, height: 512, channels: 4, background: '#12141b' },
 })
   .composite([{ input: glyph, gravity: 'center' }])
   .png()

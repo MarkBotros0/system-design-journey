@@ -58,7 +58,7 @@ export interface QuestionTopic {
 
 export function questionTopic(q: Question): QuestionTopic {
   const m = q.moduleId ? getModule(q.moduleId) : undefined
-  if (!m) return { title: q.topic?.title ?? 'Throughput', href: q.topic?.href ?? '/learn' }
+  if (!m) return { title: q.topic?.title ?? 'Senior Loop', href: q.topic?.href ?? '/learn' }
   let href = `/m/${m.id}`
   if (q.section) {
     const want = plainText(q.section).trim()

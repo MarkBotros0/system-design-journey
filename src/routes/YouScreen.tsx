@@ -295,7 +295,7 @@ export function YouScreen() {
                       </span>
                       .
                     </Step>
-                    <Step n={3}>Open Throughput from the icon rather than the browser.</Step>
+                    <Step n={3}>Open Senior Loop from the icon rather than the browser.</Step>
                   </ol>
                 </li>
               )}
