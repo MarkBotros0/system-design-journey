@@ -291,7 +291,7 @@ export const questions: Question[] = [
       { left: 'Composition root', right: 'The one place near the entry point that wires it all' },
     ],
     explain:
-      'Inversion, injection and inversion of control are often blurred. A container that injects concrete classes does plenty of injection and no dependency inversion; Express calling your handler is inversion of control.',
+      'Dependency inversion, injection and inversion of control are often blurred. A container that injects concrete classes does plenty of injection and no dependency inversion; Express calling your handler is inversion of control.',
   },
 
   /* ---------------------------------------------------------------- */

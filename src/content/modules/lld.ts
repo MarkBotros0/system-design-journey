@@ -36,7 +36,7 @@ export const lldModules: Module[] = [
     lesson: [
       {
         kind: 'prose',
-        text: 'The low-level design round hands you a prompt like "design a parking lot" and watches you turn it into classes, methods and working code in 45 minutes. Recruiters call it the [[LLD]] round, object-oriented design, or machine coding. Whatever the name, it tests something system design does not: whether the code you would actually write is well shaped.',
+        text: 'The low-level design round hands you a prompt like "design a parking lot" and watches you turn it into classes, methods and working code in 45 minutes. Recruiters call it the [[LLD]] round or object-oriented design, and a longer, compile-and-run variant is called machine coding. Whatever the name, it tests something system design does not: whether the code you would actually write is well shaped.',
       },
       {
         kind: 'prose',
@@ -76,7 +76,7 @@ export const lldModules: Module[] = [
         kind: 'list',
         items: [
           '**Modelling.** Do the classes match the domain? Is a book separate from the physical copy you lend? Does each rule live on the object that holds the data it needs?',
-          '**Code.** Do the one or two methods that matter actually work, with sensible names, types and error cases? Pseudo-code rarely passes; real TypeScript, Java or Python is expected.',
+          '**Code.** Do the one or two methods that matter actually work, with sensible names, types and error cases? Expect to write real TypeScript, Java or Python; pseudo-code is often marked down.',
           '**Extensibility.** When the second requirement arrives, how much existing code changes? One new class is a strong signal. Edits to five `switch` statements is a weak one.',
           '**Correctness under pressure.** Edge cases (lot full, payment fails, the same request twice) and concurrency (two drivers, one spot).',
         ],
@@ -185,7 +185,7 @@ class ParkingLot {
           ['Parking lot', 'Type versus instance; spot allocation', '`park()`, `exit()`', 'A new vehicle type; pricing by time'],
           ['Elevator', 'A state machine plus a scheduling policy', '`request()`, `step()`', 'Swap the scheduling algorithm'],
           ['Vending machine', 'The State pattern', '`insertCoin()`, `select()`', 'Sold out mid-purchase; refunds'],
-          ['[[LRU]] cache', 'Hash map plus doubly linked list, O(1) both ways', '`get()`, `put()`', 'Thread safety; per-entry expiry'],
+          ['[[LRU]] cache', 'Hash map plus doubly linked list, O(1) `get` and `put`', '`get()`, `put()`', 'Thread safety; per-entry expiry'],
           ['Library', 'Book versus copy; borrowing rules', '`checkout()`, `return()`', 'Reservations; limits by member tier'],
           ['Rate limiter', 'Strategy over interchangeable algorithms', '`allow(key)`', 'Limits per client; many servers'],
         ],
@@ -198,7 +198,7 @@ class ParkingLot {
         kind: 'callout',
         tone: 'example',
         title: 'Java\'s LinkedHashMap',
-        text: 'The Java standard library ships an [[LRU]] cache in a few lines: construct a `LinkedHashMap` with `accessOrder` set to true, and override `removeEldestEntry` to return true once the map is over capacity. Inside is exactly what the interviewer wants you to build, a hash map whose entries are threaded on a doubly linked list. Mention it at the end as the production answer. Do not offer it as the interview answer.',
+        text: 'The Java standard library gets you an [[LRU]] cache in a few lines: construct a `LinkedHashMap` with `accessOrder` set to true, and override `removeEldestEntry` to return true once the map is over capacity. Inside is exactly what the interviewer wants you to build, a hash map whose entries are threaded on a doubly linked list. Mention it at the end as the production answer. Do not offer it as the interview answer.',
       },
       { kind: 'heading', text: 'How it is scored' },
       {
@@ -266,7 +266,7 @@ class ParkingLot {
         ],
         correct: 2,
         explain:
-          'Key methods carry the largest share of the score, and they are the phase candidates run out of time for. A complete diagram with no working code leaves the interviewer unable to tell whether you can build your own design. Concurrency matters, but it is a property of code that has to exist first.',
+          'Key methods get the biggest time budget, and they are the phase candidates run out of time for. A complete diagram with no working code leaves the interviewer unable to tell whether you can build your own design. Concurrency matters, but it is a property of code that has to exist first.',
       },
       {
         id: 'q-l-round-2',
@@ -351,7 +351,7 @@ class ParkingLot {
     lesson: [
       {
         kind: 'prose',
-        text: 'The first fifteen minutes of a low-level design round produce a class diagram, and every minute after that is spent living with it. Put a rule on the wrong object and each later method has to reach across the model to get at it. Miss a class and you end up with a counter that drifts away from reality.',
+        text: 'The first twenty minutes of a low-level design round produce a class diagram, and every minute after that is spent living with it. Put a rule on the wrong object and each later method has to reach across the model to get at it. Miss a class and you end up with a counter that drifts away from reality.',
       },
       {
         kind: 'prose',
@@ -512,7 +512,7 @@ class ParkingLot {
       { kind: 'heading', text: 'Association, aggregation, composition' },
       {
         kind: 'prose',
-        text: 'Three kinds of "has", told apart by lifecycle and sharing. In TypeScript or Java all three compile to a field holding a reference, which is why candidates skip the distinction. They should not: it decides who may delete the part, whether a delete cascades, and who else can mutate it.',
+        text: 'Three kinds of "has", told apart by lifecycle and sharing. In TypeScript or Java all three usually look the same in code, a field or parameter holding a reference, which is why candidates skip the distinction. They should not: it decides who may delete the part, whether a delete cascades, and who else can mutate it.',
       },
       {
         kind: 'table',
@@ -1148,7 +1148,7 @@ function vehicleFrom(kind: string, plate: string): Vehicle {
       },
       {
         kind: 'prose',
-        text: 'JavaScript runs your code on one thread, and no two synchronous lines ever interleave. That rules out data races, where two threads tear a value in half. It does **not** rule out logical races. Every `await` hands control back to the event loop, and another request can run before you resume. Run a second server instance and the two share no memory at all.',
+        text: 'JavaScript runs your code on one thread, and no two synchronous lines ever interleave. That rules out data races, where two threads touch the same memory at once and at least one of them writes. It does **not** rule out logical races. Every `await` hands control back to the event loop, and another request can run before you resume. Run a second server instance and the two share no memory at all.',
       },
       {
         kind: 'figure',
@@ -1210,7 +1210,7 @@ function vehicleFrom(kind: string, plate: string): Vehicle {
       { kind: 'heading', text: 'Locks, and a small Mutex' },
       {
         kind: 'prose',
-        text: 'Sometimes the slow work has to sit inside the critical section: read a balance from a store, check it, write it back, with an `await` at both ends. Reordering cannot help there; you need mutual exclusion. Java has `synchronized` and `ReentrantLock`, Go has `sync.Mutex`. In TypeScript you can build one from a promise chain in a dozen lines.',
+        text: 'Sometimes the slow work has to sit inside the critical section, the code only one caller may run at a time: read a balance from a store, check it, write it back, with an `await` at both ends. Reordering cannot help there; you need mutual exclusion. Java has `synchronized` and `ReentrantLock`, Go has `sync.Mutex`. In TypeScript you can build one from a promise chain in a dozen lines.',
       },
       {
         kind: 'code',
@@ -1234,7 +1234,7 @@ function vehicleFrom(kind: string, plate: string): Vehicle {
       },
       {
         kind: 'code',
-        caption: 'One lock per user, not one per wallet. What a lock covers is the ceiling on throughput.',
+        caption: 'One lock per user, not one for the whole wallet. What a lock covers sets the ceiling on throughput.',
         code: `class Wallet {
   private locks = new Map<string, Mutex>()
 
@@ -1280,11 +1280,11 @@ function vehicleFrom(kind: string, plate: string): Vehicle {
       { kind: 'heading', text: 'Singletons and lazy initialisation' },
       {
         kind: 'prose',
-        text: 'A lazily initialised singleton is check-then-act in disguise: if there is no instance, create one. In Java the naive version builds two instances under contention, and double-checked locking only works if the field is `volatile`. Joshua Bloch\'s advice in Effective Java is simpler: a single-element `enum`, or a static holder class that the class loader initialises exactly once. Go has `sync.Once` for the same job.',
+        text: 'A lazily initialised singleton is check-then-act in disguise: if there is no instance, create one. In Java the naive version can build two instances under contention, and double-checked locking only works if the field is `volatile`. Joshua Bloch\'s advice in Effective Java is simpler: a single-element `enum`, or a static holder class that the class loader initialises exactly once. Go has `sync.Once` for the same job.',
       },
       {
         kind: 'prose',
-        text: 'In TypeScript a module-level `const` is evaluated once per process, so it is a singleton for free. The trap is lazy **async** initialisation:',
+        text: 'In TypeScript a module-level `const` is evaluated once, when the module first loads, so it is a singleton for free. The trap is lazy **async** initialisation:',
       },
       {
         kind: 'codeCompare',
@@ -1325,7 +1325,7 @@ export function getPool(): Promise<Pool> {
           points: [
             'Take the lock before reading; everyone else waits',
             'Right when conflicts are frequent and a retry is expensive',
-            'Costs throughput, and risks deadlock if locks are held across slow calls',
+            'Costs throughput, and risks deadlock once a request takes more than one lock',
           ],
         },
         right: {
@@ -1356,7 +1356,7 @@ export function getPool(): Promise<Pool> {
       },
       {
         kind: 'prose',
-        text: 'This is optimistic concurrency control, [[OCC]]: no lock is taken, the write states the condition it depends on, and a row count of zero means you lost and should offer the driver another spot. The general form compares a `version` column you read earlier. It is also the answer to "what if this runs on three servers?", because the atomicity now lives where the state lives.',
+        text: 'This is optimistic concurrency control, [[OCC]]: your code holds no lock while it decides, the write states the condition it depends on, and a row count of zero means you lost and should offer the driver another spot. The general form compares a `version` column you read earlier. It is also the answer to "what if this runs on three servers?", because the atomicity now lives where the state lives.',
       },
       { kind: 'heading', text: 'Deadlock and lock ordering' },
       {

@@ -45,7 +45,7 @@ export const principlesModules: Module[] = [
       },
       {
         kind: 'figure',
-        caption: 'The four pillars, by what each buys you. Only one of them is optional.',
+        caption: 'The four pillars, by what each buys you.',
         figure: {
           kind: 'stack',
           layers: [
@@ -114,7 +114,7 @@ acct.setBalance(acct.getBalance() - fee)`,
         kind: 'callout',
         tone: 'example',
         title: 'Java\'s Date',
-        text: 'Java\'s original `java.util.Date` is mutable. Any class that returned its `Date` field from a getter handed callers a way to change its state, and the item on defensive copying in Effective Java is built around exactly this case. Java 8\'s `java.time` fixed it by making every type immutable: `LocalDate.plusDays` returns a new date instead of changing the old one.',
+        text: 'Java\'s original `java.util.Date` is mutable. Any class that returned its `Date` field from a getter handed callers a way to change its state, and the item on defensive copying in Effective Java is built around exactly this case. Java 8\'s `java.time` fixed it by making its date and time types immutable: `LocalDate.plusDays` returns a new date instead of changing the old one.',
       },
 
       { kind: 'heading', text: 'Abstraction hides the decision that might change' },
@@ -340,7 +340,7 @@ const price = ride.tier.fare(ride.km, ride.minutes)`,
       {
         id: 'q-p-oop-2',
         moduleId: 'p-oop',
-        stem: 'Java\'s `Stack` extends `Vector`. What is the design problem?',
+        stem: 'Java\'s `Stack` extends `Vector`. What is wrong with that as a model of a stack?',
         options: [
           '`Vector` is synchronised, so every stack operation pays for a lock',
           'Inheritance is always wrong in Java; it should have been an interface',
@@ -457,7 +457,7 @@ const price = ride.tier.fare(ride.km, ride.minutes)`,
       },
       {
         kind: 'prose',
-        text: 'Control coupling is the one candidates most often write live. A flag argument means the caller knows how the callee is built inside, and every call site reads like `notify(user, 2)`. Stamp coupling is subtler: the callee now breaks when `User` changes shape, and every test has to build a full `User` to exercise one field.',
+        text: 'Control coupling is the one candidates most often write live. A flag argument means the caller knows how the callee is built inside, and every call site reads like `notify(user, 2)`. Stamp coupling is subtler: the callee is tied to the whole shape of `User`, so changes to fields it never reads can still reach it, and every test has to build a full `User` to exercise one field.',
       },
       {
         kind: 'codeCompare',
@@ -553,7 +553,7 @@ sendOtp(user.phone, code) // says what it means`,
             { name: 'CountryTaxPolicy', fields: ['rates: RateTable'], methods: ['taxFor(order): Money'], tone: 'mastered' },
           ],
           relations: [
-            { from: 'Checkout', to: 'TaxPolicy', kind: 'uses', label: 'data coupling only' },
+            { from: 'Checkout', to: 'TaxPolicy', kind: 'uses', label: 'one narrow method' },
             { from: 'Invoicing', to: 'TaxPolicy', kind: 'uses' },
             { from: 'CountryTaxPolicy', to: 'TaxPolicy', kind: 'implements' },
           ],
@@ -647,7 +647,7 @@ sendOtp(user.phone, code) // says what it means`,
       {
         id: 'q-p-coupling-1',
         moduleId: 'p-coupling',
-        stem: '`chargeCard(order, true)`, where `true` tells the function to skip the fraud check. Which kind of coupling is this?',
+        stem: '`chargeCard(order, true)`, where `true` tells the function to skip the fraud check. Which kind of coupling does the flag create?',
         options: [
           'Data coupling: it only passes values',
           'Stamp coupling: it passes the whole order',
@@ -655,7 +655,7 @@ sendOtp(user.phone, code) // says what it means`,
           'Content coupling: it reaches into the payment module',
         ],
         correct: 2,
-        explain: 'The boolean decides which branch runs inside the callee, so the caller has to know how the callee is built. Passing the whole order may also be stamp coupling, but the flag is the sharper smell. Fix it with two named functions, or by passing the fraud policy in.',
+        explain: 'The boolean decides which branch runs inside the callee, so the caller has to know how the callee is built. Passing the whole order may also be stamp coupling, but that is not what the flag does. Fix it with two named functions, or by passing the fraud policy in.',
       },
       {
         id: 'q-p-coupling-2',
@@ -814,7 +814,7 @@ class InvoiceRepository {
       { kind: 'heading', text: 'The shared-helper trap' },
       {
         kind: 'prose',
-        text: 'The most expensive violation is not a big class. It is two actors sharing code that only looks like one thing. Martin\'s own example is an employee class whose pay calculation and hours report both call one private helper for regular hours. Finance changes the helper for a pay rule; the operations report silently changes with it, and nobody notices until the numbers disagree.',
+        text: 'The most expensive violation is not a big class. It is two actors sharing code that only looks like one thing. Martin\'s own example is an employee class whose pay calculation and hours report both call one private helper for regular hours. Finance changes the helper for a pay rule; the hours report, which another department relies on, silently changes with it, and nobody notices until the numbers disagree.',
       },
       {
         kind: 'prose',
@@ -875,7 +875,7 @@ const checkout = new Checkout(
   new Map(all.map((m) => [m.kind, m] as const)),
 )`,
         },
-        note: 'The `switch` has not vanished; it has shrunk to one lookup in one place. Charge, refund and receipt code dispatches through the interface and never learns which methods exist.',
+        note: 'The `switch` has not vanished; it has shrunk to one lookup in the composition root, the startup code that builds the objects. Charge, refund and receipt code dispatches through the interface and never learns which methods exist.',
       },
       {
         kind: 'figure',
@@ -1151,7 +1151,7 @@ class Square implements Shape {
       { kind: 'heading', text: 'Contracts: what a subtype may change' },
       {
         kind: 'prose',
-        text: 'Bertrand Meyer\'s design by contract gives the rules in a form you can check in code review:',
+        text: 'Bertrand Meyer\'s design by contract, extended by Liskov and Wing with the exception and history rules, gives the rules in a form you can check in code review:',
       },
       {
         kind: 'table',
@@ -1347,7 +1347,7 @@ function total(prices: ReadableList<number>) { /* ... */ }`,
         id: 'c-p-lsp-isp-1',
         moduleId: 'p-lsp-isp',
         front: 'Liskov substitution in one line?',
-        back: 'Code written against the parent must keep working with any subtype: accept at least as much, promise at least as much, throw nothing new.',
+        back: 'Code written against the parent must keep working with any subtype: accept at least as much, promise at least as much, throw nothing callers do not expect.',
         tag: 'SOLID',
       },
       {
@@ -1583,7 +1583,7 @@ expect(mailer.sent).toHaveLength(1)`,
           title: 'Container',
           points: [
             'Wiring is automatic, and lifetimes are declared',
-            'A missing or ambiguous binding fails at startup, not at compile time',
+            'Most report a missing or ambiguous binding at startup, not at compile time',
             'Decorators or annotations tend to leak into domain code',
             'The graph is hard to see without tooling',
           ],
@@ -1594,7 +1594,7 @@ expect(mailer.sent).toHaveLength(1)`,
         kind: 'callout',
         tone: 'example',
         title: 'Spring and NestJS',
-        text: 'Both frameworks are built on constructor injection. A Spring bean or a NestJS provider declares what it needs in its constructor. At startup the container resolves the whole graph and refuses to boot if anything is missing. That failure at boot is the container\'s substitute for the compile-time check that wiring by hand gives you.',
+        text: 'Both frameworks are built on constructor injection. A Spring bean or a NestJS provider declares what it needs in its constructor. At startup the container resolves the graph and, by default, refuses to boot if anything is missing. That failure at boot is the container\'s substitute for the compile-time check that wiring by hand gives you.',
       },
 
       { kind: 'heading', text: 'Testability with fakes' },
@@ -1650,7 +1650,7 @@ expect(mailer.sent).toHaveLength(1)`,
           '`OrderService` takes an `OrderRepository` defined in the Postgres package, next to its implementation',
         ],
         correct: 2,
-        explain: 'Inversion needs an abstraction and the right owner. The first option injects a concrete class. The last has an interface, but the domain still imports the storage package to get it, so the source dependency still points at the detail.',
+        explain: 'Inversion needs an abstraction and the right owner. The first option injects a concrete class, and the locator only hides where the object comes from. The last has an interface, but the domain still imports the storage package to get it, so the source dependency still points at the detail.',
       },
       {
         id: 'q-p-dip-2',
@@ -1668,7 +1668,7 @@ expect(mailer.sent).toHaveLength(1)`,
       {
         id: 'q-p-dip-3',
         moduleId: 'p-dip',
-        stem: 'What is the main cost of a dependency injection container compared with wiring by hand in a composition root?',
+        stem: 'What is the main cost of a runtime injection container, such as Spring or NestJS, compared with wiring by hand in a composition root?',
         options: [
           'A broken or ambiguous binding surfaces at startup instead of at compile time, and the wiring is harder to see',
           'Every request is slower, because dependencies are resolved by reflection each time',
@@ -2004,7 +2004,7 @@ class CountingBag<T> extends Bag<T> {
         stem: 'You are building a notification service that sends email only. Which of these does YAGNI tell you to skip?',
         options: [
           'Tests for the email sender',
-          'A plugin framework for channels, because push and [[SMS]] might come later',
+          'A plugin framework for channels, because push and text messages might come later',
           'Handling the email provider\'s rate-limit errors',
           'A version in the public request format',
         ],
@@ -2261,7 +2261,7 @@ app.post('/orders', async (req, res) => {
         kind: 'callout',
         tone: 'example',
         title: 'Rails and Django',
-        text: 'Both frameworks are deliberately not hexagonal. Their models follow the Active Record pattern: the object is the table row, with its persistence methods built in. That coupling is exactly why they are so fast for forms-over-data products, and it is why Shopify built Packwerk to enforce boundaries between components inside its large Rails monolith.',
+        text: 'Both frameworks are deliberately not hexagonal. Their models follow the Active Record pattern: the object is the table row, with its persistence methods built in. That coupling is exactly why they are so fast for forms-over-data products. The cost shows at scale: Shopify built Packwerk to enforce boundaries between components inside its large Rails monolith.',
       },
       {
         kind: 'callout',
