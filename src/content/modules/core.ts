@@ -41,7 +41,7 @@ export const coreModules: Module[] = [
       },
       {
         kind: 'figure',
-        caption: 'Forty-five minutes, drawn to scale. Deep dives are the last tenth — and where senior is decided.',
+        caption: 'Forty-five minutes, drawn to scale. Deep dives get barely a fifth of it — and that fifth is where senior is decided.',
         figure: {
           kind: 'ratio',
           parts: [
@@ -110,11 +110,11 @@ export const coreModules: Module[] = [
           'Finish properly — requirements are the most important phase',
           'Cut immediately and move on, accepting an imperfect scope',
           'Ask the interviewer for extra time',
-          'Skip the [[API]] and go straight to drawing',
+          'Skip the API and go straight to drawing',
         ],
         correct: 1,
         explain:
-          'Deep dives are where senior is decided, and they come last. Overrunning early guarantees you never reach them. An imperfect scope you can design against beats a perfect one with no time left.',
+          'Deep dives are where senior is decided, and they come last. Overrunning early guarantees you never reach them, and skipping the [[API]] only moves the damage downstream. An imperfect scope you can design against beats a perfect one with no time left.',
       },
       {
         id: 'q-c-framework-3',
@@ -216,8 +216,8 @@ export const coreModules: Module[] = [
           nodes: [
             { label: '1M daily users', to: '× 10 actions' },
             { label: '10M/day', sub: 'total actions', tone: 'line', to: '÷ 100k' },
-            { label: '~116/s', sub: 'average', tone: 'line', to: '× 3–10' },
-            { label: '~1,000/s', sub: 'peak — size for this', tone: 'mastered' },
+            { label: '~100/s', sub: 'average (116 exactly)', tone: 'line', to: '× 3–10' },
+            { label: '300–1,000/s', sub: 'peak — size for this', tone: 'mastered' },
           ],
           note: '86,400 seconds in a day is close enough to 100,000 for mental arithmetic.',
         },
@@ -252,9 +252,9 @@ export const coreModules: Module[] = [
         items: [
           '**86,400 seconds/day ≈ 100k.** Daily volume ÷ 100k ≈ average [[QPS]].',
           'Peak is **3–10×** average. Design for peak.',
-          '1M DAU × 10 actions/day ≈ **116 writes/sec** average.',
+          '1M DAU × 10 actions/day ≈ **116 requests/sec** average; the shortcut gives ~100, which is close enough.',
           '1 [[KB]] × 1M/day ≈ 1 [[GB]]/day ≈ **365 GB/year**.',
-          'Consumer read:write is around **100:1** — design the read path first.',
+          'Consumer apps are read-heavy, often **100:1** or more — design the read path first.',
         ],
       },
     ],
@@ -266,12 +266,12 @@ export const coreModules: Module[] = [
         options: [
           'The system should be highly scalable',
           'The system should be fast and reliable',
-          'The system should render a feed in under 200 ms at 100M [[DAU]]',
+          'The system should render a feed in under 200 ms at 100M DAU',
           'The system should use best practices for performance',
         ],
         correct: 2,
         explain:
-          'A number turns an aspiration into a constraint you can design against, and gives you something concrete to point back at when you close the loop.',
+          'A latency target and a [[DAU]] figure turn an aspiration into a constraint you can design against, and give you something concrete to point back at when you close the loop. "Scalable" and "fast" give you neither.',
       },
       {
         id: 'q-c-requirements-2',
@@ -299,7 +299,7 @@ export const coreModules: Module[] = [
         ],
         correct: 1,
         explain:
-          '8.6M ÷ 100k ≈ 86, call it 100 average. Peak runs 3–10× average, so you size for several hundred to a thousand. Averages size storage; peaks size servers.',
+          '8.6M ÷ 86,400 is almost exactly 100, but that is the average, not the peak. Peak runs 3–10× average, so you size for several hundred to a thousand. Averages size storage; peaks size servers.',
       },
     ],
     cards: [
@@ -388,7 +388,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       { kind: 'heading', text: 'Secondary indexes' },
       {
         kind: 'prose',
-        text: 'A **global** secondary index re-partitions the data under a different key, so it can answer a completely different question. A **local** one keeps the partition and changes the sort. Both cost storage and write throughput, and global indexes are eventually consistent — a write may not appear in the index for a moment.',
+        text: 'A **global** secondary index re-partitions the data under a different key, so it can answer a completely different question. A **local** one keeps the partition and changes the sort. Both cost storage and write throughput, and in DynamoDB a global index is only eventually consistent — a write may not appear in it for a moment.',
       },
       { kind: 'heading', text: 'Denormalising the hot path' },
       {
@@ -424,7 +424,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         ],
         correct: 2,
         explain:
-          'A reversed [[GSI]] answers the same relationship from the other end in O(1). There is no deep traversal here, so a graph database buys nothing and invites scaling questions you gain nothing from.',
+          'A reversed [[GSI]] answers the same relationship from the other end in a single query. There is no deep traversal here, so a graph database buys nothing and invites scaling questions you gain nothing from.',
       },
       {
         id: 'q-c-modelling-2',
@@ -467,7 +467,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         id: 'c-c-modelling-2',
         moduleId: 'c-modelling',
         front: 'Global versus local secondary index.',
-        back: 'Global re-partitions under a new key and answers a different question — eventually consistent. Local keeps the partition and changes the sort.',
+        back: 'Global re-partitions under a new key and answers a different question; in DynamoDB it is eventually consistent. Local keeps the partition and changes the sort.',
         tag: 'Data modelling',
       },
     ],
@@ -576,7 +576,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Answering "how do you handle a viral post" with "we shard the cache". Sharding is what created the problem. The interviewer is testing whether you understand *why* even distribution fails here.',
+        text: 'Answering "how do you handle a viral post" with "we shard the cache". Sharding is what pins that key to a single node. The interviewer is testing whether you understand *why* even distribution fails here.',
       },
     ],
     quiz: [
@@ -586,27 +586,27 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         stem: 'A post goes viral and one cache node saturates while the others sit idle. What fixes it?',
         options: [
           'Add more shards to spread the load',
-          'Increase the [[TTL]] on that key',
+          'Increase the TTL on that key',
           'Replicate — multiple instances each able to serve any key, load balanced across them',
           'Move the post to a dedicated database',
         ],
         correct: 2,
         explain:
-          'All the traffic is for one key, so more shards changes nothing. Replication lets N nodes each serve that key, trading total cache capacity for spike absorption.',
+          'All the traffic is for one key, so more shards changes nothing, and a longer [[TTL]] keeps the key cached on the same saturated node. Replication lets N nodes each serve that key, trading total cache capacity for spike absorption.',
       },
       {
         id: 'q-c-caching-2',
         moduleId: 'c-caching',
         stem: 'Which data makes cache invalidation a non-problem?',
         options: [
-          'Data with a very short [[TTL]]',
+          'Data with a very short TTL',
           'Immutable data — a published post, a short-link mapping',
           'Data read by only one service',
           'Data stored in an in-process cache',
         ],
         correct: 1,
         explain:
-          'If it never changes, there is nothing to invalidate — cache indefinitely. Making data immutable where you can is a design lever, not just a property you observe.',
+          'If it never changes, there is nothing to invalidate — cache indefinitely. A short [[TTL]] only limits how stale data gets. Making data immutable where you can is a design lever, not just a property you observe.',
       },
     ],
     cards: [
@@ -673,7 +673,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         kind: 'list',
         items: [
-          '**Cross-shard transactions** become nearly impossible. If two rows must change atomically, they had better share a shard.',
+          '**Cross-shard transactions** become slow and fragile, or are not offered at all. If two rows must change atomically, they had better share a shard.',
           '**Hot spots** — one celebrity, one popular product, one busy tenant can saturate a shard while others idle.',
           '**Resharding** means moving enormous volumes of data while serving traffic. Plan the key so you never have to.',
         ],
@@ -681,7 +681,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Sharding by reflex. A well-tuned single instance handles ~50k [[TPS]] and a few terabytes. At 10k writes/sec and 100 [[GB]] you do not need it, and proposing it invites a justification you cannot give.',
+        text: 'Sharding by reflex. A well-tuned single instance handles up to ~50k simple [[TPS]] and a few terabytes. At 10k writes/sec and 100 [[GB]] you do not need it, and proposing it invites a justification you cannot give.',
       },
       { kind: 'heading', text: 'Consistent hashing, briefly' },
       {
@@ -695,7 +695,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
       {
         kind: 'callout',
         tone: 'say',
-        text: 'Say "we will distribute with consistent hashing" and move on. Explaining the ring unprompted burns clock you need elsewhere, and the interviewer will ask if they want it. It is behind Cassandra, DynamoDB, Redis Cluster, and most CDNs.',
+        text: 'Say "we will distribute with consistent hashing" and move on. Explaining the ring unprompted burns clock you need elsewhere, and the interviewer will ask if they want it. Cassandra, Amazon\'s original Dynamo and many [[CDN|CDNs]] use it; Redis Cluster gets the same effect with 16,384 fixed hash slots.',
       },
     ],
     quiz: [
@@ -795,7 +795,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
             'Two readers can briefly disagree',
           ],
         },
-        verdict: 'Availability is the right default. Users tolerate slightly stale data far better than a system that will not respond.',
+        verdict: 'Availability is the right default for most paths. Users tolerate slightly stale data far better than a system that will not respond.',
       },
       {
         kind: 'figure',
@@ -892,11 +892,11 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
           'AP — availability is almost always the right default',
           'CP — correctness matters more than uptime',
           'It depends on the path: AP for browsing and search, CP for the booking write',
-          '[[CAP]] does not apply to systems with a single database',
+          'Both — on a reliable network you never have to choose',
         ],
         correct: 2,
         explain:
-          'Treating it as one global choice is the memorised answer. Different paths in one system get different answers, and naming which is which unprompted is the senior signal.',
+          'Treating it as one global choice is the memorised answer, and no network is reliable enough to skip the choice. Different paths in one system get different answers, and naming which is which unprompted is the senior signal.',
       },
     ],
     cards: [
@@ -951,7 +951,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         kind: 'callout',
         tone: 'trap',
         title: 'The one place a queue is wrong',
-        text: 'Inside a synchronous path with a tight latency budget. If the user is waiting and you have 500 ms, adding a queue nearly guarantees you miss it. Queues make things *reliable*, not fast.',
+        text: 'Inside a synchronous path with a tight latency budget. A queue lets work wait behind a backlog: that is the point for an email, and fatal when the user is waiting and you have 500 ms. Queues make things *reliable*, not fast.',
       },
       { kind: 'heading', text: 'What you must name' },
       {
@@ -1062,7 +1062,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
         id: 'c-c-queues-1',
         moduleId: 'c-queues',
         front: 'When must you not add a queue?',
-        back: 'Inside a synchronous path with a tight latency budget. Queues make things reliable, not fast — adding one to a 500 ms path nearly guarantees you break it.',
+        back: 'Inside a synchronous path with a tight latency budget. A queue lets work wait behind a backlog — fine for an email, fatal for a user waiting on 500 ms.',
         tag: 'Queues',
       },
       {
@@ -1095,7 +1095,7 @@ Post    PK: creatorId    SK: createdAt       -- a user's posts, newest first`,
     lesson: [
       {
         kind: 'prose',
-        text: 'Search is the most common reason to add a second datastore, and the reasoning is short enough to give in an interview in about thirty seconds.',
+        text: 'Search is one of the most common reasons to add a second datastore, and the reasoning is short enough to give in an interview in about thirty seconds.',
       },
       { kind: 'heading', text: 'Why the database cannot do it' },
       {
@@ -1133,7 +1133,7 @@ query "taylor swift" -> intersect([1,7,9], [1,4]) -> doc1`,
       },
       {
         kind: 'prose',
-        text: 'Three pieces make it work in practice. **Tokenisation** splits text into terms. **Stemming** reduces them to a root, so "running" and "runs" both index as "run". **Fuzzy matching** uses edit distance, so "Tayler" still finds "Taylor" — which matters more than it sounds, because a large share of real searches are misspelled.',
+        text: 'Three pieces make it work in practice. **Tokenisation** splits text into terms. **Stemming** reduces them to a root, so "running" and "runs" both index as "run". **Fuzzy matching** uses edit distance, so "Tayler" still finds "Taylor" — which matters more than it sounds, because misspelled queries are common.',
       },
       { kind: 'heading', text: 'Keeping it in sync' },
       {
@@ -1149,7 +1149,7 @@ query "taylor swift" -> intersect([1,7,9], [1,4]) -> doc1`,
       { kind: 'heading', text: 'The lighter option' },
       {
         kind: 'prose',
-        text: 'Postgres full-text search — `tsvector` with a **[[GIN]]** index — handles a surprising amount without a second system to operate. Slower and less capable than Elasticsearch, but there is no cluster, no CDC pipeline, and no sync bug. Naming it as the step before Elasticsearch shows you weigh operational cost, not just capability.',
+        text: 'Postgres full-text search — `tsvector` with a **[[GIN]]** index — handles a surprising amount without a second system to operate. It is weaker than Elasticsearch at relevance ranking and typo tolerance, but there is no cluster, no CDC pipeline, and no sync bug. Naming it as the step before Elasticsearch shows you weigh operational cost, not just capability.',
       },
       {
         kind: 'ladder',
@@ -1193,13 +1193,13 @@ query "taylor swift" -> intersect([1,7,9], [1,4]) -> doc1`,
         stem: 'A product has a search box over 50,000 rows and no dedicated search team. What is the honest first step?',
         options: [
           'Elasticsearch — it is the industry standard',
-          'Postgres full-text search with a [[GIN]] index',
+          'Postgres full-text search with a GIN index',
           'Load everything into memory and filter in the application',
           'A LIKE query with an index on the column',
         ],
         correct: 1,
         explain:
-          'At that size Postgres full-text handles it with no cluster, no [[CDC]] pipeline, and no sync bugs. Naming the operational cost of Elasticsearch — rather than reaching for it reflexively — is the signal.',
+          'At that size Postgres full-text search with a [[GIN]] index handles it with no cluster, no [[CDC]] pipeline, and no sync bugs. A `LIKE` with a leading wildcard cannot use the index at all. Naming the operational cost of Elasticsearch — rather than reaching for it reflexively — is the signal.',
       },
     ],
     cards: [

@@ -73,7 +73,7 @@ export const questions: Question[] = [
     prompt: 'Taking a table from [[3NF]] to [[BCNF]] can cost you a rule that a single constraint used to enforce.',
     answer: true,
     explain:
-      'Splitting the account-manager table spreads "one manager per customer per line" across two tables, where no single constraint can check it. 3NF can always keep every dependency enforceable; BCNF cannot.',
+      'Splitting the account-manager table spreads "one manager per customer per line" across two tables, where no single constraint can check it. 3NF can always keep every dependency enforceable; BCNF cannot always.',
   },
   {
     id: 'db-normalization-tf2',
@@ -174,7 +174,7 @@ export const questions: Question[] = [
       { left: 'A synchronous standby', right: 'Nothing, even if the primary is destroyed' },
     ],
     explain:
-      'A local log flush survives a crash but not a dead disk. Turning it off risks about 0.6 s of commits but never integrity. An asynchronous replica lacks whatever had not shipped; only a synchronous standby covers losing the primary.',
+      'A local log flush survives a crash but not a dead disk. Turning it off risks up to about 0.6 s of commits but never integrity. An asynchronous replica lacks whatever had not shipped; only a synchronous standby covers losing the primary.',
   },
 
   /* ---------------------------------------------------------------- */
@@ -329,7 +329,7 @@ export const questions: Question[] = [
       'A plain `SELECT` never waits for an `UPDATE`',
       'A second `UPDATE` to the same row waits for the first to commit or roll back',
       'An `UPDATE` overwrites the old row version in place',
-      'Every `UPDATE` leaves a dead row version for vacuum to reclaim',
+      'Every `UPDATE` leaves a dead row version to be cleaned up later',
       'Transaction ids are 64-bit, so rows never need freezing',
       "A reader can see another transaction's uncommitted version",
     ],

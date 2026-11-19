@@ -33,7 +33,7 @@ export const databasesModules: Module[] = [
     lesson: [
       {
         kind: 'prose',
-        text: 'Every design round reaches the moment you name the core entities, and in a low-level design round the schema is most of the answer. The interviewer is watching three things: whether each foreign key sits on the right side, whether a many-to-many becomes a table, and whether the database itself guarantees the rules that matter.',
+        text: 'Every design round reaches the moment you name the core entities, and when the question is about data, the schema is most of the answer. The interviewer is watching three things: whether each foreign key sits on the right side, whether a many-to-many becomes a table, and whether the database itself guarantees the rules that matter.',
       },
       {
         kind: 'prose',
@@ -125,7 +125,7 @@ export const databasesModules: Module[] = [
       },
       {
         kind: 'prose',
-        text: 'Between surrogates, a `bigint` identity is the default: 8 bytes, and each new key lands at the right-hand edge of the index. Reach for a UUID when ids must be minted without asking the database, on a client or across shards, or when they are public and must not be guessable. Prefer a time-ordered UUIDv7 to a random v4. Random keys scatter inserts across the whole index, which costs page splits and cache misses on every write.',
+        text: 'Between surrogates, a `bigint` identity is the default: 8 bytes, and each new key lands at the right-hand edge of the index. Reach for a UUID when ids must be minted without asking the database, on a client or across shards, or when they are public and must not be guessable. Prefer a time-ordered UUIDv7 to a random v4. Random keys scatter inserts across the whole index: more page splits, and once the index outgrows memory, a cache miss on most inserts.',
       },
       {
         kind: 'callout',
@@ -447,7 +447,7 @@ CREATE INDEX ON order_items (product_id);`,
             'No single constraint can enforce "one manager per customer per line" any more: the rule spans two tables',
           ],
         },
-        verdict: 'BCNF removes the last anomalies but can lose a rule you used to enforce for free. 3NF can always keep every dependency enforceable; BCNF cannot. If that rule matters, stay at 3NF and say why.',
+        verdict: 'BCNF removes the last anomalies but can lose a rule you used to enforce for free. 3NF can always keep every dependency enforceable; BCNF cannot always. If that rule matters, stay at 3NF and say why.',
       },
       { kind: 'heading', text: 'Deliberate denormalisation' },
       {
@@ -527,7 +527,7 @@ CREATE INDEX ON order_items (product_id);`,
         items: [
           {
             q: 'When would you stop at 3NF rather than go to BCNF?',
-            a: 'When decomposing would split a dependency across two tables so no single constraint can enforce it, as in the account-manager case. 3NF can always preserve every dependency; BCNF cannot. It is rare, so in practice you reach BCNF for free and only argue when a table has overlapping keys.',
+            a: 'When decomposing would split a dependency across two tables so no single constraint can enforce it, as in the account-manager case. 3NF can always preserve every dependency; BCNF cannot always. It is rare, so in practice you reach BCNF for free and only argue when a table has overlapping keys.',
           },
           {
             q: 'Your revenue materialised view takes four minutes to refresh. What now?',
@@ -676,7 +676,7 @@ COMMIT;`,
       },
       {
         kind: 'prose',
-        text: 'The mechanism is the [[WAL]], the write-ahead log. Before a change reaches a data page on disk, a record describing it is appended to the log. After a crash, recovery replays the log: changes from transactions that committed are redone, and changes from transactions with no commit record are discarded. InnoDB keeps a separate undo log to roll changes back. Postgres needs none, because an aborted transaction\'s new row versions are simply never visible to anyone.',
+        text: 'The mechanism is the [[WAL]], the write-ahead log. Before a change reaches a data page on disk, a record describing it is appended to the log. After a crash, recovery replays the log: changes from transactions that committed are redone, and changes from transactions with no commit record never take effect. InnoDB keeps a separate undo log to roll changes back. Postgres needs none, because an aborted transaction\'s new row versions are simply never visible to anyone.',
       },
       {
         kind: 'callout',
@@ -705,7 +705,7 @@ COMMIT;`,
       { kind: 'heading', text: 'Isolation: a preview' },
       {
         kind: 'prose',
-        text: 'Isolation is what stops two transfers out of A, running at the same moment, from interfering. The textbook promise is serializable: the result is as if transactions ran one at a time. Almost no database gives you that by default. Postgres and Oracle default to read committed and MySQL to repeatable read, and each of those permits specific anomalies.',
+        text: 'Isolation is what stops two transfers out of A, running at the same moment, from interfering. The textbook promise is serializable: the result is as if transactions ran one at a time. Most databases do not give you that by default. Postgres and Oracle default to read committed and MySQL to repeatable read, and each of those permits specific anomalies.',
       },
       {
         kind: 'prose',
@@ -714,7 +714,7 @@ COMMIT;`,
       { kind: 'heading', text: 'Durability: what committed actually means' },
       {
         kind: 'prose',
-        text: 'Commit returns only once the commit record is on stable storage. Postgres forces the log to disk with an fsync, and with `synchronous_commit = on`, the default, the reply waits for it. The data pages themselves are written later, at a checkpoint, because the log is enough to rebuild them. That is why commit latency is the cost of a log flush, not of a page write.',
+        text: 'Commit returns only once the commit record is on stable storage. Postgres forces the log to disk with an fsync, and with `synchronous_commit = on`, the default, the reply waits for it. The data pages themselves are written later, in the background and at checkpoints, because the log is enough to rebuild them. That is why commit latency is the cost of a log flush, not of a page write.',
       },
       {
         kind: 'prose',
@@ -801,7 +801,7 @@ COMMIT;`,
       {
         kind: 'callout',
         tone: 'trap',
-        text: 'Reading the C as "the database keeps my data consistent". It enforces only what you declared. Mixing it up with the C in CAP, which is about replicas agreeing, tells the interviewer you learned the letters and not the mechanisms.',
+        text: 'Reading the C as "the database keeps my data consistent". It enforces only what you declared. Mixing it up with the C in CAP, which is about every read seeing the latest write, tells the interviewer you learned the letters and not the mechanisms.',
       },
       {
         kind: 'followups',
@@ -922,7 +922,7 @@ COMMIT;`,
     lesson: [
       {
         kind: 'prose',
-        text: 'Most concurrency bugs that reach production are an anomaly the default isolation level permits, behaving exactly as documented. Interviewers know this. "Two requests book the last room at once: what happens?" is a question about isolation, and the strong answer names the anomaly, the level that prevents it, and the cheaper targeted fix.',
+        text: 'Many concurrency bugs that reach production are an anomaly the default isolation level permits, behaving exactly as documented. Interviewers know this. "Two requests book the last room at once: what happens?" is a question about isolation, and the strong answer names the anomaly, the level that prevents it, and the cheaper targeted fix.',
       },
       {
         kind: 'prose',
@@ -1356,7 +1356,7 @@ COMMIT;`,
           ['**SQLite**', 'B-tree', 'Phones, browsers, embedded devices'],
           ['**MongoDB WiredTiger**', 'B-tree', 'MongoDB\'s default engine'],
           ['**RocksDB**', '[[LSM|LSM tree]], leveled', 'MyRocks, TiKV, Kafka Streams state stores'],
-          ['**Pebble**', 'LSM tree, RocksDB-compatible', 'CockroachDB'],
+          ['**Pebble**', 'LSM tree, inspired by RocksDB', 'CockroachDB'],
           ['**Cassandra, ScyllaDB**', 'LSM tree', 'Write-heavy wide-column data'],
           ['**HBase, Bigtable**', 'LSM tree', 'Huge sorted tables over a distributed file system'],
         ],

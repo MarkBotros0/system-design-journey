@@ -59,11 +59,11 @@ export const databases2Modules: Module[] = [
       { kind: 'heading', text: 'Start with one atomic statement' },
       {
         kind: 'prose',
-        text: 'Most read-modify-write cycles do not need the read. `UPDATE stock SET qty = qty - 1 WHERE sku = $1 AND qty > 0` checks and decrements in one statement. The database holds the row lock for the microseconds the statement runs, and the row count tells you who won: **1** means sold, **0** means sold out.',
+        text: 'Most read-modify-write cycles do not need the read. `UPDATE stock SET qty = qty - 1 WHERE sku = $1 AND qty > 0` checks and decrements in one statement. Run on its own, it holds the row lock only from the update to its commit, the shortest hold there is, and the row count tells you who won: **1** means sold, **0** means sold out.',
       },
       {
         kind: 'prose',
-        text: 'Reach for this first. There is no retry loop and no lock held across application code. It is correct under the default isolation level of both Postgres and MySQL, because an `UPDATE` always re-checks its `WHERE` against the latest committed row. It stops working only when the decision needs logic the database cannot express in a `WHERE` clause: a fraud check, a call to a payment provider, a human.',
+        text: 'Reach for this first. There is no retry loop and no lock held across application code. It is correct under the default isolation level of both Postgres and MySQL, because at those levels an `UPDATE` re-checks its `WHERE` against the latest committed version of the row. It stops working only when the decision needs logic the database cannot express in a `WHERE` clause: a fraud check, a call to a payment provider, a human.',
       },
       { kind: 'heading', text: 'Pessimistic locks: make rivals wait' },
       {
@@ -80,7 +80,7 @@ export const databases2Modules: Module[] = [
       },
       {
         kind: 'prose',
-        text: '**Row locks are not equal across engines.** Postgres records a row lock in the row itself, so locking a million rows costs page writes but no lock memory, and it never escalates. [[SQL]] Server does escalate: once one statement holds about 5,000 locks on a table, it may swap them for a single table lock, and suddenly unrelated rows block. MySQL\'s InnoDB, at its default isolation level, locks every index record it **scans**, not only the rows it changes. An `UPDATE` filtered on an unindexed column scans the table, so it locks the table.',
+        text: '**Row locks are not equal across engines.** Postgres records a row lock in the row itself, so locking a million rows costs page writes but no lock memory, and it never escalates. [[SQL]] Server does escalate: once one statement holds about 5,000 locks on a table, it may swap them for a single table lock, and suddenly unrelated rows block. MySQL\'s InnoDB, at its default isolation level, locks every index record it **scans**, not only the rows it changes. An `UPDATE` filtered on an unindexed column scans the table, so it locks every row: a table lock in all but name.',
       },
       {
         kind: 'prose',
@@ -138,7 +138,7 @@ throw new Conflict() // lost three times in a row`,
         kind: 'callout',
         tone: 'example',
         title: 'Kubernetes resourceVersion',
-        text: 'Every Kubernetes object carries a `resourceVersion`. A controller reads a Deployment, edits it and sends it back. If anything changed in between, the [[API]] server rejects the write with `409 Conflict`, and the controller re-reads and tries again. Thousands of controllers mutate one shared cluster state with no locks at all, because conflicts on any single object are rare.',
+        text: 'Every Kubernetes object carries a `resourceVersion`. A controller reads a Deployment, edits it and sends it back. If anything changed in between, the [[API]] server rejects the write with `409 Conflict`, and the controller re-reads and tries again. Many controllers mutate one shared cluster state with no locks at all, because conflicts on any single object are rare.',
       },
       {
         kind: 'figure',
@@ -269,7 +269,7 @@ throw new Conflict() // lost three times in a row`,
         kind: 'table',
         head: ['Tool', 'Waits', 'Fails how', 'Use for'],
         rows: [
-          ['**Atomic `UPDATE`**', 'Microseconds', '0 rows: the condition was false', 'Counters, stock, balances'],
+          ['**Atomic `UPDATE`**', 'Briefly: one statement, then commit', '0 rows: the condition was false', 'Counters, stock, balances'],
           ['**`FOR UPDATE`**', 'Until commit', 'Lock timeout or deadlock', 'Hot rows, short read-decide-write'],
           ['**Version column**', 'Never', '0 rows: conflict, so retry', 'Rare conflicts, long think time'],
           ['**Advisory lock**', 'Until release', 'Blocks, or the try variant returns false', 'Singleton jobs, non-row critical sections'],
@@ -298,7 +298,7 @@ throw new Conflict() // lost three times in a row`,
           },
           {
             q: 'A long analytics query runs on the primary every night and the app is slow by morning. Why?',
-            a: 'Its snapshot pins every row version created while it runs, so vacuum cannot reclaim them. Hot tables bloat and every index scan wades through dead versions. Move the report to a replica, with `hot_standby_feedback` off or the replica holds back the primary\'s vacuum anyway, or to an analytics store, and alert on the age of the oldest open transaction.',
+            a: 'Its snapshot pins every row version created while it runs, so vacuum cannot reclaim them. Hot tables bloat and every index scan wades through dead versions. Move the report to a replica with `hot_standby_feedback` off (with it on, the replica holds back the primary\'s vacuum anyway), or to an analytics store, and alert on the age of the oldest open transaction.',
           },
           {
             q: 'Optimistic or pessimistic for a wiki page many people edit?',
@@ -320,7 +320,7 @@ throw new Conflict() // lost three times in a row`,
         ],
         correct: 2,
         explain:
-          'One statement reads and writes atomically, holds the row lock for microseconds, and the row count says whether you won. Optimistic retries collide endlessly on a single hot row, and serializable still needs a retry loop. Reading then writing in application code is the lost update itself.',
+          'One statement reads and writes atomically, holds the row lock only for itself and its commit, and the row count says whether you won. Optimistic retries collide endlessly on a single hot row, and serializable still needs a retry loop. Reading then writing in application code is the lost update itself.',
       },
       {
         id: 'q-db-locking-2',
@@ -799,7 +799,7 @@ throw new Conflict() // lost three times in a row`,
         ordered: true,
         items: [
           '**Sustained writes past one primary.** Tens of thousands of writes a second, sustained, after batching and indexes are tuned; or data heading past a few [[TB]] with no natural archive. Shard Postgres, move to distributed SQL, or use a key-value store if you can give up transactions across rows.',
-          '**Writes accepted in several regions at once.** Users on three continents need local write latency, or writes must survive the loss of a whole region with no failover pause. Single-leader Postgres cannot do that. Cassandra, DynamoDB global tables and Spanner can, each with its own consistency price.',
+          '**Writes accepted in several regions at once.** Users on three continents need local write latency, or writes must survive the loss of a whole region with no failover pause. Single-leader Postgres cannot do that. Cassandra and DynamoDB global tables take local writes and pay in consistency; Spanner survives losing a region and pays in commit latency.',
           '**A pure key lookup at extreme scale.** Sessions, carts, feature flags, idempotency keys: one key in, one item out, very many times a second. A key-value store does this with flat latency and little operational work.',
           '**A query shape the relational planner is bad at.** Typo-tolerant relevance ranking across many fields, traversals of unknown depth, dashboards scanning billions of rows. Add a search engine, a graph store or a column store, alongside rather than instead.',
         ],
@@ -1050,7 +1050,7 @@ ORDER#o981   ITEM#02     sku, name, qty, unitPrice`,
       { kind: 'heading', text: 'Hot partitions and write sharding' },
       {
         kind: 'prose',
-        text: 'The obvious answer to pattern 5 is an index keyed on status: `GSI2PK = PENDING`, sorted by `placedAt`. Then every new order writes to the same index partition. A DynamoDB partition sustains about 1,000 writes and 3,000 reads a second; past that, requests to that key are throttled, however much capacity the table has overall. Adaptive capacity smooths out an uneven table, but it cannot lift one partition past those limits.',
+        text: 'The obvious answer to pattern 5 is an index keyed on status: `GSI2PK = PENDING`, sorted by `placedAt`. Then every new order writes to the same index partition. A DynamoDB partition sustains about 1,000 small writes and 3,000 small reads a second; past that, requests to that key are throttled, however much capacity the table has overall. Adaptive capacity lends a busy partition unused throughput and can even split a hot one, but not when every new write lands at the same end of one key, as it does here.',
       },
       {
         kind: 'prose',

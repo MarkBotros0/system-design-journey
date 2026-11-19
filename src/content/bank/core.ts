@@ -111,7 +111,7 @@ export const questions: Question[] = [
     prompt: 'Match each non-functional category to the requirement it would produce.',
     pairs: [
       { left: 'Durability', right: 'No acknowledged upload is ever lost' },
-      { left: 'Fault tolerance', right: 'Survives losing a whole data centre' },
+      { left: 'Fault tolerance', right: 'Stays up after losing a whole data centre' },
       { left: 'Scalability', right: 'Ten times normal traffic on launch day' },
       { left: 'Environment constraints', right: 'Works on old phones with patchy signal' },
       { left: 'Compliance', right: "EU users' data never leaves the EU" },
