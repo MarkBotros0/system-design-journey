@@ -1,13 +1,15 @@
 import { useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
-import { getModule, problems } from '../content'
+import { BookOpen, ChevronRight, Timer, Workflow } from 'lucide-react'
+import { getModule, getTrack, problems } from '../content'
 import { patterns } from '../content/patterns'
 import type { Pattern } from '../content/types'
 import { plainText } from '../lib/text'
 import { Inline } from '../components/content/Inline'
 import { TopBar, PageTitle } from '../components/ui/TopBar'
 import { Chip, ChipRow } from '../components/ui/Chip'
+import { TrackGlyph } from '../components/ui/TrackIcon'
+import { trackStyle } from '../components/ui/trackStyle'
 import { useScrolledPast } from '../components/ui/useScrolledPast'
 
 /** "WhatsApp" → the WhatsApp problem, when there is one. */
@@ -18,54 +20,82 @@ function problemFor(name: string) {
 
 function PatternCard({ p, targeted }: { p: Pattern; targeted: boolean }) {
   const mod = p.moduleId ? getModule(p.moduleId) : undefined
+  const track = getTrack(mod?.trackId)
   return (
     <article
       id={p.id}
-      className={`rounded-2xl border bg-surface p-4 transition-colors duration-300 ${targeted ? 'border-line' : 'border-hairline'}`}
-      style={{ boxShadow: 'var(--shadow-card)' }}
+      style={{ ...trackStyle(track?.id), boxShadow: 'var(--shadow-card)' }}
+      // The ring marks the card a search result or a link sent you to.
+      className={`rounded-[24px] bg-surface p-5 transition-shadow duration-300 ${targeted ? 'ring-2 ring-line' : ''}`}
     >
-      <h3 className="text-[1.0625rem] font-semibold">{p.name}</h3>
-      <dl className="mt-2.5 flex flex-col gap-2.5">
-        <div>
-          <dt className="font-mono text-[0.625rem] tracking-[0.14em] text-ink-3 uppercase">The tell</dt>
-          <dd className="mt-0.5 text-[0.9375rem] leading-snug text-ink italic">
+      <header className="flex items-center gap-3">
+        {track ? (
+          <TrackGlyph trackId={track.id} size={44} />
+        ) : (
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-surface-3 text-ink-2">
+            <Workflow size={21} strokeWidth={2} aria-hidden="true" />
+          </span>
+        )}
+        <div className="min-w-0">
+          <h3 className="text-[1.125rem] leading-snug font-bold">{p.name}</h3>
+          {track && <p className="mt-0.5 text-[0.875rem] font-bold text-track">{track.title}</p>}
+        </div>
+      </header>
+
+      <dl className="mt-4 flex flex-col gap-3">
+        <div className="rounded-[18px] bg-surface-2 px-4 py-3">
+          <dt className="text-[0.875rem] font-bold text-ink-2">The tell</dt>
+          <dd className="mt-1 text-base leading-snug font-medium text-ink">
             <Inline text={p.tell} />
           </dd>
         </div>
-        <div>
-          <dt className="font-mono text-[0.625rem] tracking-[0.14em] text-line uppercase">The move</dt>
-          <dd className="mt-0.5 text-[0.9375rem] leading-relaxed text-ink-2">
+        <div className="px-1">
+          <dt className="text-[0.875rem] font-bold text-track">The move</dt>
+          <dd className="mt-1 text-base leading-relaxed text-ink-2">
             <Inline text={p.move} />
           </dd>
         </div>
       </dl>
+
       {p.showsUpIn.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="mr-0.5 text-[0.75rem] text-ink-3">Shows up in</span>
-          {p.showsUpIn.map((s) => {
-            const prob = problemFor(s)
-            return prob ? (
-              <Link
-                key={s}
-                to={`/practice/${prob.id}`}
-                className="inline-flex min-h-8 items-center rounded-full bg-line-soft px-2.5 text-[0.75rem] font-medium text-line hover:underline"
-              >
-                {s}
-              </Link>
-            ) : (
-              <span key={s} className="inline-flex min-h-8 items-center rounded-full bg-surface-2 px-2.5 text-[0.75rem] text-ink-2">
-                {s}
-              </span>
-            )
-          })}
+        <div className="mt-4 px-1">
+          <p className="text-[0.875rem] font-bold text-ink-2">Shows up in</p>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {p.showsUpIn.map((s) => {
+              const prob = problemFor(s)
+              return (
+                <li key={s}>
+                  {prob ? (
+                    <Link
+                      to={`/practice/${prob.id}`}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-3 pr-4 pl-3 text-[0.9375rem] font-semibold text-ink transition-[background-color,transform] duration-150 hover:bg-hairline active:scale-[0.97] motion-reduce:active:scale-100"
+                    >
+                      <Timer size={16} strokeWidth={2.2} aria-hidden="true" className="text-ink-2" />
+                      {s}
+                    </Link>
+                  ) : (
+                    <span className="inline-flex min-h-11 items-center rounded-full bg-surface-2 px-4 text-[0.9375rem] text-ink-2">
+                      {s}
+                    </span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
         </div>
       )}
+
       {mod && (
         <Link
           to={`/m/${mod.id}`}
-          className="mt-3 inline-flex min-h-11 items-center gap-1 text-[0.875rem] font-medium text-line hover:underline"
+          className="mt-4 flex min-h-14 items-center gap-3 rounded-[18px] bg-surface-2 px-4 py-2.5 transition-colors duration-150 hover:bg-surface-3"
         >
-          Learn it: {plainText(mod.title)} <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
+          <BookOpen size={18} strokeWidth={2.2} aria-hidden="true" className="shrink-0 text-track" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[0.8125rem] font-semibold text-ink-3">Learn it</span>
+            <span className="block text-[0.9375rem] leading-snug font-semibold">{plainText(mod.title)}</span>
+          </span>
+          <ChevronRight size={18} strokeWidth={2.2} aria-hidden="true" className="shrink-0 text-ink-3" />
         </Link>
       )}
     </article>
@@ -89,22 +119,20 @@ export function PatternsScreen() {
       <TopBar title="Patterns" showTitle={scrolled} back={{ label: 'Back', to: '/learn?view=topics' }} />
       <PageTitle title="Patterns cheat sheet" titleRef={titleRef} sub="Recognise the question, recall the answer." />
       {sections.length > 1 && (
-        <div className="mb-2">
-          <ChipRow label="Jump to section">
-            {sections.map((s) => (
-              <Chip key={s.id} to={`#${s.id}`}>
-                {s.title} · {s.items.length}
-              </Chip>
-            ))}
-          </ChipRow>
-        </div>
+        <ChipRow label="Jump to section">
+          {sections.map((s) => (
+            <Chip key={s.id} to={`#${s.id}`}>
+              {s.title} <span className="tabular text-ink-3">{s.items.length}</span>
+            </Chip>
+          ))}
+        </ChipRow>
       )}
       {sections.map((s) => (
-        <section key={s.id} id={s.id} aria-labelledby={`${s.id}-h`} className="mt-6">
-          <h2 id={`${s.id}-h`} className="text-[1.25rem] font-semibold">
+        <section key={s.id} id={s.id} aria-labelledby={`${s.id}-h`} className="mt-8">
+          <h2 id={`${s.id}-h`} className="px-1 text-[1.375rem] font-extrabold tracking-[-0.02em]">
             {s.title}
           </h2>
-          <p className="mt-0.5 mb-4 text-[0.875rem] text-ink-2">{s.sub}</p>
+          <p className="mt-1 mb-4 px-1 text-base text-ink-2">{s.sub}</p>
           <div className="grid gap-3 md:grid-cols-2">
             {s.items.map((p) => (
               <PatternCard key={p.id} p={p} targeted={p.id === target} />

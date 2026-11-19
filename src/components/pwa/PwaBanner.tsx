@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { Download, RefreshCw, X } from 'lucide-react'
+import { Button, IconButton } from '../ui/Button'
 
 /**
  * Service-worker lifecycle UI.
@@ -31,45 +32,43 @@ export function PwaBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-x-0 bottom-16 z-50 px-4 pb-3 lg:right-6 lg:bottom-6 lg:left-auto lg:max-w-sm lg:px-0"
+      // Floats just above the tab bar, in the same inset as it; a corner card on desktop.
+      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] z-50 mx-auto max-w-lg lg:right-6 lg:bottom-6 lg:left-auto lg:mx-0 lg:w-96"
     >
-      <div
-        className="flex items-start gap-3 rounded-2xl border border-hairline bg-surface px-4 py-3.5"
-        style={{ boxShadow: 'var(--shadow-sheet)' }}
-      >
+      <div className="flex items-start gap-3 rounded-[22px] bg-surface p-3.5 dark:bg-surface-2" style={{ boxShadow: 'var(--shadow-float)' }}>
         {needRefresh ? (
           <>
-            <RefreshCw size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-line" />
-            <div className="min-w-0 flex-1">
-              <p className="text-[0.9375rem] font-semibold">New version ready</p>
-              <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-ink-2">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-surface-3 text-ink">
+              <RefreshCw size={19} strokeWidth={2.2} aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1 pt-0.5">
+              <p className="text-base leading-snug font-bold">New version ready</p>
+              <p className="mt-0.5 text-[0.875rem] leading-snug text-ink-2">
                 Reload when you are not mid-attempt — nothing is lost either way.
               </p>
-              <button
+              <Button
                 onClick={() => {
                   setReloading(true)
                   void updateServiceWorker(true)
                 }}
                 disabled={reloading}
-                className="mt-2.5 min-h-9 rounded-lg bg-line px-3.5 text-[0.875rem] font-medium text-line-ink disabled:opacity-60"
+                className="mt-3"
               >
                 {reloading ? 'Reloading…' : 'Reload'}
-              </button>
+              </Button>
             </div>
-            <button
-              onClick={() => setNeedRefresh(false)}
-              aria-label="Dismiss"
-              className="-mt-1 -mr-1.5 flex min-h-11 min-w-11 items-center justify-center text-ink-3 hover:text-ink"
-            >
-              <X size={17} strokeWidth={2} />
-            </button>
+            <IconButton label="Dismiss" onClick={() => setNeedRefresh(false)} className="-mt-0.5 -mr-0.5">
+              <X size={18} strokeWidth={2.2} aria-hidden="true" />
+            </IconButton>
           </>
         ) : (
           <>
-            <Download size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-ink-2" />
-            <p className="flex-1 text-[0.875rem] leading-relaxed">
-              <span className="font-semibold">Ready to work offline.</span> Every station,
-              quiz and problem is on your device now.
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-surface-3 text-ink">
+              <Download size={19} strokeWidth={2.2} aria-hidden="true" />
+            </span>
+            <p className="min-w-0 flex-1 pt-0.5 text-[0.9375rem] leading-snug text-ink-2">
+              <span className="block text-base font-bold text-ink">Ready to work offline</span>
+              Every station, quiz and problem is on your device now.
             </p>
           </>
         )}

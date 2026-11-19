@@ -1,18 +1,22 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, BookA, BookOpen, ChevronRight, Hash, History, Puzzle, Search, Timer, X } from 'lucide-react'
+import { BookA, ChevronLeft, ChevronRight, History, LayoutGrid, Search, Timer, Workflow, X } from 'lucide-react'
 import { getModule, getTrack } from '../content'
+import { patterns } from '../content/patterns'
 import { POPULAR_TOPICS, search, searchAll, type Hit, type HitType } from '../lib/search'
 import { useProgress } from '../state/ProgressProvider'
 import { useGlossary } from '../state/GlossaryProvider'
 import { Chip } from '../components/ui/Chip'
+import { IconButton } from '../components/ui/Button'
+import { Cell, Group } from '../components/ui/List'
+import { TrackGlyph } from '../components/ui/TrackIcon'
 
-const GROUP: Record<HitType, { title: string; icon: typeof BookOpen }> = {
-  lesson: { title: 'Lessons', icon: BookOpen },
-  section: { title: 'In lessons', icon: Hash },
-  term: { title: 'Terms', icon: BookA },
-  problem: { title: 'Practice problems', icon: Timer },
-  pattern: { title: 'Patterns', icon: Puzzle },
+const GROUP_TITLE: Record<HitType, string> = {
+  lesson: 'Lessons',
+  section: 'Sections',
+  term: 'Terms',
+  problem: 'Problems',
+  pattern: 'Patterns',
 }
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -28,7 +32,7 @@ function Highlighted({ text, terms }: { text: string; terms: string[] }) {
     <>
       {parts.map((p, i) =>
         i % 2 === 1 ? (
-          <mark key={i} className="rounded-sm bg-line-soft px-0.5 text-ink">
+          <mark key={i} className="rounded-[4px] bg-surface-3 px-0.5 font-bold text-ink">
             {p}
           </mark>
         ) : (
@@ -39,14 +43,45 @@ function Highlighted({ text, terms }: { text: string; terms: string[] }) {
   )
 }
 
-function SectionLabel({ children, right }: { children: ReactNode; right?: ReactNode }) {
+/** A neutral tile for results that belong to no single track. */
+function IconTile({ icon: Icon }: { icon: typeof BookA }) {
   return (
-    <div className="mt-6 mb-2 flex min-h-8 items-center justify-between gap-3">
-      <p className="font-mono text-[0.6875rem] tracking-[0.14em] text-ink-3 uppercase">{children}</p>
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] bg-surface-3 text-ink-2">
+      <Icon size={18} strokeWidth={2} aria-hidden="true" />
+    </span>
+  )
+}
+
+/** The track a hit belongs to, when it belongs to one: a lesson, a section of one, a pattern a lesson teaches. */
+function trackOf(hit: Hit): string | undefined {
+  if (hit.type === 'lesson') return getModule(hit.id)?.trackId
+  if (hit.type === 'section') return getModule(hit.id.split('#')[0])?.trackId
+  if (hit.type === 'pattern') {
+    const mod = patterns.find((p) => p.id === hit.id)?.moduleId
+    return mod ? getModule(mod)?.trackId : undefined
+  }
+  return undefined
+}
+
+function Leading({ hit }: { hit: Hit }) {
+  const trackId = trackOf(hit)
+  if (trackId) return <TrackGlyph trackId={trackId} size={36} />
+  return <IconTile icon={hit.type === 'term' ? BookA : hit.type === 'problem' ? Timer : Workflow} />
+}
+
+function Heading({ children, right }: { children: ReactNode; right?: ReactNode }) {
+  return (
+    <div className="mt-7 mb-2 flex min-h-11 items-end justify-between gap-3 px-1">
+      <h2 className="text-[1.25rem] font-bold">{children}</h2>
       {right}
     </div>
   )
 }
+
+/* The row separators of a Group, for the result cards — which are not lists, because the
+   results are one listbox the field drives with the arrow keys. */
+const SEPARATED =
+  "[&>div+div]:relative [&>div+div]:before:pointer-events-none [&>div+div]:before:absolute [&>div+div]:before:top-0 [&>div+div]:before:right-4 [&>div+div]:before:left-[4.25rem] [&>div+div]:before:h-px [&>div+div]:before:bg-hairline [&>div+div]:before:content-['']"
 
 export function SearchScreen() {
   const [params, setParams] = useSearchParams()
@@ -58,6 +93,7 @@ export function SearchScreen() {
   const [query, setQuery] = useState(text)
   const [active, setActive] = useState(0)
   const [expanded, setExpanded] = useState<Set<HitType>>(new Set())
+  const [scrolled, setScrolled] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Debounced: typing stays instant, the index is consulted once the fingers pause.
@@ -71,6 +107,14 @@ export function SearchScreen() {
     return () => clearTimeout(t)
   }, [text, setParams])
 
+  // The bar turns to glass once results slide under it, as the shell's top bars do.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const result = useMemo(() => search(query), [query])
   const groups = useMemo(
     () =>
@@ -82,6 +126,8 @@ export function SearchScreen() {
     [result, expanded, query],
   )
   const flat = useMemo(() => groups.flatMap((g) => g.hits), [groups])
+  // Where each group starts in `flat`, so a row knows its option index without counting during render.
+  const starts = useMemo(() => groups.map((_, gi) => groups.slice(0, gi).reduce((a, g) => a + g.hits.length, 0)), [groups])
 
   function back() {
     const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
@@ -121,22 +167,20 @@ export function SearchScreen() {
 
   const trimmed = query.trim()
   const hasQuery = trimmed.replace(/[^\p{L}\p{N}]/gu, '').length >= 2
-  let n = -1
 
   return (
     <div>
-      <header className="sticky top-0 z-30 -mx-4 border-b border-hairline/70 bg-paper/90 px-4 pt-safe backdrop-blur-md lg:-mx-8 lg:px-8">
-        <div className="flex min-h-16 items-center gap-1.5">
-          <button
-            type="button"
-            onClick={back}
-            aria-label="Close search"
-            className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-2 hover:bg-surface-2 hover:text-ink lg:hidden"
-          >
-            <ArrowLeft size={19} strokeWidth={2} />
-          </button>
+      <header
+        className={`sticky top-0 z-30 -mx-4 px-4 pt-safe transition-[background-color,box-shadow] duration-200 lg:-mx-8 lg:px-8 ${
+          scrolled ? 'bar-glass shadow-[0_1px_0_var(--hairline)]' : 'bg-paper'
+        }`}
+      >
+        <div className="flex min-h-[4.5rem] items-center gap-2 py-2.5">
+          <IconButton label="Close search" onClick={back} className="-ml-1 lg:hidden">
+            <ChevronLeft size={22} strokeWidth={2.2} aria-hidden="true" />
+          </IconButton>
           <div className="relative flex min-w-0 flex-1 items-center">
-            <Search size={18} strokeWidth={2} aria-hidden="true" className="pointer-events-none absolute left-3.5 text-ink-3" />
+            <Search size={20} strokeWidth={2.2} aria-hidden="true" className="pointer-events-none absolute left-4 text-ink-2" />
             <input
               ref={inputRef}
               autoFocus
@@ -147,14 +191,16 @@ export function SearchScreen() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={onKey}
-              placeholder="Search topics, terms, problems"
+              placeholder="Lessons, terms, problems"
               role="combobox"
               aria-expanded={flat.length > 0}
               aria-controls="search-results"
               aria-activedescendant={flat.length ? `hit-${active}` : undefined}
               aria-autocomplete="list"
               aria-label="Search the curriculum"
-              className="min-h-12 w-full rounded-xl border border-hairline bg-surface pr-11 pl-10 text-base text-ink outline-none placeholder:text-ink-3 focus:border-line [&::-webkit-search-cancel-button]:hidden"
+              className={`min-h-[3.25rem] w-full rounded-[18px] bg-surface-3 pl-12 text-[1.0625rem] font-medium text-ink outline-none placeholder:font-normal placeholder:text-ink-3 focus:ring-2 focus:ring-ink/15 [&::-webkit-search-cancel-button]:hidden ${
+                text ? 'pr-12' : 'pr-4'
+              }`}
             />
             {text && (
               <button
@@ -164,9 +210,11 @@ export function SearchScreen() {
                   inputRef.current?.focus()
                 }}
                 aria-label="Clear search"
-                className="absolute right-0.5 flex h-11 w-11 items-center justify-center rounded-xl text-ink-3 hover:text-ink"
+                className="absolute right-1 flex h-11 w-11 items-center justify-center rounded-full text-ink-2 hover:text-ink"
               >
-                <X size={17} strokeWidth={2} />
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink-3 text-surface-3">
+                  <X size={13} strokeWidth={3} aria-hidden="true" />
+                </span>
               </button>
             )}
           </div>
@@ -180,37 +228,31 @@ export function SearchScreen() {
       {!hasQuery && (
         <div>
           {progress.recentSearches.length > 0 && (
-            <>
-              <SectionLabel
-                right={
-                  <button
-                    type="button"
-                    onClick={clearRecentSearches}
-                    className="min-h-11 px-1 text-[0.8125rem] text-ink-3 hover:text-ink"
-                  >
-                    Clear
-                  </button>
-                }
-              >
-                Recent
-              </SectionLabel>
-              <ul className="overflow-hidden rounded-2xl border border-hairline bg-surface">
-                {progress.recentSearches.map((r) => (
-                  <li key={r} className="border-b border-hairline last:border-b-0">
-                    <button
-                      type="button"
-                      onClick={() => setText(r)}
-                      className="flex min-h-12 w-full items-center gap-3 px-4 text-left text-[0.9375rem] text-ink-2 hover:bg-surface-2 hover:text-ink"
-                    >
-                      <History size={16} strokeWidth={1.9} aria-hidden="true" className="text-ink-3" />
-                      {r}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
+            <Group
+              className="mt-4"
+              title="Recent"
+              action={
+                <button
+                  type="button"
+                  onClick={clearRecentSearches}
+                  className="-mr-2 -mb-2 min-h-11 rounded-full px-3 text-[0.9375rem] font-semibold text-ink-2 hover:bg-surface-2 hover:text-ink"
+                >
+                  Clear
+                </button>
+              }
+            >
+              {progress.recentSearches.map((r) => (
+                <Cell
+                  key={r}
+                  onClick={() => setText(r)}
+                  leading={<History size={18} strokeWidth={2} aria-hidden="true" className="text-ink-3" />}
+                  title={r}
+                />
+              ))}
+            </Group>
           )}
-          <SectionLabel>Popular topics</SectionLabel>
+
+          <Heading>Popular topics</Heading>
           <div className="flex flex-wrap gap-2">
             {POPULAR_TOPICS.map((t) => (
               <Chip key={t} onClick={() => setText(t)}>
@@ -218,23 +260,22 @@ export function SearchScreen() {
               </Chip>
             ))}
           </div>
-          <Link
-            to="/learn?view=topics"
-            className="mt-6 flex min-h-12 items-center justify-between rounded-2xl border border-hairline bg-surface px-4 text-[0.9375rem] font-medium transition-colors hover:border-line"
-          >
-            Browse all topics
-            <ChevronRight size={18} strokeWidth={2} aria-hidden="true" className="text-ink-3" />
-          </Link>
-          <p className="mt-4 text-[0.8125rem] text-ink-3">
+          <p className="mt-3 px-1 text-[0.875rem] text-ink-3">
             Searches lesson text too: try “fan-out”, “write skew” or “idempotency key”.
           </p>
+
+          <Group className="mt-7" title="Browse">
+            <Cell to="/learn?view=topics" leading={<IconTile icon={LayoutGrid} />} title="All topics" />
+            <Cell to="/glossary" leading={<IconTile icon={BookA} />} title="Glossary" />
+            <Cell to="/patterns" leading={<IconTile icon={Workflow} />} title="Patterns cheat sheet" />
+          </Group>
         </div>
       )}
 
       {hasQuery && result.total === 0 && (
-        <div className="mt-8">
-          <p className="text-[1.0625rem] font-semibold">No match for “{trimmed}”</p>
-          <p className="mt-1 text-[0.9375rem] text-ink-2">
+        <div className="mt-6 rounded-3xl bg-surface px-5 py-6" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <p className="text-[1.125rem] font-bold [overflow-wrap:anywhere]">No match for “{trimmed}”</p>
+          <p className="mt-1 text-base text-ink-2">
             {result.suggestions.length ? 'Did you mean one of these?' : 'Try a broader word, or one of the popular topics.'}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -246,27 +287,32 @@ export function SearchScreen() {
           </div>
           <Link
             to="/learn?view=topics"
-            className="mt-6 inline-flex min-h-11 items-center gap-1 text-[0.9375rem] font-medium text-line hover:underline"
+            className="mt-4 -ml-1 inline-flex min-h-11 items-center gap-1 rounded-full px-1 text-[0.9375rem] font-semibold text-ink hover:underline"
           >
-            Browse all topics <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
+            Browse all topics <ChevronRight size={16} strokeWidth={2.2} aria-hidden="true" />
           </Link>
         </div>
       )}
 
       {hasQuery && result.total > 0 && (
         <div id="search-results" role="listbox" aria-label="Results">
-          {groups.map((g) => {
-            const meta = GROUP[g.type]
+          {groups.map((g, gi) => {
+            const title = GROUP_TITLE[g.type]
             return (
-              <div key={g.type} role="group" aria-label={meta.title}>
-                <SectionLabel>{meta.title}</SectionLabel>
-                <div className="overflow-hidden rounded-2xl border border-hairline bg-surface" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  {g.hits.map((hit) => {
-                    n += 1
-                    const i = n
+              <div key={g.type} role="group" aria-label={title}>
+                <div aria-hidden="true" className="mt-6 mb-2 flex min-h-8 items-end px-1 text-[1.25rem] font-bold">
+                  {title}
+                </div>
+                <div className={`overflow-hidden rounded-[22px] bg-surface ${SEPARATED}`} style={{ boxShadow: 'var(--shadow-card)' }}>
+                  {g.hits.map((hit, hi) => {
+                    const i = starts[gi] + hi
                     const on = i === active
-                    const lessonTrack =
-                      hit.type === 'lesson' ? getTrack(getModule(hit.id)?.trackId)?.title : undefined
+                    const sub =
+                      hit.type === 'lesson'
+                        ? getTrack(getModule(hit.id)?.trackId)?.title
+                        : hit.parent
+                          ? `in ${hit.parent}`
+                          : undefined
                     return (
                       <div
                         key={hit.id}
@@ -275,25 +321,23 @@ export function SearchScreen() {
                         aria-selected={on}
                         onClick={() => openHit(hit)}
                         onMouseMove={() => setActive(i)}
-                        className={`flex min-h-14 cursor-pointer items-start gap-3 border-b border-hairline px-4 py-3 last:border-b-0 ${
-                          on ? 'bg-line-soft/60' : 'hover:bg-surface-2/60'
+                        className={`flex min-h-16 cursor-pointer items-start gap-3 px-4 py-3 transition-colors duration-100 active:bg-surface-2 ${
+                          on ? 'bg-surface-2' : ''
                         }`}
                       >
-                        <meta.icon size={17} strokeWidth={1.9} aria-hidden="true" className="mt-0.5 shrink-0 text-line" />
+                        <span className="pt-0.5">
+                          <Leading hit={hit} />
+                        </span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[0.9375rem] leading-snug font-medium">
+                          <p className="text-base leading-snug font-semibold [overflow-wrap:anywhere]">
                             <Highlighted text={hit.title} terms={hit.terms} />
                           </p>
-                          {hit.parent && (
-                            <p className="mt-0.5 truncate text-[0.75rem] text-ink-3">in {hit.parent}</p>
-                          )}
-                          <p className="mt-0.5 line-clamp-2 text-[0.8125rem] leading-relaxed text-ink-2">
+                          {sub && <p className="mt-0.5 truncate text-[0.8125rem] font-semibold text-ink-3">{sub}</p>}
+                          <p className="mt-0.5 line-clamp-2 text-[0.875rem] leading-snug text-ink-2">
                             <Highlighted text={hit.context} terms={hit.terms} />
                           </p>
                         </div>
-                        {lessonTrack && (
-                          <span className="hidden shrink-0 pt-0.5 text-[0.75rem] text-ink-3 sm:block">{lessonTrack}</span>
-                        )}
+                        <ChevronRight size={18} strokeWidth={2.2} aria-hidden="true" className="mt-2 shrink-0 text-ink-3" />
                       </div>
                     )
                   })}
@@ -302,7 +346,7 @@ export function SearchScreen() {
                   <button
                     type="button"
                     onClick={() => setExpanded((s) => new Set(s).add(g.type))}
-                    className="mt-1 min-h-11 px-1 text-[0.875rem] font-medium text-line hover:underline"
+                    className="mt-1 min-h-11 rounded-full px-2 text-[0.9375rem] font-semibold text-ink hover:bg-surface-2"
                   >
                     Show {g.more} more
                   </button>
